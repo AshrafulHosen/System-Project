@@ -1,14 +1,17 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { Job } from "@/types";
-import { X, ShieldCheck, Lock, CheckCircle2, ArrowRight, RefreshCw, Smartphone } from "lucide-react";
+import { X, ShieldCheck, Lock, CheckCircle2, ArrowRight, RefreshCw, Smartphone, Briefcase } from "lucide-react";
 
 interface EscrowModalProps {
   job: Job | null;
   isOpen: boolean;
   onClose: () => void;
   lang: "en" | "bn";
+  customAmount?: number;
+  freelancerName?: string;
 }
 
 type EscrowState = "READY_TO_FUND" | "PROCESSING" | "ESCROW_LOCKED" | "WORK_SUBMITTED" | "FUNDS_RELEASED";
@@ -18,13 +21,15 @@ export default function EscrowModal({
   isOpen,
   onClose,
   lang,
+  customAmount,
+  freelancerName,
 }: EscrowModalProps) {
   const [selectedGateway, setSelectedGateway] = useState<"bkash" | "nagad" | "card">("bkash");
   const [escrowState, setEscrowState] = useState<EscrowState>("READY_TO_FUND");
 
   if (!isOpen || !job) return null;
 
-  const milestoneAmount = job.budgetBdt;
+  const milestoneAmount = customAmount || job.budgetBdt;
   const platformFee = Math.round(milestoneAmount * 0.07);
   const freelancerGets = milestoneAmount - platformFee;
 
@@ -192,7 +197,7 @@ export default function EscrowModal({
           )}
 
           {escrowState === "ESCROW_LOCKED" && (
-            <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4 space-y-2.5">
+            <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4 space-y-3">
               <div className="flex items-center gap-2 text-sky-800 font-bold text-xs">
                 <ShieldCheck className="w-4 h-4 text-sky-600" />
                 <span>Funds Secured in MuktoKormo Escrow</span>
@@ -200,13 +205,23 @@ export default function EscrowModal({
               <p className="text-xs text-slate-600 leading-relaxed">
                 Freelancer has been notified that the milestone is funded. It is now safe to begin development.
               </p>
-              <button
-                onClick={handleSimulateWorkSubmitted}
-                className="w-full py-2.5 rounded-full bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs border border-slate-200 flex items-center justify-center gap-2 cursor-pointer transition-all shadow-xs"
-              >
-                <span>Simulate: Freelancer Submits Completed Work</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              <div className="space-y-2 pt-1">
+                <Link
+                  href="/contracts/ctr-8842"
+                  onClick={onClose}
+                  className="w-full py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md shadow-emerald-600/20"
+                >
+                  <Briefcase className="w-3.5 h-3.5" />
+                  <span>Open Contract Delivery Workspace →</span>
+                </Link>
+                <button
+                  onClick={handleSimulateWorkSubmitted}
+                  className="w-full py-2 rounded-full bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 flex items-center justify-center gap-2 cursor-pointer transition-all shadow-2xs"
+                >
+                  <span>Quick Test: Simulate Work Submission</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           )}
 
@@ -219,17 +234,27 @@ export default function EscrowModal({
               <p className="text-xs text-slate-600 leading-relaxed">
                 Client reviews files. If satisfied, click release funds to disburse payment to freelancer.
               </p>
-              <button
-                onClick={handleReleaseFunds}
-                className="w-full py-2.5 rounded-full bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs shadow-md shadow-sky-500/20 cursor-pointer transition-all"
-              >
-                Approve Work & Release ৳{milestoneAmount.toLocaleString()}
-              </button>
+              <div className="space-y-2 pt-1">
+                <button
+                  onClick={handleReleaseFunds}
+                  className="w-full py-2.5 rounded-full bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs shadow-md shadow-sky-500/20 cursor-pointer transition-all"
+                >
+                  Approve Work & Release ৳{milestoneAmount.toLocaleString()}
+                </button>
+                <Link
+                  href="/contracts/ctr-8842"
+                  onClick={onClose}
+                  className="w-full py-2 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
+                >
+                  <Briefcase className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Inspect in Delivery Workspace</span>
+                </Link>
+              </div>
             </div>
           )}
 
           {escrowState === "FUNDS_RELEASED" && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center space-y-2.5">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-center space-y-3">
               <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
@@ -237,12 +262,22 @@ export default function EscrowModal({
               <p className="text-xs text-slate-600">
                 ৳{freelancerGets.toLocaleString()} credited to Freelancer's bKash wallet. Fee: ৳{platformFee.toLocaleString()} (7%).
               </p>
-              <button
-                onClick={handleReset}
-                className="px-4 py-1.5 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer"
-              >
-                Reset Simulator
-              </button>
+              <div className="flex items-center justify-center gap-2 pt-1">
+                <Link
+                  href="/contracts/ctr-8842"
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5"
+                >
+                  <Briefcase className="w-3.5 h-3.5" />
+                  <span>Open Full Workspace</span>
+                </Link>
+                <button
+                  onClick={handleReset}
+                  className="px-4 py-2 rounded-full bg-white border border-slate-200 text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-50"
+                >
+                  Reset
+                </button>
+              </div>
             </div>
           )}
 

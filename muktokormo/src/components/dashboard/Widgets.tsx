@@ -171,9 +171,19 @@ export function ContractCard({
           </p>
           <p className="text-[10px] text-slate-400 mt-0.5">{contract.nextMilestoneDue}</p>
         </div>
+<<<<<<< HEAD
         <button className="shrink-0 p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors cursor-pointer">
           <ChevronRight className="w-4 h-4" />
         </button>
+=======
+        <Link
+          href="/contracts/ctr-8842"
+          className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-all cursor-pointer border border-emerald-200/60"
+        >
+          <span>{lang === "en" ? "Workspace" : "ওয়ার্কস্পেস"}</span>
+          <ChevronRight className="w-3.5 h-3.5 text-emerald-600" />
+        </Link>
+>>>>>>> 9e642e7 (add bidding system and navbar is rearrange)
       </div>
 
       <p className="text-[10px] text-slate-400 mt-2">{contract.startedLabel}</p>

@@ -48,6 +48,13 @@ interface DashboardShellProps {
   walletLabel: string;
   children: React.ReactNode;
   action?: { label: string; labelBn: string; href: string };
+<<<<<<< HEAD
+=======
+  activeTab?: string;
+  onTabChange?: (tabId: string) => void;
+  lang?: "en" | "bn";
+  onToggleLang?: () => void;
+>>>>>>> 9e642e7 (add bidding system and navbar is rearrange)
 }
 
 export default function DashboardShell({
@@ -60,10 +67,33 @@ export default function DashboardShell({
   walletLabel,
   children,
   action,
+<<<<<<< HEAD
 }: DashboardShellProps) {
   const router = useRouter();
   const [lang, setLang] = useState<"en" | "bn">("en");
   const [active, setActive] = useState(nav[0].id);
+=======
+  activeTab: controlledActiveTab,
+  onTabChange,
+  lang: controlledLang,
+  onToggleLang,
+}: DashboardShellProps) {
+  const router = useRouter();
+  const [internalLang, setInternalLang] = useState<"en" | "bn">("en");
+  const lang = controlledLang ?? internalLang;
+  const handleToggleLang = onToggleLang ?? (() => setInternalLang((prev) => (prev === "en" ? "bn" : "en")));
+
+  const [internalActive, setInternalActive] = useState(nav[0].id);
+  const active = controlledActiveTab ?? internalActive;
+  const handleTabClick = (tabId: string) => {
+    if (onTabChange) {
+      onTabChange(tabId);
+    } else {
+      setInternalActive(tabId);
+    }
+  };
+
+>>>>>>> 9e642e7 (add bidding system and navbar is rearrange)
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
@@ -118,13 +148,29 @@ export default function DashboardShell({
 
           <div className="flex items-center gap-2 sm:gap-3">
             <button
+<<<<<<< HEAD
               onClick={() => setLang(lang === "en" ? "bn" : "en")}
+=======
+              onClick={handleToggleLang}
+>>>>>>> 9e642e7 (add bidding system and navbar is rearrange)
               className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
             >
               <Globe className="w-3.5 h-3.5 text-emerald-600" />
               <span>{lang === "en" ? "বাংলা" : "English"}</span>
             </button>
 
+<<<<<<< HEAD
+=======
+            {/* Quick role toggle in top bar */}
+            <button
+              onClick={() => router.push(role === "client" ? "/dashboard/freelancer" : "/dashboard/client")}
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 hover:text-emerald-700 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer border border-slate-200/80"
+            >
+              <UserCircle className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{role === "client" ? (lang === "en" ? "Switch to Talent" : "ট্যালেন্ট মোড") : (lang === "en" ? "Switch to Employer" : "নিয়োগদাতা মোড")}</span>
+            </button>
+
+>>>>>>> 9e642e7 (add bidding system and navbar is rearrange)
             {/* Wallet chip */}
             <Link
               href={role === "client" ? "#payments" : "#wallet"}
@@ -228,7 +274,11 @@ export default function DashboardShell({
                 <button
                   key={item.id}
                   onClick={() => {
+<<<<<<< HEAD
                     setActive(item.id);
+=======
+                    handleTabClick(item.id);
+>>>>>>> 9e642e7 (add bidding system and navbar is rearrange)
                     setMobileNavOpen(false);
                   }}
                   className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
@@ -256,7 +306,22 @@ export default function DashboardShell({
           </nav>
 
           <div className="px-4 pb-4 space-y-2">
+<<<<<<< HEAD
             <div className="border-t border-slate-100 pt-4">
+=======
+            <div className="border-t border-slate-100 pt-4 space-y-1">
+              <Link
+                href="/contracts"
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50/70 border border-emerald-200/60 hover:bg-emerald-100 transition-all"
+              >
+                <Handshake className="w-4 h-4 text-emerald-600" />
+                <span>
+                  {lang === "en" ? "Contracts Workspace" : "কন্ট্রাক্ট ওয়ার্কস্পেস"}
+                </span>
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              </Link>
+
+>>>>>>> 9e642e7 (add bidding system and navbar is rearrange)
               <button
                 onClick={() =>
                   router.push(role === "client" ? "/dashboard/freelancer" : "/dashboard/client")
