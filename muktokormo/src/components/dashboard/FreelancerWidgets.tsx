@@ -1,12 +1,8 @@
 "use client";
 
 import React from "react";
-<<<<<<< HEAD
-import { Send, Sparkles, TrendingUp, Clock } from "lucide-react";
-=======
 import Link from "next/link";
 import { Send, Sparkles, TrendingUp, Clock, ArrowRight } from "lucide-react";
->>>>>>> 9e642e7 (add bidding system and navbar is rearrange)
 import { TrackedProposal, TrackedProposalStatus } from "@/types";
 import { formatBdt } from "@/lib/format";
 
@@ -88,14 +84,6 @@ export function ProposalTracker({
                   <td className="px-4 sm:px-5 py-3.5 text-[11px] text-slate-500 whitespace-nowrap">
                     {p.submittedLabel}
                   </td>
-<<<<<<< HEAD
-                  <td className="px-4 sm:px-5 py-3.5">
-                    <span
-                      className={`px-2.5 py-1 rounded-md text-[10px] font-bold border whitespace-nowrap ${status.cls}`}
-                    >
-                      {lang === "en" ? status.label : status.labelBn}
-                    </span>
-=======
                   <td className="px-4 sm:px-5 py-3.5 whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
                       <span
@@ -114,7 +102,6 @@ export function ProposalTracker({
                         </Link>
                       )}
                     </div>
->>>>>>> 9e642e7 (add bidding system and navbar is rearrange)
                   </td>
                 </tr>
               );
