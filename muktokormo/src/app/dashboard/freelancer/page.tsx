@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Send,
   Handshake,
@@ -43,14 +44,26 @@ import {
 } from "@/data/dashboardData";
 import { INITIAL_JOBS } from "@/data/mockData";
 import { formatBdt } from "@/lib/format";
+import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import { Job, WalletEntry } from "@/types";
 
 export default function FreelancerDashboardPage() {
+  const router = useRouter();
+  const { name, email, role, loading: userLoading } = useCurrentUser();
   const [lang, setLang] = useState<"en" | "bn">("en");
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [pickedSkills, setPickedSkills] = useState<string[]>([]);
   const [available, setAvailable] = useState<number>(87500);
   const [ledgerEntries, setLedgerEntries] = useState<WalletEntry[]>(FREELANCER_LEDGER);
+
+  useEffect(() => {
+    if (!userLoading && role === "client") {
+      router.replace("/dashboard/client");
+    }
+  }, [userLoading, role, router]);
+
+  const displayName = name.trim() || (lang === "en" ? "Freelancer" : "ফ্রিল্যান্সার");
+  const firstName = displayName.split(" ")[0];
 
   // MFS Withdrawal Modal State
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
@@ -129,8 +142,8 @@ export default function FreelancerDashboardPage() {
     <DashboardShell
       role="freelancer"
       nav={FREELANCER_NAV}
-      userName="Arifur Rahman"
-      userMeta={lang === "en" ? "Top-Rated Freelancer" : "টপ-রেটেড ফ্রিল্যান্সার"}
+      userName={displayName}
+      userMeta={email}
       avatar="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
       walletBdt={available}
       walletLabel={lang === "en" ? "available" : "উত্তোলনযোগ্য"}
@@ -164,16 +177,18 @@ export default function FreelancerDashboardPage() {
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
               {lang === "en" ? (
                 <>
-                  Welcome back, <span className="text-emerald-600">Arifur</span>
+                  Welcome back, <span className="text-emerald-600">{firstName}</span>
                 </>
               ) : (
                 <>
-                  স্বাগতম, <span className="text-emerald-600">আরিফুর</span>
+                  স্বাগতম, <span className="text-emerald-600">{firstName}</span>
                 </>
               )}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 mt-1 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              {email || (lang === "en" ? "Freelancer Account" : "ফ্রিল্যান্সার অ্যাকাউন্ট")}
+              <span className="text-slate-300">•</span>
               {lang === "en"
                 ? "NID verified · 4.98 rating · Dhaka, Bangladesh"
                 : "এনআইডি যাচাইকৃত · ৪.৯৮ রেটিং · ঢাকা, বাংলাদেশ"}

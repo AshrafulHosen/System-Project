@@ -101,7 +101,6 @@ export default function DashboardShell({
         ];
 
   const unreadCount = notifications.filter((n) => n.unread).length;
-  const otherRoleLabel = role === "client" ? "Freelancer" : "Client";
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
@@ -143,15 +142,6 @@ export default function DashboardShell({
             >
               <Globe className="w-3.5 h-3.5 text-emerald-600" />
               <span>{lang === "en" ? "বাংলা" : "English"}</span>
-            </button>
-
-            {/* Quick role toggle in top bar */}
-            <button
-              onClick={() => router.push(role === "client" ? "/dashboard/freelancer" : "/dashboard/client")}
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 hover:text-emerald-700 bg-slate-100 hover:bg-slate-200 transition-all cursor-pointer border border-slate-200/80"
-            >
-              <UserCircle className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{role === "client" ? (lang === "en" ? "Switch to Talent" : "ট্যালেন্ট মোড") : (lang === "en" ? "Switch to Employer" : "নিয়োগদাতা মোড")}</span>
             </button>
 
             {/* Wallet chip */}
@@ -224,7 +214,7 @@ export default function DashboardShell({
               )}
             </div>
 
-            {/* Avatar + role switch */}
+            {/* Avatar */}
             <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-slate-200">
               <img
                 src={avatar}
@@ -296,18 +286,6 @@ export default function DashboardShell({
                 </span>
                 <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               </Link>
-
-              <button
-                onClick={() =>
-                  router.push(role === "client" ? "/dashboard/freelancer" : "/dashboard/client")
-                }
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
-              >
-                <UserCircle className="w-4 h-4 text-slate-400" />
-                <span>
-                  {lang === "en" ? `Switch to ${otherRoleLabel}` : `${otherRoleLabel} মোডে যান`}
-                </span>
-              </button>
 
               <button
                 onClick={() => router.push("/login")}

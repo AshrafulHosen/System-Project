@@ -223,8 +223,6 @@ export default function ContractWorkspacePage({ params }: PageProps) {
         onOpenPostJob={() => {}}
         lang={lang}
         onToggleLang={() => setLang((prev) => (prev === "en" ? "bn" : "en"))}
-        role={activeRole}
-        onToggleRole={() => setActiveRole((prev) => (prev === "client" ? "freelancer" : "client"))}
         searchQuery=""
         onSearchChange={() => {}}
       />

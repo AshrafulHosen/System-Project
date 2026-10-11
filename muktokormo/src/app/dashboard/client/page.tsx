@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Briefcase,
   Send,
@@ -48,6 +49,7 @@ import {
   CLIENT_RESOURCES,
 } from "@/data/dashboardData";
 import { formatBdt } from "@/lib/format";
+import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import { WalletEntry } from "@/types";
 
 const CONSULTANTS = [
@@ -152,10 +154,21 @@ const SAVED_TALENT = [
 ];
 
 export default function ClientDashboardPage() {
+  const router = useRouter();
+  const { name, email, role, loading: userLoading } = useCurrentUser();
   const [lang, setLang] = useState<"en" | "bn">("en");
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [consultants, setConsultants] = useState(true);
   const [ledgerEntries, setLedgerEntries] = useState<WalletEntry[]>(CLIENT_LEDGER);
+
+  useEffect(() => {
+    if (!userLoading && role === "freelancer") {
+      router.replace("/dashboard/freelancer");
+    }
+  }, [userLoading, role, router]);
+
+  const displayName = name.trim() || (lang === "en" ? "Employer" : "নিয়োগদাতা");
+  const firstName = displayName.split(" ")[0];
 
   // Escrow Deposit Modal
   const [depositModalOpen, setDepositModalOpen] = useState(false);
@@ -196,8 +209,8 @@ export default function ClientDashboardPage() {
     <DashboardShell
       role="client"
       nav={CLIENT_NAV}
-      userName="Ahad A"
-      userMeta={lang === "en" ? "Employer (Apex Lifestyle BD)" : "নিয়োগদাতা (এপেক্স লাইফস্টাইল বিডি)"}
+      userName={displayName}
+      userMeta={email}
       avatar="https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=100&auto=format&fit=crop&q=80"
       walletBdt={escrowHeld}
       walletLabel={lang === "en" ? "in escrow safe" : "এসক্রোতে সুরক্ষিত"}
@@ -231,14 +244,17 @@ export default function ClientDashboardPage() {
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
               {lang === "en" ? (
                 <>
-                  Welcome back, <span className="text-emerald-600">Ahad</span>
+                  Welcome back, <span className="text-emerald-600">{firstName}</span>
                 </>
               ) : (
                 <>
-                  স্বাগতম, <span className="text-emerald-600">আহাদ</span>
+                  স্বাগতম, <span className="text-emerald-600">{firstName}</span>
                 </>
               )}
             </h1>
+            <p className="text-xs font-semibold text-emerald-700 mt-1">
+              {email || (lang === "en" ? "Employer Account" : "নিয়োগদাতা অ্যাকাউন্ট")}
+            </p>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
               {lang === "en"
                 ? "Manage your active job postings, evaluate freelancer proposals, and fund secure milestone escrows."

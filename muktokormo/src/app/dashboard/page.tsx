@@ -181,12 +181,12 @@ export default function DashboardPortalPage() {
             </div>
             <div>
               <p className="text-xs font-bold text-slate-900">
-                {lang === "en" ? "Need to switch roles at any time?" : "যেকোনো সময় রোল পরিবর্তন করতে চান?"}
+                {lang === "en" ? "Your role is set at signup" : "আপনার ভূমিকা সাইনআপে নির্ধারিত হয়"}
               </p>
               <p className="text-[11px] text-slate-500">
                 {lang === "en"
-                  ? "Both dashboards feature an instant role switcher in the sidebar and top navigation."
-                  : "উভয় ড্যাশবোর্ডের সাইডবার ও টপ বারে এক ক্লিকেই মোড পরিবর্তন করার সুবিধা রয়েছে।"}
+                  ? "After login you are taken straight to the dashboard matching your account."
+                  : "লগইনের পর আপনার অ্যাকাউন্ট অনুযায়ী ড্যাশবোর্ডে সরাসরি পৌঁছে যাবেন।"}
               </p>
             </div>
           </div>
@@ -196,14 +196,14 @@ export default function DashboardPortalPage() {
               href="/dashboard/client"
               className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 transition-colors"
             >
-              Client (আহাদ)
+              {lang === "en" ? "Client Dashboard" : "ক্লায়েন্ট ড্যাশবোর্ড"}
             </Link>
             <span className="text-slate-300">/</span>
             <Link
               href="/dashboard/freelancer"
               className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 transition-colors"
             >
-              Freelancer (আরিফুর)
+              {lang === "en" ? "Freelancer Dashboard" : "ফ্রিল্যান্সার ড্যাশবোর্ড"}
             </Link>
           </div>
         </div>

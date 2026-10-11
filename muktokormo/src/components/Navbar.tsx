@@ -23,8 +23,6 @@ interface NavbarProps {
   onOpenPostJob: () => void;
   lang: "en" | "bn";
   onToggleLang: () => void;
-  role: "client" | "freelancer";
-  onToggleRole: () => void;
   searchQuery: string;
   onSearchChange: (q: string) => void;
   myBidsCount?: number;
@@ -35,8 +33,6 @@ export default function Navbar({
   onOpenPostJob,
   lang,
   onToggleLang,
-  role,
-  onToggleRole,
   searchQuery,
   onSearchChange,
   myBidsCount = 0,
@@ -398,12 +394,6 @@ export default function Navbar({
               className="text-xs font-semibold text-slate-700"
             >
               {lang === "en" ? "বাংলা ভার্সন" : "English Version"}
-            </button>
-            <button
-              onClick={onToggleRole}
-              className="text-xs font-bold text-emerald-600"
-            >
-              {role === "client" ? "Employer Mode" : "Talent Mode"}
             </button>
           </div>
 

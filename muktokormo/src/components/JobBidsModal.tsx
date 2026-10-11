@@ -30,7 +30,6 @@ interface JobBidsModalProps {
   onOpenBidModal: (job: Job) => void;
   onAcceptBidAndEscrow: (job: Job, bid: JobBid) => void;
   onToggleShortlist: (bidId: string) => void;
-  role: "client" | "freelancer";
   lang: "en" | "bn";
 }
 
@@ -42,7 +41,6 @@ export default function JobBidsModal({
   onOpenBidModal,
   onAcceptBidAndEscrow,
   onToggleShortlist,
-  role,
   lang,
 }: JobBidsModalProps) {
   const [filterMode, setFilterMode] = useState<"ALL" | "SHORTLISTED" | "LOWEST" | "TOP_RATED">("ALL");

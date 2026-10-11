@@ -19,7 +19,6 @@ import { Job, JobCategory, ProposalSubmission, JobBid } from "@/types";
 
 export default function Home() {
   const [lang, setLang] = useState<"en" | "bn">("en");
-  const [role, setRole] = useState<"client" | "freelancer">("freelancer");
   const [jobs, setJobs] = useState<Job[]>(INITIAL_JOBS);
   const [bids, setBids] = useState<JobBid[]>(INITIAL_BIDS);
   const [myBids, setMyBids] = useState<JobBid[]>(() =>
@@ -39,10 +38,6 @@ export default function Home() {
 
   const handleToggleLang = () => {
     setLang((prev) => (prev === "en" ? "bn" : "en"));
-  };
-
-  const handleToggleRole = () => {
-    setRole((prev) => (prev === "client" ? "freelancer" : "client"));
   };
 
   const handleJobCreated = (newJob: Job) => {
@@ -169,8 +164,6 @@ export default function Home() {
         onOpenPostJob={() => setIsPostJobOpen(true)}
         lang={lang}
         onToggleLang={handleToggleLang}
-        role={role}
-        onToggleRole={handleToggleRole}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         myBidsCount={myBids.length}
@@ -257,7 +250,6 @@ export default function Home() {
         }}
         onAcceptBidAndEscrow={handleAcceptBidAndEscrow}
         onToggleShortlist={handleToggleShortlist}
-        role={role}
         lang={lang}
       />
 

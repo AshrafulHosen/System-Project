@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Briefcase, User, Check, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
+import { Briefcase, User, Check, ShieldCheck, Sparkles, ArrowRight, Mail } from "lucide-react";
 import OnboardingShell, { WizardStep } from "@/components/onboarding/OnboardingShell";
 import { ClientOrgStep } from "@/components/onboarding/ClientOrgStep";
+import { ClientAccountStep, ClientAccount } from "@/components/onboarding/ClientAccountStep";
+import { createClient } from "@/lib/supabase/client";
 import {
   FreelancerAccountStep,
   FreelancerAccount,
@@ -22,6 +24,7 @@ import {
 } from "@/data/dashboardData";
 
 const CLIENT_STEPS: WizardStep[] = [
+  { id: "account", label: "Your account", labelBn: "আপনার অ্যাকাউন্ট" },
   { id: "company", label: "Your business", labelBn: "আপনার প্রতিষ্ঠান" },
   { id: "post", label: "First job post", labelBn: "প্রথম কাজ পোস্ট" },
 ];
@@ -48,6 +51,13 @@ const EMPTY_ORG: ClientOrgDetails = {
   website: "",
   orgSize: "",
   role: "Founder / Owner",
+};
+
+const EMPTY_CLIENT_ACCOUNT: ClientAccount = {
+  name: "",
+  email: "",
+  password: "",
+  agreedTerms: false,
 };
 
 const EMPTY_PROFILE: ProfileFormState = {
@@ -94,6 +104,7 @@ function SignUpFlow() {
 
   const [org, setOrg] = useState<ClientOrgDetails>(EMPTY_ORG);
   const [account, setAccount] = useState<FreelancerAccount>(EMPTY_ACCOUNT);
+  const [clientAccount, setClientAccount] = useState<ClientAccount>(EMPTY_CLIENT_ACCOUNT);
   const [category, setCategory] = useState("Web, Mobile & Software Dev");
   const [skills, setSkills] = useState<string[]>(
     wantsSkills ? ["Web Development", "TypeScript", "React"] : []
@@ -111,14 +122,64 @@ function SignUpFlow() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [needsConfirmation, setNeedsConfirmation] = useState<string | null>(null);
 
-  const finish = (target: string) => {
+  const supabase = useMemo(() => createClient(), []);
+
+  const finish = async (target: string) => {
     setIsLoading(true);
-    setTimeout(() => {
+    setAuthError(null);
+
+    const email = role === "client" ? clientAccount.email : account.email;
+    const password = role === "client" ? clientAccount.password : account.password;
+    const fullName =
+      role === "client" ? clientAccount.name : `${account.firstName} ${account.lastName}`;
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName } },
+    });
+
+    if (error) {
+      setAuthError(error.message);
       setIsLoading(false);
-      setIsSuccess(true);
-      setTimeout(() => router.push(target), 1800);
-    }, 1200);
+      return;
+    }
+
+    if (!data.session) {
+      setIsLoading(false);
+      setNeedsConfirmation(email);
+      return;
+    }
+
+    const userId = data.user?.id;
+    if (!userId) {
+      setIsLoading(false);
+      setNeedsConfirmation(email);
+      return;
+    }
+    if (role === "client") {
+      const { error: pErr } = await supabase.from("clients").insert({
+        user_id: userId,
+        company_name: org.companyName || null,
+      });
+      if (pErr) console.error("client profile insert failed:", pErr.message);
+    } else {
+      const { error: pErr } = await supabase.from("freelancers").insert({
+        user_id: userId,
+        title: profile.title || null,
+        hourly_rate: profile.hourlyRate,
+        skills,
+        bio: profile.intro || null,
+      });
+      if (pErr) console.error("freelancer profile insert failed:", pErr.message);
+    }
+
+    setIsLoading(false);
+    setIsSuccess(true);
+    setTimeout(() => router.push(target), 1800);
   };
 
   const headerRight = (
@@ -129,6 +190,12 @@ function SignUpFlow() {
       </Link>
     </span>
   );
+
+  const ErrorBanner = authError ? (
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl px-4 py-3 shadow-lg">
+      {authError}
+    </div>
+  ) : null;
 
   /* ---------------- Success ---------------- */
   if (isSuccess) {
@@ -145,6 +212,31 @@ function SignUpFlow() {
             Your {role === "client" ? "Employer" : "Freelancer"} account has been created. Setting up
             your workspace...
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  /* ---------------- Email confirmation required ---------------- */
+  if (needsConfirmation) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white border border-slate-200/90 rounded-3xl shadow-xl p-10 text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
+            <Mail className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900">Confirm your email</h2>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            We sent a confirmation link to <b>{needsConfirmation}</b>. Click it, then log in to
+            finish setting up your workspace.
+          </p>
+          <Link
+            href="/login"
+            className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all"
+          >
+            Go to login
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
       </div>
     );
@@ -245,34 +337,56 @@ function SignUpFlow() {
   if (role === "client") {
     return (
       <>
+        {ErrorBanner}
         {clientStep === 0 && (
           <OnboardingShell
-            eyebrow="Step 1 of 2"
-            title="Welcome to MuktoKormo!"
-            subtitle="Tell us about your business and you'll be on your way to connect with talent."
+            eyebrow={`Step ${clientStep + 1} of ${CLIENT_STEPS.length}`}
+            title="Create your account"
+            subtitle="Sign up to post jobs and hire talent on MuktoKormo."
             steps={CLIENT_STEPS}
             currentIndex={0}
             onBack={() => setRole(null)}
             backLabel="Change role"
             headerRight={headerRight}
           >
-            <ClientOrgStep
-              value={org}
-              onChange={setOrg}
-              onBack={() => setRole(null)}
+            <ClientAccountStep
+              value={clientAccount}
+              onChange={setClientAccount}
               onNext={() => setClientStep(1)}
+              onSwitchToFreelancer={() => setRole("freelancer")}
+              isLoading={isLoading}
             />
           </OnboardingShell>
         )}
 
         {clientStep === 1 && (
           <OnboardingShell
-            eyebrow="Step 2 of 2"
-            title="Post your first job"
-            subtitle="Posting jobs is always free. You only pay when you fund a contract."
+            eyebrow={`Step ${clientStep + 1} of ${CLIENT_STEPS.length}`}
+            title="Welcome to MuktoKormo!"
+            subtitle="Tell us about your business and you'll be on your way to connect with talent."
             steps={CLIENT_STEPS}
             currentIndex={1}
             onBack={() => setClientStep(0)}
+            backLabel="Back"
+            headerRight={headerRight}
+          >
+            <ClientOrgStep
+              value={org}
+              onChange={setOrg}
+              onBack={() => setClientStep(0)}
+              onNext={() => setClientStep(2)}
+            />
+          </OnboardingShell>
+        )}
+
+        {clientStep === 2 && (
+          <OnboardingShell
+            eyebrow={`Step ${clientStep + 1} of ${CLIENT_STEPS.length}`}
+            title="Post your first job"
+            subtitle="Posting jobs is always free. You only pay when you fund a contract."
+            steps={CLIENT_STEPS}
+            currentIndex={2}
+            onBack={() => setClientStep(1)}
             backLabel="Back"
             headerRight={headerRight}
             width="lg"
@@ -333,8 +447,10 @@ function SignUpFlow() {
 
   /* ---------------- Freelancer flow ---------------- */
   return (
-    <OnboardingShell
-      eyebrow={`Step ${freelancerStep + 1} of ${FREELANCER_STEPS.length}`}
+    <>
+      {ErrorBanner}
+      <OnboardingShell
+        eyebrow={`Step ${freelancerStep + 1} of ${FREELANCER_STEPS.length}`}
       title={
         freelancerStep === 0
           ? "Create your account"
@@ -398,5 +514,6 @@ function SignUpFlow() {
         />
       )}
     </OnboardingShell>
+    </>
   );
 }
