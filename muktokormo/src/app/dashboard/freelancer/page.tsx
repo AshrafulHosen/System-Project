@@ -199,7 +199,7 @@ export default function FreelancerDashboardPage() {
       action={{
         label: "Find Work",
         labelBn: "কাজ খুঁজুন",
-        href: "/#jobs-section",
+        onAction: () => setActiveTab("find-work"),
       }}
     >
       <div className="max-w-6xl mx-auto space-y-8">
@@ -251,13 +251,13 @@ export default function FreelancerDashboardPage() {
               <Wallet className="w-3.5 h-3.5 text-emerald-400" />
               <span>{lang === "en" ? "Withdraw Cash" : "টাকা উত্তোলন"}</span>
             </button>
-            <Link
-              href="/#jobs-section"
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all"
+            <button
+              onClick={() => setActiveTab("find-work")}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
             >
               <Search className="w-3.5 h-3.5" />
               <span>{lang === "en" ? "Find Work" : "কাজ খুঁজুন"}</span>
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -389,17 +389,24 @@ export default function FreelancerDashboardPage() {
                 subtitleBn="আপনার দক্ষতার সাথে মেলে এমন কাজসমূহ"
                 lang={lang}
                 action={
-                  <Link
-                    href="/#jobs-section"
-                    className="text-[11px] font-bold text-emerald-600 hover:underline flex items-center gap-1"
+                  <button
+                    onClick={() => setActiveTab("find-work")}
+                    className="text-[11px] font-bold text-emerald-600 hover:underline flex items-center gap-1 cursor-pointer"
                   >
-                    <span>{lang === "en" ? "Browse Marketplace" : "মার্কেটপ্লেস দেখুন"}</span>
+                    <span>{lang === "en" ? "Browse All Jobs" : "মার্কেটপ্লেস দেখুন"}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                  </button>
                 }
               />
               <div className="space-y-2.5">
-                {recommendedJobs.map((job) => (
+                {recommendedJobs.length === 0 ? (
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center">
+                    <Search className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+                    <p className="text-xs font-bold text-slate-500">
+                      {lang === "en" ? "No open jobs yet. Check back soon!" : "এখনো কোনো কাজ নেই, শীঘ্রই যোগ হবে!"}
+                    </p>
+                  </div>
+                ) : recommendedJobs.map((job) => (
                   <div
                     key={job.id}
                     className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs hover:border-emerald-300 transition-all"
@@ -410,7 +417,9 @@ export default function FreelancerDashboardPage() {
                           {job.category}
                         </span>
                         <h4 className="text-xs font-bold text-slate-900 leading-snug">
-                          {lang === "en" ? job.title : (job.titleBn || job.title)}
+                          <Link href={`/jobs/${job.id}`} className="hover:text-emerald-700 hover:underline transition-colors">
+                            {lang === "en" ? job.title : (job.titleBn || job.title)}
+                          </Link>
                         </h4>
                         <div className="flex flex-wrap items-center gap-3 mt-2 text-[10px] text-slate-500">
                           <span className="font-bold text-slate-800">
@@ -514,13 +523,13 @@ export default function FreelancerDashboardPage() {
               subtitleBn="আপনার দেওয়া বিড ও ক্লায়েন্টের নিয়োগ প্রতিক্রিয়া ট্র্যাক করুন"
               lang={lang}
               action={
-                <Link
-                  href="/#jobs-section"
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all"
+                <button
+                  onClick={() => setActiveTab("find-work")}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>{lang === "en" ? "Bid on Jobs" : "নতুন আবেদন"}</span>
-                </Link>
+                </button>
               }
             />
             <ProposalTracker proposals={myProposals} lang={lang} />

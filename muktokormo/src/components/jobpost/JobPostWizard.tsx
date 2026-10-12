@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import {
   ArrowRight,
   Check,
@@ -70,6 +71,7 @@ export default function JobPostWizard({
   const [attachment, setAttachment] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   const visibleSkills = skillQuery
     ? POPULAR_SKILLS.filter((s) => s.toLowerCase().includes(skillQuery.toLowerCase()))
@@ -91,16 +93,62 @@ export default function JobPostWizard({
             ? maxBudget > 0 && hourlyMax > 0
             : description.trim().length >= 20;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < STEPS.length - 1) {
       setStep(step + 1);
-    } else {
-      setIsPublishing(true);
-      setTimeout(() => {
-        setIsPublishing(false);
-        setIsSuccess(true);
-        setTimeout(() => router.push("/dashboard/client"), 1800);
-      }, 1100);
+      return;
+    }
+
+    // Final step — publish to Supabase
+    setIsPublishing(true);
+    setPublishError(null);
+
+    try {
+      const supabase = createClient();
+
+      // 1. Get authenticated user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      console.log("[JobPost] auth.getUser →", { user: user?.id, userError });
+      if (userError || !user) throw new Error("You must be logged in to post a job.");
+
+      // 2. Resolve the client record for this user
+      const { data: clientRow, error: clientError } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      console.log("[JobPost] clients lookup →", { clientRow, clientError });
+
+      if (clientError) throw new Error(clientError.message);
+      if (!clientRow) throw new Error("No client profile found. Please complete your onboarding first.");
+
+      // 3. Insert the project
+      const payload = {
+        client_id: clientRow.id,
+        title: title.trim(),
+        description: description.trim(),
+        budget_min: pricing === "fixed" ? minBudget : hourlyMin,
+        budget_max: pricing === "fixed" ? maxBudget : hourlyMax,
+        skills_required: skills,
+        status: "open",
+      };
+      console.log("[JobPost] inserting project →", payload);
+
+      const { data: inserted, error: insertError } = await supabase
+        .from("projects")
+        .insert(payload)
+        .select();
+      console.log("[JobPost] insert result →", { inserted, insertError });
+
+      if (insertError) throw new Error(insertError.message);
+
+      setIsSuccess(true);
+      setTimeout(() => router.push("/dashboard/client"), 1800);
+    } catch (err: unknown) {
+      console.error("[JobPost] publish failed:", err);
+      setPublishError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -158,6 +206,12 @@ export default function JobPostWizard({
           >
             Back
           </button>
+
+          {publishError && (
+            <p className="flex-1 text-center text-[11px] font-semibold text-red-600 px-2">
+              {publishError}
+            </p>
+          )}
 
           <button
             type="button"

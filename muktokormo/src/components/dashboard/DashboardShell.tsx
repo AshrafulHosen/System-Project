@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
   Briefcase,
@@ -47,7 +48,7 @@ interface DashboardShellProps {
   walletBdt?: number;
   walletLabel?: string;
   children: React.ReactNode;
-  action?: { label: string; labelBn: string; href: string };
+  action?: { label: string; labelBn: string; href?: string; onAction?: () => void };
   activeTab?: string;
   onTabChange?: (tabId: string) => void;
   lang?: "en" | "bn";
@@ -70,6 +71,7 @@ export default function DashboardShell({
   onToggleLang,
 }: DashboardShellProps) {
   const router = useRouter();
+  const supabase = createClient();
   const [internalLang, setInternalLang] = useState<"en" | "bn">("en");
   const lang = controlledLang ?? internalLang;
   const handleToggleLang = onToggleLang ?? (() => setInternalLang((prev) => (prev === "en" ? "bn" : "en")));
@@ -166,13 +168,23 @@ export default function DashboardShell({
 
             {/* Primary action */}
             {action && (
-              <Link
-                href={action.href}
-                className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all hover:scale-105 active:scale-95"
-              >
-                <PlusCircle className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>{lang === "en" ? action.label : action.labelBn}</span>
-              </Link>
+              action.onAction ? (
+                <button
+                  onClick={action.onAction}
+                  className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  <PlusCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>{lang === "en" ? action.label : action.labelBn}</span>
+                </button>
+              ) : (
+                <Link
+                  href={action.href ?? "/"}
+                  className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all hover:scale-105 active:scale-95"
+                >
+                  <PlusCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>{lang === "en" ? action.label : action.labelBn}</span>
+                </Link>
+              )
             )}
 
             {/* Notifications */}
@@ -298,7 +310,10 @@ export default function DashboardShell({
               </Link>
 
               <button
-                onClick={() => router.push("/login")}
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  router.push("/login");
+                }}
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-red-50 hover:text-red-700 transition-all cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
@@ -325,13 +340,23 @@ export default function DashboardShell({
         {/* Main Content */}
         <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
           {action && (
-            <Link
-              href={action.href}
-              className="md:hidden flex items-center justify-center gap-2 w-full py-3 mb-4 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-sm"
-            >
-              <PlusCircle className="w-4 h-4 stroke-[2.5]" />
-              <span>{lang === "en" ? action.label : action.labelBn}</span>
-            </Link>
+            action.onAction ? (
+              <button
+                onClick={action.onAction}
+                className="md:hidden flex items-center justify-center gap-2 w-full py-3 mb-4 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-sm cursor-pointer"
+              >
+                <PlusCircle className="w-4 h-4 stroke-[2.5]" />
+                <span>{lang === "en" ? action.label : action.labelBn}</span>
+              </button>
+            ) : (
+              <Link
+                href={action.href ?? "/"}
+                className="md:hidden flex items-center justify-center gap-2 w-full py-3 mb-4 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-sm"
+              >
+                <PlusCircle className="w-4 h-4 stroke-[2.5]" />
+                <span>{lang === "en" ? action.label : action.labelBn}</span>
+              </Link>
+            )
           )}
           {children}
         </main>
