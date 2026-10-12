@@ -408,6 +408,21 @@ export default function ClientDashboardPage() {  const router = useRouter();
               }
             />
             <DraftJobsTable drafts={draftJobs} lang={lang} />
+            {draftJobs.length === 0 && (
+              <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-10 text-center">
+                <Briefcase className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+                <p className="text-xs font-bold text-slate-500">
+                  {lang === "en" ? "No job posts yet." : "এখনো কোনো কাজ পোস্ট নেই।"}
+                </p>
+                <Link
+                  href="/post-job"
+                  className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {lang === "en" ? "Post your first job" : "প্রথম কাজ পোস্ট করুন"}
+                </Link>
+              </div>
+            )}
           </div>
         )}
 
@@ -422,7 +437,16 @@ export default function ClientDashboardPage() {  const router = useRouter();
               lang={lang}
             />
             <div className="grid grid-cols-1 gap-3.5">
-              {proposals.map((prop) => (
+              {proposals.length === 0 ? (
+                <div className="bg-white border border-dashed border-slate-300 rounded-2xl p-10 text-center">
+                  <Send className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+                  <p className="text-xs font-bold text-slate-500">
+                    {lang === "en"
+                      ? "No proposals received yet. Post a job to start receiving bids!"
+                      : "এখনো কোনো আবেদন নেই। কাজ পোস্ট করলে বিড পাবেন!"}
+                  </p>
+                </div>
+              ) : proposals.map((prop) => (
                 <div
                   key={prop.id}
                   className="bg-white border border-slate-200/90 hover:border-emerald-300 rounded-2xl p-5 shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
@@ -465,11 +489,11 @@ export default function ClientDashboardPage() {  const router = useRouter();
 
                     <div className="flex items-center gap-2">
                       <Link
-                        href="/contracts/ctr-8842"
+                        href={`/jobs/${prop.id}`}
                         className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5"
                       >
                         <ShieldCheck className="w-3.5 h-3.5" />
-                        <span>Hire & Open Workspace</span>
+                        <span>View Proposals</span>
                       </Link>
                     </div>
                   </div>

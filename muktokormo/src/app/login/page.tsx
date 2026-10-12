@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { Suspense, useState, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
 import { createClient } from "@/lib/supabase/client";
 import { dashboardPathForRole, resolveUserRole, UserRole } from "@/lib/auth";
@@ -17,8 +17,10 @@ import {
   Globe,
 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = searchParams.get("next");
   const [role, setRole] = useState<"client" | "freelancer">("freelancer");
   const [lang, setLang] = useState<"en" | "bn">("en");
   const [email, setEmail] = useState("");
@@ -52,7 +54,10 @@ export default function LoginPage() {
     const storedRole = data.user ? await resolveUserRole(supabase, data.user.id) : null;
     const resolvedRole = storedRole ?? role;
     setTargetRole(resolvedRole);
-    goToDashboard(dashboardPathForRole(resolvedRole));
+    // Honour ?next= redirect (only for safe same-origin paths)
+    const destination =
+      nextPath && nextPath.startsWith("/") ? nextPath : dashboardPathForRole(resolvedRole);
+    goToDashboard(destination);
   };
 
   const handleForgotPassword = async () => {
@@ -239,5 +244,13 @@ export default function LoginPage() {
         © 2026 MuktoKormo (মুক্তকর্ম) Technologies Ltd. All rights reserved.
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="w-8 h-8 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin" /></div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

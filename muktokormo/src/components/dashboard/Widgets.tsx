@@ -260,7 +260,7 @@ export function DraftJobsTable({
                 )}
 
                 <Link
-                  href={isLive ? "/#jobs-section" : "/post-job"}
+                  href={isLive ? `/jobs/${draft.id}` : `/post-job`}
                   className={`px-3.5 py-2 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${
                     isLive
                       ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
@@ -268,7 +268,7 @@ export function DraftJobsTable({
                   }`}
                 >
                   {isLive
-                    ? lang === "en" ? "View" : "দেখুন"
+                    ? lang === "en" ? "View & Manage" : "দেখুন ও পরিচালনা"
                     : lang === "en" ? "Fill in draft" : "খসড়া পূরণ"}
                 </Link>
               </div>
