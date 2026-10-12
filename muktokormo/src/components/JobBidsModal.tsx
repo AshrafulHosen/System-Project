@@ -10,16 +10,10 @@ import {
   Send, 
   ExternalLink, 
   CheckCircle, 
-  TrendingUp, 
-  TrendingDown, 
   Award, 
-  DollarSign, 
   Filter, 
   Layers, 
   Lock, 
-  Check, 
-  Sparkles, 
-  MessageSquare
 } from "lucide-react";
 
 interface JobBidsModalProps {
@@ -190,7 +184,7 @@ export default function JobBidsModal({
             <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center max-w-sm mx-auto my-6">
               <Award className="w-10 h-10 text-slate-300 mx-auto mb-2" />
               <h4 className="text-sm font-bold text-slate-800">No Bids Match This Filter</h4>
-              <p className="text-xs text-slate-500 mt-1 mb-3">Try switching to 'All' or place the first bid.</p>
+              <p className="text-xs text-slate-500 mt-1 mb-3">Try switching to &apos;All&apos; or place the first bid.</p>
               <button
                 onClick={() => setFilterMode("ALL")}
                 className="px-4 py-1.5 bg-slate-100 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-200 cursor-pointer"

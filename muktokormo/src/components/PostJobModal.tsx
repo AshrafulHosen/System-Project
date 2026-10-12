@@ -25,7 +25,7 @@ export default function PostJobModal({
   const [skillsInput, setSkillsInput] = useState("Next.js, Tailwind CSS, PostgreSQL");
   const [budgetBdt, setBudgetBdt] = useState<number>(35000);
   const [jobType, setJobType] = useState<"Fixed Price" | "Milestone Based">("Milestone Based");
-  const [experienceLevel, setExperienceLevel] = useState<"Entry Level" | "Intermediate" | "Expert">("Intermediate");
+  const [experienceLevel] = useState<"Entry Level" | "Intermediate" | "Expert">("Intermediate");
   const [clientName, setClientName] = useState("Ashraful Islam (TechScale BD)");
   const [clientLocation, setClientLocation] = useState("Gulshan, Dhaka");
   const [deadlineDays, setDeadlineDays] = useState<number>(14);
@@ -263,7 +263,7 @@ export default function PostJobModal({
                       </label>
                       <select
                         value={jobType}
-                        onChange={(e) => setJobType(e.target.value as any)}
+                        onChange={(e) => setJobType(e.target.value as "Fixed Price" | "Milestone Based")}
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900"
                       >
                         <option value="Milestone Based">Milestone Based</option>

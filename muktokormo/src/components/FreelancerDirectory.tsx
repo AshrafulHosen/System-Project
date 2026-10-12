@@ -1,7 +1,9 @@
 "use client";
 
-import React from "react";
-import { TOP_FREELANCERS } from "@/data/mockData";
+import React, { useEffect, useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { fetchFreelancers } from "@/lib/data/freelancers";
+import { Freelancer } from "@/types";
 import { Star, ShieldCheck, CheckCircle2, ArrowRight, UserCheck } from "lucide-react";
 
 interface FreelancerDirectoryProps {
@@ -13,6 +15,20 @@ export default function FreelancerDirectory({
   lang,
   onHireDirect,
 }: FreelancerDirectoryProps) {
+  const supabase = useMemo(() => createClient(), []);
+  const [freelancers, setFreelancers] = useState<Freelancer[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const live = await fetchFreelancers(supabase);
+      if (!cancelled) setFreelancers(live);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
+
   return (
     <section id="freelancers-section" className="py-16 bg-slate-50/70 border-t border-slate-100 text-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,7 +57,7 @@ export default function FreelancerDirectory({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {TOP_FREELANCERS.map((freelancer) => (
+          {freelancers.map((freelancer) => (
             <div
               key={freelancer.id}
               className="bg-white border border-slate-200/80 hover:border-slate-300 rounded-3xl p-6 transition-all duration-150 shadow-xs hover:shadow-md flex flex-col justify-between"

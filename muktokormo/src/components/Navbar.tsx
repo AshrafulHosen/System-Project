@@ -13,9 +13,7 @@ import {
   FileText,
   LayoutDashboard,
   Sparkles,
-  ArrowRight,
   Handshake,
-  CheckCircle2,
 } from "lucide-react";
 import Logo from "./Logo";
 
@@ -115,7 +113,7 @@ export default function Navbar({
                         </p>
                       </button>
 
-                      <a
+                      <Link
                         href="/#freelancers-section"
                         onClick={() => setActiveDropdown(null)}
                         className="block p-3 rounded-xl hover:bg-slate-50 transition-colors group"
@@ -131,7 +129,7 @@ export default function Navbar({
                             ? "Browse pre-vetted Bangladeshi developers, designers & experts"
                             : "দক্ষ ডেভেলপার, ডিজাইনার ও বিশেষজ্ঞদের পোর্টফোলিও দেখুন"}
                         </p>
-                      </a>
+                      </Link>
 
                       <Link
                         href="/dashboard/client"
@@ -182,7 +180,7 @@ export default function Navbar({
                 {activeDropdown === "work" && (
                   <div className="absolute top-full left-0 w-80 pt-2 animate-in fade-in zoom-in-95 duration-150">
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-3 space-y-1">
-                      <a
+                      <Link
                         href="/#jobs-section"
                         onClick={() => setActiveDropdown(null)}
                         className="block p-3 rounded-xl hover:bg-slate-50 transition-colors group"
@@ -198,7 +196,7 @@ export default function Navbar({
                             ? "Explore high-paying jobs with guaranteed BDT milestone payments"
                             : "নিরাপদ বিডিটি মাইলস্টোন পেমেন্টে কাজ খুঁজুন ও বিড করুন"}
                         </p>
-                      </a>
+                      </Link>
 
                       {onOpenMyBids && (
                         <button
@@ -275,7 +273,7 @@ export default function Navbar({
                 {activeDropdown === "why" && (
                   <div className="absolute top-full left-0 w-80 pt-2 animate-in fade-in zoom-in-95 duration-150">
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-3 space-y-1">
-                      <a
+                      <Link
                         href="/#escrow-section"
                         onClick={() => setActiveDropdown(null)}
                         className="block p-3 rounded-xl hover:bg-slate-50 transition-colors group"
@@ -291,7 +289,7 @@ export default function Navbar({
                             ? "Safe deposits via bKash & Nagad. Release funds only when work is approved"
                             : "বিকাশ ও নগদে সুরক্ষিত তহবিল। কাজ অনুমোদনের পরেই পেমেন্ট ছাড়"}
                         </p>
-                      </a>
+                      </Link>
 
                       <Link
                         href="/contracts"
@@ -398,20 +396,20 @@ export default function Navbar({
           </div>
 
           <div className="space-y-2.5 text-xs font-semibold text-slate-700">
-            <a
+            <Link
               href="/#jobs-section"
               onClick={() => setMobileMenuOpen(false)}
               className="block py-1 hover:text-emerald-600"
             >
               {lang === "en" ? "Find Work" : "কাজ খুঁজুন"}
-            </a>
-            <a
+            </Link>
+            <Link
               href="/#freelancers-section"
               onClick={() => setMobileMenuOpen(false)}
               className="block py-1 hover:text-emerald-600"
             >
               {lang === "en" ? "Hire Talent" : "ট্যালেন্ট খুঁজুন"}
-            </a>
+            </Link>
             <Link
               href="/contracts"
               onClick={() => setMobileMenuOpen(false)}

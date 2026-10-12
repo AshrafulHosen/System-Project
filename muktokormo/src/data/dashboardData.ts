@@ -32,6 +32,15 @@ export const FREELANCER_NAV: NavItem[] = [
   { id: "profile", label: "My Profile", labelBn: "আমার প্রোফাইল", icon: "UserCircle", href: "/signup?step=profile" },
 ];
 
+export const ADMIN_NAV: NavItem[] = [
+  { id: "overview", label: "Overview", labelBn: "সংক্ষিপ্ত বিবরণ", icon: "LayoutDashboard", href: "#overview" },
+  { id: "jobs", label: "Job Moderation", labelBn: "কাজের মডারেশন", icon: "Briefcase", href: "#jobs" },
+  { id: "proposals", label: "Proposals", labelBn: "আবেদন", icon: "Send", href: "#proposals" },
+  { id: "contracts", label: "Contracts", labelBn: "চুক্তি", icon: "Handshake", href: "#contracts" },
+  { id: "users", label: "User Management", labelBn: "ইউজার ব্যবস্থাপনা", icon: "UserCircle", href: "#users" },
+  { id: "disputes", label: "Disputes", labelBn: "বিরোধ", icon: "Gavel", href: "#disputes" },
+];
+
 export const CLIENT_ONBOARDING_TASKS: OnboardingTask[] = [
   {
     id: "email",

@@ -300,3 +300,27 @@ export interface NavItem {
   href: string;
   badge?: number;
 }
+
+export type ManagedUserType = "client" | "freelancer" | "none";
+
+export interface ManagedUser {
+  id: string;
+  name: string;
+  email: string;
+  isAdmin: boolean;
+  type: ManagedUserType;
+  joinedAt: string;
+  joinedLabel: string;
+}
+
+export interface AdminOverview {
+  totalUsers: number;
+  clients: number;
+  freelancers: number;
+  admins: number;
+  profilesMissing: number;
+  totalProjects: number;
+  openProjects: number;
+  totalProposals: number;
+  totalContracts: number;
+}

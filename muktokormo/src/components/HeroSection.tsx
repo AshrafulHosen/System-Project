@@ -4,8 +4,6 @@ import React, { useState } from "react";
 import { 
   Search, 
   ArrowRight, 
-  Sparkles, 
-  ShieldCheck, 
   Lock, 
   Star, 
   CheckCircle2 

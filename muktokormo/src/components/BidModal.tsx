@@ -1,26 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Job, ProposalSubmission, BidMilestone } from "@/types";
-import { 
-  X, 
-  Send, 
-  ShieldCheck, 
-  CheckCircle2, 
-  Calculator, 
-  Clock, 
-  Briefcase, 
-  Layers, 
-  Plus, 
-  Trash2, 
-  Sparkles, 
-  Wallet, 
-  AlertCircle,
+import {
+  X,
+  Send,
+  ShieldCheck,
+  CheckCircle2,
+  Calculator,
+  Clock,
+  Briefcase,
+  Layers,
+  Plus,
+  Trash2,
+  Sparkles,
   Link as LinkIcon,
-  HelpCircle,
   TrendingDown,
   TrendingUp,
-  Check
+  Check,
 } from "lucide-react";
 
 interface BidModalProps {
@@ -39,20 +36,24 @@ export default function BidModal({
   lang,
 }: BidModalProps) {
   // Freelancer Info
-  const [freelancerName, setFreelancerName] = useState("Tanvir Rahman");
-  const [freelancerTitle, setFreelancerTitle] = useState("Senior Full-Stack Developer");
+  const [freelancerName] = useState("Tanvir Rahman");
+  const [freelancerTitle] = useState("Senior Full-Stack Developer");
   const [phone, setPhone] = useState("+8801712345678");
 
-  // Bidding Terms
-  const [bidAmount, setBidAmount] = useState<number>(25000);
-  const [deliveryDays, setDeliveryDays] = useState<number>(7);
+  // Bidding Terms (initialized from the selected job; component is keyed by job id)
+  const [bidAmount, setBidAmount] = useState<number>(job?.budgetBdt || 25000);
+  const [deliveryDays, setDeliveryDays] = useState<number>(job?.deadlineDays || 10);
   const [biddingType, setBiddingType] = useState<"PROJECT" | "MILESTONES">("PROJECT");
 
   // Milestones
-  const [milestones, setMilestones] = useState<BidMilestone[]>([
-    { id: "m-1", title: "Initial Prototype & UI Architecture", amountBdt: 12000, deliveryDays: 4 },
-    { id: "m-2", title: "Final Implementation & Payment Gateway", amountBdt: 13000, deliveryDays: 3 },
-  ]);
+  const [milestones, setMilestones] = useState<BidMilestone[]>(() => {
+    const half = Math.round((job?.budgetBdt || 25000) * 0.5);
+    const halfDays = Math.max(2, Math.round((job?.deadlineDays || 10) * 0.5));
+    return [
+      { id: "m-1", title: "Phase 1: Design & Core Infrastructure", amountBdt: half, deliveryDays: halfDays },
+      { id: "m-2", title: "Phase 2: Final Testing, Delivery & Deployment", amountBdt: half, deliveryDays: halfDays },
+    ];
+  });
 
   // Payment method
   const [payoutMethod, setPayoutMethod] = useState<"BKASH" | "NAGAD" | "ROCKET" | "BANK">("BKASH");
@@ -64,28 +65,6 @@ export default function BidModal({
   );
   const [portfolioLink, setPortfolioLink] = useState("https://github.com/tanvir-dev/showcase");
   const [isSuccess, setIsSuccess] = useState(false);
-
-  // Sync default values when job changes
-  useEffect(() => {
-    if (job) {
-      setBidAmount(job.budgetBdt);
-      setDeliveryDays(job.deadlineDays || 10);
-      setMilestones([
-        { 
-          id: "m-1", 
-          title: "Phase 1: Design & Core Infrastructure", 
-          amountBdt: Math.round(job.budgetBdt * 0.5), 
-          deliveryDays: Math.max(2, Math.round((job.deadlineDays || 10) * 0.5)) 
-        },
-        { 
-          id: "m-2", 
-          title: "Phase 2: Final Testing, Delivery & Deployment", 
-          amountBdt: Math.round(job.budgetBdt * 0.5), 
-          deliveryDays: Math.max(2, Math.round((job.deadlineDays || 10) * 0.5)) 
-        },
-      ]);
-    }
-  }, [job]);
 
   if (!isOpen || !job) return null;
 
@@ -133,9 +112,15 @@ export default function BidModal({
     setMilestones(milestones.filter((m) => m.id !== id));
   };
 
-  const handleUpdateMilestone = (id: string, field: keyof BidMilestone, value: any) => {
+  const handleUpdateMilestone = (id: string, field: "title" | "amountBdt" | "deliveryDays", value: string | number) => {
     setMilestones(
-      milestones.map((m) => (m.id === id ? { ...m, [field]: value } : m))
+      milestones.map((m) =>
+        m.id !== id
+          ? m
+          : field === "title"
+            ? { ...m, title: String(value) }
+            : { ...m, [field]: Number(value) }
+      )
     );
   };
 

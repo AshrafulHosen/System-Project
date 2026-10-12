@@ -9,12 +9,7 @@ import {
   Clock,
   ArrowRight,
   Search,
-  Building,
   Layers,
-  ChevronRight,
-  UserCheck,
-  Sparkles,
-  ArrowUpRight,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { INITIAL_WORKSPACE_CONTRACTS } from "@/data/mockContracts";

@@ -4,18 +4,11 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   Briefcase,
-  Users,
   ShieldCheck,
-  ArrowRight,
   Sparkles,
   Building2,
-  TrendingUp,
-  Wallet,
   CheckCircle2,
-  Lock,
-  ArrowUpRight,
   Layers,
-  Star,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 

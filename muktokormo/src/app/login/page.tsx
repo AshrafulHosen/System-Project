@@ -109,7 +109,13 @@ export default function LoginPage() {
                 Welcome back to MuktoKormo!
               </h2>
               <p className="text-xs text-slate-500">
-                Logging you into your {(targetRole ?? role) === "client" ? "Employer" : "Freelancer"} dashboard...
+                Logging you into your{" "}
+                {(targetRole ?? role) === "admin"
+                  ? "Admin"
+                  : (targetRole ?? role) === "client"
+                    ? "Employer"
+                    : "Freelancer"}{" "}
+                dashboard...
               </p>
             </div>
           ) : (
