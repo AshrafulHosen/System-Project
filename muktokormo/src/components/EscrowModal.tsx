@@ -22,7 +22,6 @@ export default function EscrowModal({
   onClose,
   lang,
   customAmount,
-  freelancerName,
 }: EscrowModalProps) {
   const [selectedGateway, setSelectedGateway] = useState<"bkash" | "nagad" | "card">("bkash");
   const [escrowState, setEscrowState] = useState<EscrowState>("READY_TO_FUND");
@@ -260,7 +259,7 @@ export default function EscrowModal({
               </div>
               <h4 className="text-sm font-bold text-slate-900">Milestone Completed!</h4>
               <p className="text-xs text-slate-600">
-                ৳{freelancerGets.toLocaleString()} credited to Freelancer's bKash wallet. Fee: ৳{platformFee.toLocaleString()} (7%).
+                ৳{freelancerGets.toLocaleString()} credited to Freelancer&apos;s bKash wallet. Fee: ৳{platformFee.toLocaleString()} (7%).
               </p>
               <div className="flex items-center justify-center gap-2 pt-1">
                 <Link

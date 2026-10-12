@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import CategoryGrid from "@/components/CategoryGrid";
@@ -13,17 +13,26 @@ import JobBidsModal from "@/components/JobBidsModal";
 import MyBidsDrawer from "@/components/MyBidsDrawer";
 import EscrowModal from "@/components/EscrowModal";
 import Footer from "@/components/Footer";
-import { INITIAL_JOBS } from "@/data/mockData";
-import { INITIAL_BIDS } from "@/data/mockBids";
-import { Job, JobCategory, ProposalSubmission, JobBid } from "@/types";
+import { createClient } from "@/lib/supabase/client";
+import useCurrentUser from "@/lib/hooks/useCurrentUser";
+import { fetchOpenJobs, createJob } from "@/lib/data/jobs";
+import {
+  fetchMyJobBids,
+  fetchProposalsForJob,
+  submitProposal,
+  updateProposalStatus,
+  withdrawProposal,
+} from "@/lib/data/proposals";
+import { Job, ProposalSubmission, JobBid } from "@/types";
 
 export default function Home() {
+  const supabase = useMemo(() => createClient(), []);
+  const { freelancerId, clientId } = useCurrentUser();
+
   const [lang, setLang] = useState<"en" | "bn">("en");
-  const [jobs, setJobs] = useState<Job[]>(INITIAL_JOBS);
-  const [bids, setBids] = useState<JobBid[]>(INITIAL_BIDS);
-  const [myBids, setMyBids] = useState<JobBid[]>(() =>
-    INITIAL_BIDS.filter((b) => b.freelancerId === "fl-tanvir")
-  );
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [bids, setBids] = useState<JobBid[]>([]);
+  const [myBids, setMyBids] = useState<JobBid[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
@@ -36,12 +45,53 @@ export default function Home() {
   const [escrowCustomAmount, setEscrowCustomAmount] = useState<number | undefined>(undefined);
   const [escrowFreelancerName, setEscrowFreelancerName] = useState<string | undefined>(undefined);
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const liveJobs = await fetchOpenJobs(supabase);
+      if (cancelled) return;
+      setJobs(liveJobs);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!freelancerId) return;
+    let cancelled = false;
+    (async () => {
+      const liveBids = await fetchMyJobBids(supabase, freelancerId);
+      if (!cancelled) setMyBids(liveBids);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, freelancerId]);
+
   const handleToggleLang = () => {
     setLang((prev) => (prev === "en" ? "bn" : "en"));
   };
 
-  const handleJobCreated = (newJob: Job) => {
-    setJobs((prev) => [newJob, ...prev]);
+  const handleJobCreated = async (newJob: Job) => {
+    let created: Job | null = null;
+
+    if (clientId) {
+      created = await createJob(supabase, clientId, {
+        title: newJob.title,
+        titleBn: newJob.titleBn,
+        description: newJob.description,
+        descriptionBn: newJob.descriptionBn,
+        category: newJob.category,
+        jobType: newJob.jobType,
+        experienceLevel: newJob.experienceLevel,
+        budgetBdt: newJob.budgetBdt,
+        timelineDays: newJob.deadlineDays,
+        skills: newJob.skills,
+      });
+    }
+
+    setJobs((prev) => [created ?? newJob, ...prev]);
     const jobSection = document.getElementById("jobs-section");
     if (jobSection) {
       jobSection.scrollIntoView({ behavior: "smooth" });
@@ -49,35 +99,57 @@ export default function Home() {
   };
 
   // Bid submission from Freelancer
-  const handleSubmitBid = (submission: ProposalSubmission) => {
-    const newBid: JobBid = {
-      id: `bid-${Date.now()}`,
-      jobId: submission.jobId,
-      freelancerId: "fl-current-user",
-      freelancerName: submission.freelancerName,
-      freelancerTitle: submission.freelancerTitle || "Full-Stack Specialist",
-      freelancerAvatar: submission.freelancerAvatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-      freelancerRating: 5.0,
-      freelancerReviewsCount: 1,
-      isNidVerified: true,
-      bidAmountBdt: submission.bidAmountBdt,
-      platformFeeBdt: submission.platformFeeBdt,
-      netEarnedBdt: submission.netEarnedBdt,
-      deliveryDays: submission.deliveryDays,
-      biddingType: submission.biddingType || "PROJECT",
-      milestones: submission.milestones,
-      coverLetter: submission.coverLetter,
-      portfolioLinks: submission.portfolioLinks,
-      payoutMethod: submission.payoutMethod || "BKASH",
-      payoutAccount: submission.phone,
-      submittedAt: "Just now",
-      status: "PENDING",
-    };
+  const handleSubmitBid = async (submission: ProposalSubmission) => {
+    let newBid: JobBid | null = null;
 
-    setBids((prev) => [newBid, ...prev]);
-    setMyBids((prev) => [newBid, ...prev]);
+    if (freelancerId) {
+      newBid = await submitProposal(supabase, {
+        jobId: submission.jobId,
+        freelancerId,
+        bidAmountBdt: submission.bidAmountBdt,
+        platformFeeBdt: submission.platformFeeBdt,
+        netEarnedBdt: submission.netEarnedBdt,
+        deliveryDays: submission.deliveryDays,
+        biddingType: submission.biddingType || "PROJECT",
+        milestones: submission.milestones,
+        coverLetter: submission.coverLetter,
+        portfolioLinks: submission.portfolioLinks,
+        payoutMethod: submission.payoutMethod || "BKASH",
+        payoutAccount: submission.phone,
+      });
+    }
 
-    // Increment proposals count on job
+    if (!newBid) {
+      newBid = {
+        id: `bid-${Date.now()}`,
+        jobId: submission.jobId,
+        freelancerId: freelancerId || "fl-current-user",
+        freelancerName: submission.freelancerName,
+        freelancerTitle: submission.freelancerTitle || "Full-Stack Specialist",
+        freelancerAvatar:
+          submission.freelancerAvatar ||
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+        freelancerRating: 5.0,
+        freelancerReviewsCount: 1,
+        isNidVerified: true,
+        bidAmountBdt: submission.bidAmountBdt,
+        platformFeeBdt: submission.platformFeeBdt,
+        netEarnedBdt: submission.netEarnedBdt,
+        deliveryDays: submission.deliveryDays,
+        biddingType: submission.biddingType || "PROJECT",
+        milestones: submission.milestones,
+        coverLetter: submission.coverLetter,
+        portfolioLinks: submission.portfolioLinks,
+        payoutMethod: submission.payoutMethod || "BKASH",
+        payoutAccount: submission.phone,
+        submittedAt: "Just now",
+        status: "PENDING",
+      };
+    }
+
+    setBids((prev) => [newBid!, ...prev]);
+    setMyBids((prev) => [newBid!, ...prev]);
+
     setJobs((prev) =>
       prev.map((j) =>
         j.id === submission.jobId
@@ -88,26 +160,30 @@ export default function Home() {
   };
 
   // Toggle Shortlist status on a bid
-  const handleToggleShortlist = (bidId: string) => {
-    const updateBid = (b: JobBid) =>
-      b.id === bidId
-        ? { ...b, status: (b.status === "SHORTLISTED" ? "PENDING" : "SHORTLISTED") as JobBid["status"] }
-        : b;
+  const handleToggleShortlist = async (bidId: string) => {
+    let nextStatus: JobBid["status"] = "SHORTLISTED";
+    const updateBid = (b: JobBid) => {
+      if (b.id !== bidId) return b;
+      nextStatus = b.status === "SHORTLISTED" ? "PENDING" : "SHORTLISTED";
+      return { ...b, status: nextStatus };
+    };
 
     setBids((prev) => prev.map(updateBid));
     setMyBids((prev) => prev.map(updateBid));
+
+    await updateProposalStatus(supabase, bidId, nextStatus);
   };
 
   // Client accepts bid and launches Escrow lock
   const handleAcceptBidAndEscrow = (job: Job, bid: JobBid) => {
-    // Mark bid as accepted
     const updateBid = (b: JobBid) =>
       b.id === bid.id ? { ...b, status: "ACCEPTED" as const } : b;
 
     setBids((prev) => prev.map(updateBid));
     setMyBids((prev) => prev.map(updateBid));
 
-    // Close bids modal & launch Escrow modal with agreed bid amount
+    void updateProposalStatus(supabase, bid.id, "ACCEPTED");
+
     setSelectedJobForBids(null);
     setEscrowJob(job);
     setEscrowCustomAmount(bid.bidAmountBdt);
@@ -129,6 +205,18 @@ export default function Home() {
         )
       );
     }
+
+    void withdrawProposal(supabase, bidId);
+  };
+
+  const handleViewJobBids = async (job: Job) => {
+    setSelectedJobForBids(job);
+    const fetched = await fetchProposalsForJob(supabase, job.id);
+    if (fetched.length === 0) return;
+    setBids((prev) => [
+      ...fetched,
+      ...prev.filter((b) => b.jobId !== job.id),
+    ]);
   };
 
   const handleSelectSkill = (skill: string) => {
@@ -146,7 +234,7 @@ export default function Home() {
     }
   };
 
-  const handleHireDirect = (freelancerName: string) => {
+  const handleHireDirect = () => {
     setIsPostJobOpen(true);
   };
 
@@ -194,7 +282,7 @@ export default function Home() {
           selectedCategory={selectedCategory}
           searchQuery={searchQuery}
           onSelectJobForProposal={(job) => setSelectedBidJob(job)}
-          onViewJobBids={(job) => setSelectedJobForBids(job)}
+          onViewJobBids={handleViewJobBids}
           onSelectJobForEscrow={(job) => {
             setEscrowJob(job);
             setEscrowCustomAmount(undefined);
@@ -231,6 +319,7 @@ export default function Home() {
 
       {/* Freelancer Place Bid Modal */}
       <BidModal
+        key={selectedBidJob?.id}
         job={selectedBidJob}
         isOpen={!!selectedBidJob}
         onClose={() => setSelectedBidJob(null)}
@@ -260,7 +349,7 @@ export default function Home() {
         myBids={myBids}
         jobs={jobs}
         onWithdrawBid={handleWithdrawBid}
-        onViewJobBids={(job) => setSelectedJobForBids(job)}
+        onViewJobBids={handleViewJobBids}
         lang={lang}
       />
 

@@ -12,7 +12,6 @@ import {
   Filter, 
   Send,
   Lock,
-  Layers,
   Sparkles,
   ArrowRight
 } from "lucide-react";

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -10,8 +10,6 @@ import {
   Search,
   TrendingUp,
   ArrowRight,
-  Sparkles,
-  MessageSquare,
   Star,
   ShieldCheck,
   Clock,
@@ -21,10 +19,7 @@ import {
   Smartphone,
   Building,
   RefreshCw,
-  AlertCircle,
-  ExternalLink,
   ChevronRight,
-  Filter,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
@@ -38,27 +33,57 @@ import {
   FREELANCER_NAV,
   FREELANCER_ONBOARDING_TASKS,
   FREELANCER_CONTRACTS,
-  FREELANCER_PROPOSALS,
   FREELANCER_LEDGER,
   FREELANCER_RESOURCES,
 } from "@/data/dashboardData";
-import { INITIAL_JOBS } from "@/data/mockData";
 import { formatBdt } from "@/lib/format";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
-import { Job, WalletEntry } from "@/types";
+import { createClient } from "@/lib/supabase/client";
+import { fetchOpenJobs } from "@/lib/data/jobs";
+import { fetchMyProposals, submitProposal } from "@/lib/data/proposals";
+import { Job, WalletEntry, TrackedProposal } from "@/types";
+import { PLATFORM_FEE_PCT } from "@/lib/data/mappers";
 
 export default function FreelancerDashboardPage() {
   const router = useRouter();
-  const { name, email, role, loading: userLoading } = useCurrentUser();
+  const supabase = useMemo(() => createClient(), []);
+  const { name, email, role, freelancerId, loading: userLoading } = useCurrentUser();
   const [lang, setLang] = useState<"en" | "bn">("en");
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [pickedSkills, setPickedSkills] = useState<string[]>([]);
   const [available, setAvailable] = useState<number>(87500);
   const [ledgerEntries, setLedgerEntries] = useState<WalletEntry[]>(FREELANCER_LEDGER);
+  const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]);
+  const [myProposals, setMyProposals] = useState<TrackedProposal[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const live = await fetchOpenJobs(supabase);
+      if (!cancelled) setRecommendedJobs(live.slice(0, 3));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!freelancerId) return;
+    let cancelled = false;
+    (async () => {
+      const live = await fetchMyProposals(supabase, freelancerId);
+      if (!cancelled) setMyProposals(live);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, freelancerId]);
 
   useEffect(() => {
     if (!userLoading && role === "client") {
       router.replace("/dashboard/client");
+    } else if (!userLoading && role === "admin") {
+      router.replace("/dashboard/admin");
     }
   }, [userLoading, role, router]);
 
@@ -129,8 +154,28 @@ export default function FreelancerDashboardPage() {
     }, 1200);
   };
 
-  const handleApplyToJob = (e: React.FormEvent) => {
+  const handleApplyToJob = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedJobToApply) return;
+
+    if (freelancerId) {
+      const platformFee = Math.round(applyBidAmount * PLATFORM_FEE_PCT);
+      await submitProposal(supabase, {
+        jobId: selectedJobToApply.id,
+        freelancerId,
+        bidAmountBdt: applyBidAmount,
+        platformFeeBdt: platformFee,
+        netEarnedBdt: applyBidAmount - platformFee,
+        deliveryDays: applyDays,
+        biddingType: "PROJECT",
+        coverLetter: applyCoverNote,
+        payoutMethod: "BKASH",
+        payoutAccount: "",
+      });
+      const refreshed = await fetchMyProposals(supabase, freelancerId);
+      setMyProposals(refreshed);
+    }
+
     setApplySuccess(true);
     setTimeout(() => {
       setSelectedJobToApply(null);
@@ -354,7 +399,7 @@ export default function FreelancerDashboardPage() {
                 }
               />
               <div className="space-y-2.5">
-                {INITIAL_JOBS.slice(0, 3).map((job) => (
+                {recommendedJobs.map((job) => (
                   <div
                     key={job.id}
                     className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs hover:border-emerald-300 transition-all"
@@ -478,7 +523,7 @@ export default function FreelancerDashboardPage() {
                 </Link>
               }
             />
-            <ProposalTracker proposals={FREELANCER_PROPOSALS} lang={lang} />
+            <ProposalTracker proposals={myProposals} lang={lang} />
           </div>
         )}
 

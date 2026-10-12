@@ -76,7 +76,7 @@ export default function Footer({ lang }: FooterProps) {
           <div className="flex items-center gap-1">
             <span>Built with</span>
             <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
-            <span>for Bangladesh's independent talent</span>
+            <span>for Bangladesh&apos;s independent talent</span>
           </div>
         </div>
 

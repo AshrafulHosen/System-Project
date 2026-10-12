@@ -39,13 +39,13 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 interface DashboardShellProps {
-  role: "client" | "freelancer";
+  role: "client" | "freelancer" | "admin";
   nav: NavItem[];
   userName: string;
   userMeta: string;
   avatar: string;
-  walletBdt: number;
-  walletLabel: string;
+  walletBdt?: number;
+  walletLabel?: string;
   children: React.ReactNode;
   action?: { label: string; labelBn: string; href: string };
   activeTab?: string;
@@ -60,8 +60,8 @@ export default function DashboardShell({
   userName,
   userMeta,
   avatar,
-  walletBdt,
-  walletLabel,
+  walletBdt = 0,
+  walletLabel = "",
   children,
   action,
   activeTab: controlledActiveTab,
@@ -94,7 +94,13 @@ export default function DashboardShell({
           { id: "n2", text: "9 new proposals on SEO Retainer job", textBn: "এসইও রিটেইনার কাজে ৯টি নতুন আবেদন", time: "5h", unread: true },
           { id: "n3", text: "Escrow of ৳10,000 released successfully", textBn: "৳১০,০০০ এসক্রো সফলভাবে মুক্ত হয়েছে", time: "3d", unread: false },
         ]
-      : [
+      : role === "admin"
+        ? [
+            { id: "a1", text: "3 new freelancer profiles awaiting NID review", textBn: "৩টি নতুন ফ্রিল্যান্সার প্রোফাইল এনআইডি যাচাইয়ের অপেক্ষায়", time: "1h", unread: true },
+            { id: "a2", text: "Dispute opened on contract #CTR-8842", textBn: "চুক্তি #CTR-8842-এ বিরোধ খোলা হয়েছে", time: "3h", unread: true },
+            { id: "a3", text: "৳24,500 in platform fees processed today", textBn: "আজ ৳২৪,৫০০ প্ল্যাটফর্ম ফি প্রসেস হয়েছে", time: "6h", unread: false },
+          ]
+        : [
           { id: "f1", text: "Your proposal was accepted - Flutter Parcel App", textBn: "আপনার আবেদন গৃহীত হয়েছে - ফ্লাটার পার্সেল অ্যাপ", time: "1h", unread: true },
           { id: "f2", text: "New message from Nafisur Rahman", textBn: "নাফিসুর রহমান থেকে নতুন বার্তা", time: "4h", unread: true },
           { id: "f3", text: "bKash withdrawal of ৳35,000 is processing", textBn: "বিকাশে ৳৩৫,০০০ উত্তোলন প্রক্রিয়াধীন", time: "1d", unread: false },
@@ -128,7 +134,9 @@ export default function DashboardShell({
                 placeholder={
                   role === "client"
                     ? lang === "en" ? "Search jobs, talent, contracts" : "কাজ, ট্যালেন্ট, চুক্তি খুঁজুন"
-                    : lang === "en" ? "Search open jobs" : "চলমান কাজ খুঁজুন"
+                    : role === "admin"
+                      ? lang === "en" ? "Search users, jobs, contracts" : "ইউজার, কাজ, চুক্তি খুঁজুন"
+                      : lang === "en" ? "Search open jobs" : "চলমান কাজ খুঁজুন"
                 }
                 className="w-full pl-10 pr-4 py-2 bg-slate-100/80 border border-transparent focus:bg-white focus:border-emerald-500 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all"
               />
@@ -145,14 +153,16 @@ export default function DashboardShell({
             </button>
 
             {/* Wallet chip */}
-            <Link
-              href={role === "client" ? "#payments" : "#wallet"}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-all"
-            >
-              <Wallet className="w-3.5 h-3.5" />
-              <span>৳{walletBdt.toLocaleString()}</span>
-              <span className="text-emerald-600 font-semibold hidden md:inline">{walletLabel}</span>
-            </Link>
+            {role !== "admin" && walletLabel && (
+              <Link
+                href={role === "client" ? "#payments" : "#wallet"}
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-all"
+              >
+                <Wallet className="w-3.5 h-3.5" />
+                <span>৳{walletBdt.toLocaleString()}</span>
+                <span className="text-emerald-600 font-semibold hidden md:inline">{walletLabel}</span>
+              </Link>
+            )}
 
             {/* Primary action */}
             {action && (

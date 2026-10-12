@@ -5,16 +5,13 @@ import Link from "next/link";
 import { Job, JobBid } from "@/types";
 import { 
   X, 
-  Briefcase, 
   Clock, 
   CheckCircle2, 
   Star, 
-  Layers, 
   Trash2, 
   ExternalLink,
   ShieldCheck,
   Send,
-  AlertCircle
 } from "lucide-react";
 
 interface MyBidsDrawerProps {
@@ -177,7 +174,7 @@ export default function MyBidsDrawer({
 
                   {/* Cover letter snippet */}
                   <p className="text-xs text-slate-600 line-clamp-2 pt-1 border-t border-slate-50 italic">
-                    "{bid.coverLetter}"
+                    &ldquo;{bid.coverLetter}&rdquo;
                   </p>
                 </div>
               );

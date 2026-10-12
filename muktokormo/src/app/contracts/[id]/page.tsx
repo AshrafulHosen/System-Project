@@ -14,17 +14,11 @@ import {
   AlertCircle, 
   Check, 
   Layers, 
-  Calendar, 
   MessageSquare, 
   FileText, 
-  DollarSign, 
   RotateCcw, 
   Star, 
-  ChevronRight, 
-  Smartphone, 
   Upload, 
-  Sparkles,
-  HelpCircle,
   Eye,
   CheckCheck,
   X
@@ -62,7 +56,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
   const [submitNotes, setSubmitNotes] = useState(
     "Hi Nafisur! I have completed all product grid layouts, responsive navigation, cart drawer animations, and bKash payment modal mockups. Please check the live Vercel URL and attached repository."
   );
-  const [submitFiles, setSubmitFiles] = useState<string[]>([
+  const [submitFiles] = useState<string[]>([
     "apex_storefront_src.zip",
     "Tailwind_Theme_Tokens.pdf",
     "lighthouse_performance_report.png",
@@ -582,7 +576,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                       </div>
 
                       <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
-                        "{milestone.submission.notes}"
+                        &ldquo;{milestone.submission.notes}&rdquo;
                       </p>
 
                       {/* Files list */}
@@ -866,7 +860,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                   ৳{selectedMilestoneForApproval.amountBdt.toLocaleString()} BDT
                 </span>
                 <span className="text-xs text-emerald-700 font-semibold block">
-                  Will be credited to {contract.freelancer.name}'s {contract.freelancer.payoutMethod} Wallet
+                  Will be credited to {contract.freelancer.name}&apos;s {contract.freelancer.payoutMethod} Wallet
                 </span>
               </div>
 

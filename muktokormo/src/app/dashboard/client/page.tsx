@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -8,29 +8,17 @@ import {
   Send,
   Handshake,
   Wallet,
-  Users,
   Video,
   ArrowRight,
   Sparkles,
-  Star,
   CheckCircle2,
-  FileText,
-  Clock,
   ShieldCheck,
   ChevronRight,
   Lock,
   Smartphone,
   CreditCard,
-  Building,
-  PlusCircle,
-  Eye,
-  AlertCircle,
   X,
   RefreshCw,
-  Search,
-  Bookmark,
-  Gavel,
-  MessageSquare,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
@@ -43,14 +31,20 @@ import {
 import {
   CLIENT_NAV,
   CLIENT_ONBOARDING_TASKS,
-  CLIENT_DRAFT_JOBS,
   CLIENT_CONTRACTS,
   CLIENT_LEDGER,
   CLIENT_RESOURCES,
 } from "@/data/dashboardData";
 import { formatBdt } from "@/lib/format";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
-import { WalletEntry } from "@/types";
+import { createClient } from "@/lib/supabase/client";
+import { fetchClientProjects } from "@/lib/data/jobs";
+import {
+  fetchClientProposals,
+  type ClientProposal,
+} from "@/lib/data/proposals";
+import { fetchSavedTalent } from "@/lib/data/freelancers";
+import { WalletEntry, DraftJob, Freelancer } from "@/types";
 
 const CONSULTANTS = [
   {
@@ -88,82 +82,41 @@ const CONSULTANTS = [
   },
 ];
 
-const MOCK_PROPOSALS = [
-  {
-    id: "prop-1",
-    jobTitle: "Full-Stack Next.js E-Commerce Website with bKash/Nagad Payment",
-    freelancerName: "Tanvir Rahman",
-    freelancerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80",
-    freelancerTitle: "Senior Next.js & MFS Gateway Engineer",
-    rating: 4.95,
-    reviews: 42,
-    bidBdt: 42000,
-    deliveryDays: 14,
-    coverNote: "I have integrated bKash and Nagad payment merchant webhooks for 8+ Bangladeshi e-commerce startups. Ready to start immediately.",
-    isShortlisted: true,
-  },
-  {
-    id: "prop-2",
-    jobTitle: "Full-Stack Next.js E-Commerce Website with bKash/Nagad Payment",
-    freelancerName: "Mahmudul Hasan",
-    freelancerAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80",
-    freelancerTitle: "Full Stack Developer",
-    rating: 4.88,
-    reviews: 29,
-    bidBdt: 38000,
-    deliveryDays: 18,
-    coverNote: "Experienced in Next.js 14 App router, Tailwind CSS, PostgreSQL Prisma, and SSLCommerz.",
-    isShortlisted: false,
-  },
-  {
-    id: "prop-3",
-    jobTitle: "Brand Identity, Logo & Social Media Kit for Chittagong Food Tech",
-    freelancerName: "Sabbir Ahmed",
-    freelancerAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80",
-    freelancerTitle: "Brand Identity & Packaging Specialist",
-    rating: 4.92,
-    reviews: 36,
-    bidBdt: 17500,
-    deliveryDays: 10,
-    coverNote: "Delivered packaging and social kit for several cloud kitchens in Dhaka and Chittagong. Check my portfolio.",
-    isShortlisted: true,
-  },
-];
-
-const SAVED_TALENT = [
-  {
-    id: "fav-1",
-    name: "Farzana Yasmin",
-    title: "Performance Marketer & Growth Strategist",
-    location: "Gulshan, Dhaka",
-    rating: 4.95,
-    rateBdt: 1500,
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80",
-    skills: ["Meta Ads", "TikTok Ads", "CAPI", "Copywriting"],
-  },
-  {
-    id: "fav-2",
-    name: "Sabbir Ahmed",
-    title: "Brand Identity & Packaging Specialist",
-    location: "Agrabad, Chattogram",
-    rating: 4.92,
-    rateBdt: 1200,
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80",
-    skills: ["Figma", "Branding", "Packaging", "Illustration"],
-  },
-];
-
-export default function ClientDashboardPage() {
-  const router = useRouter();
-  const { name, email, role, loading: userLoading } = useCurrentUser();
+export default function ClientDashboardPage() {  const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
+  const { name, email, role, clientId, loading: userLoading } = useCurrentUser();
   const [lang, setLang] = useState<"en" | "bn">("en");
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [consultants, setConsultants] = useState(true);
   const [ledgerEntries, setLedgerEntries] = useState<WalletEntry[]>(CLIENT_LEDGER);
+  const [draftJobs, setDraftJobs] = useState<DraftJob[]>([]);
+  const [proposals, setProposals] = useState<ClientProposal[]>([]);
+  const [savedTalent, setSavedTalent] = useState<Freelancer[]>([]);
+
+  useEffect(() => {
+    if (!clientId) return;
+    let cancelled = false;
+    (async () => {
+      const [projects, received, saved] = await Promise.all([
+        fetchClientProjects(supabase, clientId),
+        fetchClientProposals(supabase, clientId),
+        fetchSavedTalent(supabase, clientId),
+      ]);
+      if (cancelled) return;
+      setDraftJobs(projects);
+      setProposals(received);
+      setSavedTalent(saved);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, clientId]);
 
   useEffect(() => {
     if (!userLoading && role === "freelancer") {
       router.replace("/dashboard/freelancer");
+    } else if (!userLoading && role === "admin") {
+      router.replace("/dashboard/admin");
     }
   }, [userLoading, role, router]);
 
@@ -180,7 +133,8 @@ export default function ClientDashboardPage() {
   const activeContracts = CLIENT_CONTRACTS.filter((c) => c.stage === "ACTIVE");
   const escrowHeld = CLIENT_CONTRACTS.reduce((sum, c) => sum + c.escrowHeldBdt, 0);
   const totalSpent = CLIENT_CONTRACTS.reduce((sum, c) => sum + c.releasedBdt, 0);
-  const totalProposals = CLIENT_DRAFT_JOBS.reduce((sum, d) => sum + d.proposalCount, 0) + 3;
+  const totalProposals = proposals.length;
+  const activeJobPosts = draftJobs.filter((d) => d.status === "LIVE").length;
 
   const handleDepositEscrow = () => {
     if (depositAmount <= 0) return;
@@ -315,7 +269,7 @@ export default function ClientDashboardPage() {
               icon={Briefcase}
               label="Active job posts"
               labelBn="সক্রিয় কাজ"
-              value="3"
+              value={String(activeJobPosts)}
               delta="+1 this week"
               lang={lang}
               accent="emerald"
@@ -453,7 +407,7 @@ export default function ClientDashboardPage() {
                 </Link>
               }
             />
-            <DraftJobsTable drafts={CLIENT_DRAFT_JOBS} lang={lang} />
+            <DraftJobsTable drafts={draftJobs} lang={lang} />
           </div>
         )}
 
@@ -468,7 +422,7 @@ export default function ClientDashboardPage() {
               lang={lang}
             />
             <div className="grid grid-cols-1 gap-3.5">
-              {MOCK_PROPOSALS.map((prop) => (
+              {proposals.map((prop) => (
                 <div
                   key={prop.id}
                   className="bg-white border border-slate-200/90 hover:border-emerald-300 rounded-2xl p-5 shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
@@ -493,7 +447,7 @@ export default function ClientDashboardPage() {
                       </div>
                       <p className="text-xs text-slate-500 font-medium">{prop.freelancerTitle}</p>
                       <p className="text-xs text-slate-600 line-clamp-2 max-w-xl italic">
-                        "{prop.coverNote}"
+                        &ldquo;{prop.coverNote}&rdquo;
                       </p>
                       <p className="text-[10px] text-slate-400">
                         Applying for: <span className="font-semibold text-slate-600">{prop.jobTitle}</span>
@@ -630,7 +584,7 @@ export default function ClientDashboardPage() {
               lang={lang}
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {SAVED_TALENT.map((t) => (
+              {savedTalent.map((t) => (
                 <div
                   key={t.id}
                   className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex items-center justify-between gap-4 hover:border-emerald-300 transition-all"
@@ -646,7 +600,7 @@ export default function ClientDashboardPage() {
                       <p className="text-[11px] text-slate-500">{t.title}</p>
                       <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
                         <span className="text-emerald-600 font-bold">★ {t.rating}</span>
-                        <span>• ৳{t.rateBdt}/hr</span>
+                        <span>• ৳{t.hourlyRateBdt}/hr</span>
                         <span>• {t.location}</span>
                       </div>
                     </div>
