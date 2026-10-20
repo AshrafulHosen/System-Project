@@ -157,11 +157,10 @@ function LoginForm() {
                     key={r.id}
                     type="button"
                     onClick={() => setRole(r.id)}
-                    className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      role === r.id
+                    className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${role === r.id
                         ? "bg-white text-slate-950 shadow-xs"
                         : "text-slate-600 hover:text-slate-900"
-                    }`}
+                      }`}
                   >
                     <r.icon className="w-3.5 h-3.5 text-emerald-600" />
                     <span>{lang === "en" ? r.en : r.bn}</span>

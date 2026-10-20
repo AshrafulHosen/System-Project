@@ -3,7 +3,7 @@
 import React, { useState, Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Briefcase, User, Check, ShieldCheck, Sparkles, ArrowRight, Mail } from "lucide-react";
+import { Briefcase, User, Check, ShieldCheck, Sparkles, ArrowRight, Mail, Globe } from "lucide-react";
 import OnboardingShell, { WizardStep } from "@/components/onboarding/OnboardingShell";
 import { ClientOrgStep } from "@/components/onboarding/ClientOrgStep";
 import { ClientAccountStep, ClientAccount } from "@/components/onboarding/ClientAccountStep";
@@ -97,6 +97,7 @@ function SignUpFlow() {
   const [role, setRole] = useState<"client" | "freelancer" | null>(
     isFreelancerDeepLink ? "freelancer" : null
   );
+  const [lang, setLang] = useState<"en" | "bn">("en");
   const [clientStep, setClientStep] = useState(0);
   const [freelancerStep, setFreelancerStep] = useState(
     wantsSkills ? 2 : wantsProfile ? 3 : 0
@@ -112,11 +113,11 @@ function SignUpFlow() {
   const [profile, setProfile] = useState<ProfileFormState>(() =>
     isFreelancerDeepLink
       ? {
-          ...EMPTY_PROFILE,
-          employment: SAMPLE_EMPLOYMENT,
-          education: SAMPLE_EDUCATION,
-          languages: SAMPLE_LANGUAGES,
-        }
+        ...EMPTY_PROFILE,
+        employment: SAMPLE_EMPLOYMENT,
+        education: SAMPLE_EDUCATION,
+        languages: SAMPLE_LANGUAGES,
+      }
       : EMPTY_PROFILE
   );
 
@@ -183,12 +184,22 @@ function SignUpFlow() {
   };
 
   const headerRight = (
-    <span className="hidden sm:flex items-center gap-1.5">
-      <span>Already have an account?</span>
-      <Link href="/login" className="font-bold text-emerald-600 hover:underline">
-        Sign In
-      </Link>
-    </span>
+    <div className="flex items-center gap-3">
+      <button
+        type="button"
+        onClick={() => setLang((prev) => (prev === "en" ? "bn" : "en"))}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold text-xs text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+      >
+        <Globe className="w-3.5 h-3.5 text-emerald-600" />
+        {lang === "en" ? "বাংলা" : "English"}
+      </button>
+      <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500">
+        <span>{lang === "en" ? "Already have an account?" : "ইতিমধ্যে অ্যাকাউন্ট আছে?"}</span>
+        <Link href="/login" className="font-bold text-emerald-600 hover:underline">
+          {lang === "en" ? "Sign In" : "লগইন"}
+        </Link>
+      </span>
+    </div>
   );
 
   const ErrorBanner = authError ? (
@@ -265,9 +276,11 @@ function SignUpFlow() {
           <div className="w-full max-w-lg space-y-6">
             <div className="text-center space-y-1.5">
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-                Welcome to MuktoKormo
+                {lang === "en" ? "Welcome to MuktoKormo" : "মুক্তকর্মে স্বাগতম"}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500">Which describes you best?</p>
+              <p className="text-xs sm:text-sm text-slate-500">
+                {lang === "en" ? "Which describes you best?" : "আপনার জন্য কোনটি সবচেয়ে প্রযোজ্য?"}
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -275,23 +288,19 @@ function SignUpFlow() {
                 {
                   id: "client" as const,
                   icon: Briefcase,
-                  title: "Client",
-                  titleBn: "নিয়োগদাতা",
-                  body: "Post jobs and hire",
-                  bodyBn: "কাজ পোস্ট করুন ও নিয়োগ দিন",
-                  foot: "Protected by BDT escrow",
-                  footBn: "বিডিটি এসক্রো দ্বারা সুরক্ষিত",
+                  title: lang === "en" ? "Client" : "নিয়োগদাতা",
+                  subtitle: lang === "en" ? "I want to hire talent" : "কাজের জন্য লোক খুঁজছি",
+                  body: lang === "en" ? "Post jobs and hire" : "কাজ পোস্ট করুন ও নিয়োগ দিন",
+                  foot: lang === "en" ? "Protected by BDT escrow" : "বিডিটি এসক্রো দ্বারা সুরক্ষিত",
                   footIcon: ShieldCheck,
                 },
                 {
                   id: "freelancer" as const,
                   icon: User,
-                  title: "Freelancer",
-                  titleBn: "ফ্রিল্যান্সার",
-                  body: "Work and get paid",
-                  bodyBn: "কাজ করুন ও টাকা নিন",
-                  foot: "Flat 7% service fee",
-                  footBn: "মাত্র ৭% সার্ভিস ফি",
+                  title: lang === "en" ? "Freelancer" : "ফ্রিল্যান্সার",
+                  subtitle: lang === "en" ? "I'm looking for work" : "কাজের সন্ধানে আছি",
+                  body: lang === "en" ? "Work and get paid" : "কাজ করুন ও টাকা নিন",
+                  foot: lang === "en" ? "Flat 7% service fee" : "মাত্র ৭% সার্ভিস ফি",
                   footIcon: Sparkles,
                 },
               ].map((card) => (
@@ -305,22 +314,22 @@ function SignUpFlow() {
                     <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-4 text-emerald-600">
                       <card.icon className="w-6 h-6" />
                     </div>
-                    <h3 className="font-extrabold text-base text-slate-900">{card.titleBn}</h3>
-                    <p className="text-xs font-bold text-emerald-700 mt-0.5">{card.title}</p>
-                    <p className="text-xs text-slate-500 leading-relaxed mt-2">{card.bodyBn}</p>
+                    <h3 className="font-extrabold text-base text-slate-900">{card.title}</h3>
+                    <p className="text-xs font-bold text-emerald-700 mt-0.5">{card.subtitle}</p>
+                    <p className="text-xs text-slate-500 leading-relaxed mt-2">{card.body}</p>
                   </div>
                   <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
                     <card.footIcon className="w-3.5 h-3.5" />
-                    <span>{card.footBn}</span>
+                    <span>{card.foot}</span>
                   </div>
                 </button>
               ))}
             </div>
 
             <p className="text-center text-xs text-slate-500">
-              Already have an account?{" "}
+              {lang === "en" ? "Already have an account? " : "ইতিমধ্যে অ্যাকাউন্ট আছে? "}
               <Link href="/login" className="font-bold text-emerald-600 hover:underline">
-                Log in
+                {lang === "en" ? "Log in" : "লগইন"}
               </Link>
             </p>
           </div>
@@ -451,69 +460,69 @@ function SignUpFlow() {
       {ErrorBanner}
       <OnboardingShell
         eyebrow={`Step ${freelancerStep + 1} of ${FREELANCER_STEPS.length}`}
-      title={
-        freelancerStep === 0
-          ? "Create your account"
-          : freelancerStep === 1
-            ? "Build your profile"
-            : freelancerStep === 2
-              ? "Your skills"
-              : "Your profile"
-      }
-      subtitle={
-        freelancerStep === 0
-          ? "Sign up to find work you love"
-          : "A strong, complete profile helps clients find you and increases your chances of getting hired."
-      }
-      steps={FREELANCER_STEPS}
-      currentIndex={freelancerStep}
-      onBack={() => {
-        if (freelancerStep === 0) setRole(null);
-        else setFreelancerStep(freelancerStep - 1);
-      }}
-      backLabel={freelancerStep === 0 ? "Change role" : "Back"}
-      headerRight={headerRight}
-      width={freelancerStep === 2 ? "lg" : "md"}
-    >
-      {freelancerStep === 0 && (
-        <FreelancerAccountStep
-          value={account}
-          onChange={setAccount}
-          onNext={() => setFreelancerStep(1)}
-          onSwitchToClient={() => setRole("client")}
-          isLoading={isLoading}
-        />
-      )}
+        title={
+          freelancerStep === 0
+            ? "Create your account"
+            : freelancerStep === 1
+              ? "Build your profile"
+              : freelancerStep === 2
+                ? "Your skills"
+                : "Your profile"
+        }
+        subtitle={
+          freelancerStep === 0
+            ? "Sign up to find work you love"
+            : "A strong, complete profile helps clients find you and increases your chances of getting hired."
+        }
+        steps={FREELANCER_STEPS}
+        currentIndex={freelancerStep}
+        onBack={() => {
+          if (freelancerStep === 0) setRole(null);
+          else setFreelancerStep(freelancerStep - 1);
+        }}
+        backLabel={freelancerStep === 0 ? "Change role" : "Back"}
+        headerRight={headerRight}
+        width={freelancerStep === 2 ? "lg" : "md"}
+      >
+        {freelancerStep === 0 && (
+          <FreelancerAccountStep
+            value={account}
+            onChange={setAccount}
+            onNext={() => setFreelancerStep(1)}
+            onSwitchToClient={() => setRole("client")}
+            isLoading={isLoading}
+          />
+        )}
 
-      {freelancerStep === 1 && (
-        <ResumeImportStep
-          onBack={() => setFreelancerStep(0)}
-          onManual={() => setFreelancerStep(2)}
-          onNext={() => setFreelancerStep(2)}
-        />
-      )}
+        {freelancerStep === 1 && (
+          <ResumeImportStep
+            onBack={() => setFreelancerStep(0)}
+            onManual={() => setFreelancerStep(2)}
+            onNext={() => setFreelancerStep(2)}
+          />
+        )}
 
-      {freelancerStep === 2 && (
-        <CategoriesSkillsStep
-          category={category}
-          onCategoryChange={setCategory}
-          skills={skills}
-          onSkillsChange={setSkills}
-          onBack={() => setFreelancerStep(1)}
-          onNext={() => setFreelancerStep(3)}
-        />
-      )}
+        {freelancerStep === 2 && (
+          <CategoriesSkillsStep
+            category={category}
+            onCategoryChange={setCategory}
+            skills={skills}
+            onSkillsChange={setSkills}
+            onBack={() => setFreelancerStep(1)}
+            onNext={() => setFreelancerStep(3)}
+          />
+        )}
 
-      {freelancerStep === 3 && (
-        <ProfileInfoSteps
-          value={profile}
-          onChange={setProfile}
-          onBack={() => setFreelancerStep(2)}
-          isFinal
-          onFinish={() => finish("/dashboard/freelancer")}
-        />
-      )}
-    </OnboardingShell>
+        {freelancerStep === 3 && (
+          <ProfileInfoSteps
+            value={profile}
+            onChange={setProfile}
+            onBack={() => setFreelancerStep(2)}
+            isFinal
+            onFinish={() => finish("/dashboard/freelancer")}
+          />
+        )}
+      </OnboardingShell>
     </>
   );
 }
