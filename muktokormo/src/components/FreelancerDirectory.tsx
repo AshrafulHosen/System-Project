@@ -32,7 +32,7 @@ export default function FreelancerDirectory({
   return (
     <section id="freelancers-section" className="py-16 bg-slate-50/70 border-t border-slate-100 text-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8">
           <div>
             <div className="flex items-center gap-2 mb-1">

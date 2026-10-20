@@ -7,6 +7,8 @@ import {
   Menu,
   X,
   ChevronDown,
+  ChevronRight,
+  ArrowRight,
   ShieldCheck,
   Briefcase,
   Users,
@@ -16,6 +18,216 @@ import {
   Handshake,
 } from "lucide-react";
 import Logo from "./Logo";
+
+const TALENT_CATEGORIES = [
+  {
+    id: "ai",
+    name: "AI & Automation",
+    nameBn: "এআই ও অটোমেশন",
+    roles: [
+      { title: "AI Video Creators & Editors", desc: "Generate and edit AI-powered video" },
+      { title: "AI Integration Developers", desc: "Connect AI to your existing tools" },
+      { title: "Chatbot developers", desc: "Build AI for support and sales" },
+      { title: "Machine learning engineers", desc: "Models that learn from your data" },
+      { title: "AI Developers", desc: "Custom AI-powered apps and features" },
+      { title: "Automation Experts", desc: "Streamline your business processes" },
+      { title: "N8N Experts", desc: "No-code workflow automation" },
+      { title: "Vibe Coders", desc: "Prototype and build rapidly with AI" },
+      { title: "Claude Experts", desc: "Build with Anthropic's Claude" },
+      { title: "AI Consultants", desc: "Strategic AI guidance for business" },
+    ],
+  },
+  {
+    id: "dev",
+    name: "Development & IT",
+    nameBn: "ডেভেলপমেন্ট ও আইটি",
+    roles: [
+      { title: "Full-Stack Developers", desc: "End-to-end web apps with Next.js & React" },
+      { title: "Mobile App Developers", desc: "Cross-platform iOS & Android in Flutter" },
+      { title: "Frontend Specialists", desc: "Pixel-perfect responsive web interfaces" },
+      { title: "Backend Engineers", desc: "Scalable REST APIs in Node & Python" },
+      { title: "E-Commerce Developers", desc: "Custom stores with bKash & SSLCommerz" },
+      { title: "Payment API Engineers", desc: "Direct bKash, Nagad & card integrations" },
+      { title: "DevOps & Cloud Engineers", desc: "AWS, Docker & CI/CD deployment" },
+      { title: "WordPress Developers", desc: "Custom themes, plugins & speed optimization" },
+      { title: "Database Architects", desc: "PostgreSQL, Supabase & schema tuning" },
+      { title: "Cybersecurity Specialists", desc: "Vulnerability audits & secure auth" },
+    ],
+  },
+  {
+    id: "design",
+    name: "Design & Creative",
+    nameBn: "ডিজাইন ও ক্রিয়েটিভ",
+    roles: [
+      { title: "UI/UX Designers", desc: "High-converting Figma prototypes & wireframes" },
+      { title: "Brand & Logo Designers", desc: "Visual identities, guidelines & vector logos" },
+      { title: "Motion Graphics Artists", desc: "Dynamic animations, intros & 2D effects" },
+      { title: "Video Editors", desc: "Fast-paced YouTube, TikTok & podcast editing" },
+      { title: "Graphic Designers", desc: "Social media banners, flyers & print kits" },
+      { title: "Design System Specialists", desc: "Scalable Figma component libraries" },
+      { title: "3D Modelers & Animators", desc: "Blender, realistic product renders & 3D art" },
+      { title: "Packaging Designers", desc: "Print-ready retail box & label artwork" },
+    ],
+  },
+  {
+    id: "marketing",
+    name: "Marketing",
+    nameBn: "মার্কেটিং",
+    roles: [
+      { title: "Meta Ads Specialists", desc: "High-ROAS Facebook & Instagram conversion ads" },
+      { title: "TikTok Media Buyers", desc: "Viral short-form creative ad campaigns" },
+      { title: "SEO Consultants", desc: "Technical audits, on-page SEO & link building" },
+      { title: "Google Ads Experts", desc: "PPC, Search, Shopping & Display campaigns" },
+      { title: "Conversion Rate Optimizers", desc: "Landing page A/B testing & funnel growth" },
+      { title: "Email Marketers", desc: "Automated retention flows & newsletters" },
+      { title: "Social Media Managers", desc: "Organic growth, community & scheduling" },
+      { title: "Influencer Marketers", desc: "Bangladeshi creator outreach & partnerships" },
+    ],
+  },
+  {
+    id: "data",
+    name: "Data & Analytics",
+    nameBn: "ডাটা ও অ্যানালিটিক্স",
+    roles: [
+      { title: "Data Analysts", desc: "PowerBI, Tableau dashboards & SQL insights" },
+      { title: "Google Analytics 4 Experts", desc: "Server-side tracking, GTM & conversion APIs" },
+      { title: "Excel & Sheet Automators", desc: "Advanced formulas, VBA macros & pipelines" },
+      { title: "Data Engineers", desc: "ETL pipelines, data cleaning & web scraping" },
+      { title: "Financial Modelers", desc: "Cash flow projections & startup unit economics" },
+      { title: "BI Consultants", desc: "Executive KPI scorecards & revenue reporting" },
+    ],
+  },
+  {
+    id: "admin",
+    name: "Admin & support",
+    nameBn: "অ্যাডমিন ও সাপোর্ট",
+    roles: [
+      { title: "Virtual Assistants", desc: "Executive calendar, inbox & operations support" },
+      { title: "Customer Support Specialists", desc: "Live chat, Zendesk & email ticket resolution" },
+      { title: "Data Entry Specialists", desc: "Accurate spreadsheet entry & catalog updates" },
+      { title: "Project Coordinators", desc: "Sprint management with Jira, Trello & Notion" },
+      { title: "E-Commerce Store Managers", desc: "Order fulfillment, customer calls & dispatch" },
+      { title: "Online Researchers", desc: "Competitor analysis & business lead finding" },
+    ],
+  },
+  {
+    id: "writing",
+    name: "Writing & content",
+    nameBn: "রাইটিং ও কন্টেন্ট",
+    roles: [
+      { title: "SEO Content Writers", desc: "High-ranking informative articles & blog posts" },
+      { title: "Bilingual Copywriters", desc: "Engaging English & Bangla marketing copy" },
+      { title: "Technical Writers", desc: "API docs, developer guides & whitepapers" },
+      { title: "Scriptwriters", desc: "Engaging YouTube scripts, ads & short videos" },
+      { title: "English-Bangla Translators", desc: "Fluent contextual localization & translation" },
+      { title: "Proofreaders & Editors", desc: "Grammar, syntax, tone & brand consistency" },
+    ],
+  },
+];
+
+const WORK_CATEGORIES = [
+  {
+    id: "ai",
+    name: "AI & Automation",
+    nameBn: "এআই ও অটোমেশন",
+    roles: [
+      { title: "Artificial Intelligence", desc: "Work on cutting-edge AI projects" },
+      { title: "AI Generated Video", desc: "Create AI-powered video content" },
+      { title: "AI Model Training", desc: "Label, train and fine-tune AI models" },
+      { title: "Prompt Engineering", desc: "Craft prompts for better AI outputs" },
+      { title: "AI Content Creation", desc: "Write and edit AI-assisted content" },
+      { title: "Generative AI", desc: "Build with generative AI tools" },
+      { title: "AI Writing", desc: "Write with and about AI" },
+      { title: "Automation", desc: "Workflows that cut manual work" },
+      { title: "Chatbot", desc: "Deploy conversational bots" },
+      { title: "ChatGPT", desc: "Projects using ChatGPT and OpenAI" },
+    ],
+  },
+  {
+    id: "dev",
+    name: "Development & IT",
+    nameBn: "ডেভেলপমেন্ট ও আইটি",
+    roles: [
+      { title: "Full-Stack Development", desc: "Build complete web apps with Next.js & React" },
+      { title: "Mobile App Development", desc: "Native & Flutter apps for iOS & Android" },
+      { title: "Frontend Development", desc: "Responsive UI with Tailwind, CSS & React" },
+      { title: "Backend Development", desc: "REST & GraphQL APIs, Node.js & Python" },
+      { title: "E-Commerce & bKash", desc: "Custom checkout, SSLCommerz & payment gateways" },
+      { title: "WordPress Development", desc: "Themes, plugins & speed optimization" },
+      { title: "DevOps & Cloud", desc: "AWS, Docker, CI/CD pipeline automation" },
+      { title: "Database Architecture", desc: "PostgreSQL, Supabase & schema optimization" },
+    ],
+  },
+  {
+    id: "marketing",
+    name: "Marketing",
+    nameBn: "মার্কেটিং",
+    roles: [
+      { title: "Meta & Facebook Ads", desc: "High-ROAS conversion campaigns & CAPI tracking" },
+      { title: "TikTok Ad Campaigns", desc: "Viral short-form creative video promotions" },
+      { title: "Search Engine Optimization", desc: "On-page, technical audits & rank climbing" },
+      { title: "Google Ads & PPC", desc: "High-intent search & shopping ad campaigns" },
+      { title: "Email Marketing & Flows", desc: "Klaviyo retention, automations & newsletters" },
+      { title: "Social Media Growth", desc: "Organic strategy, community & scheduling" },
+      { title: "Conversion Optimization", desc: "Landing page A/B tests & funnel analysis" },
+      { title: "Influencer Marketing", desc: "Creator sponsorships & brand partnerships" },
+    ],
+  },
+  {
+    id: "design",
+    name: "Design & Creative",
+    nameBn: "ডিজাইন ও ক্রিয়েটিভ",
+    roles: [
+      { title: "UI/UX & Mobile Design", desc: "Interactive Figma wireframes & prototypes" },
+      { title: "Brand & Logo Identity", desc: "Logos, brand guidelines & typography systems" },
+      { title: "Graphic Design", desc: "Social media assets, banners & print design" },
+      { title: "Design Systems", desc: "Figma tokens, reusable components & auto-layout" },
+      { title: "3D Product Modeling", desc: "Realistic Blender renders & 3D animations" },
+      { title: "Packaging & Label Design", desc: "Retail product boxes, mockups & labels" },
+      { title: "Illustrations & Vector Art", desc: "Custom icon sets & digital drawings" },
+      { title: "Presentation Design", desc: "Pitch decks, investor slides & keynotes" },
+    ],
+  },
+  {
+    id: "video",
+    name: "Video & Audio",
+    nameBn: "ভিডিও ও অডিও",
+    roles: [
+      { title: "YouTube Video Editing", desc: "High-retention pacing, sound design & B-roll" },
+      { title: "Motion Graphics & VFX", desc: "After Effects animations, intros & lower thirds" },
+      { title: "TikTok & Shorts Editing", desc: "Captivating captions, hooks & trending formats" },
+      { title: "Color Grading", desc: "DaVinci Resolve cinematic look & LUTs" },
+      { title: "Podcast Audio Production", desc: "Vocal cleanup, mastering & sound mixing" },
+      { title: "Commercial Ad Videos", desc: "High-converting promo video production" },
+    ],
+  },
+  {
+    id: "writing",
+    name: "Writing & content",
+    nameBn: "রাইটিং ও কন্টেন্ট",
+    roles: [
+      { title: "SEO Blog & Article Writing", desc: "In-depth research & high-ranking content" },
+      { title: "Bilingual Copywriting", desc: "Persuasive sales copy in English & Bangla" },
+      { title: "Technical Writing", desc: "Developer docs, API guides & whitepapers" },
+      { title: "Scriptwriting", desc: "YouTube video scripts & podcast outlines" },
+      { title: "English-Bangla Translation", desc: "Accurate contextual translation" },
+      { title: "Proofreading & Editing", desc: "Grammar, syntax & flow enhancements" },
+    ],
+  },
+  {
+    id: "admin",
+    name: "Admin & support",
+    nameBn: "অ্যাডমিন ও সাপোর্ট",
+    roles: [
+      { title: "Virtual Assistance", desc: "Executive scheduling, email & calendar triage" },
+      { title: "Customer Support (Chat/Email)", desc: "Zendesk, live chat & ticket management" },
+      { title: "Data Entry & Cleanup", desc: "Accurate spreadsheet entry & catalog updates" },
+      { title: "Project Management", desc: "Sprint tracking via Jira, Trello & Notion" },
+      { title: "E-Commerce Store Support", desc: "Order fulfillment, customer calls & dispatch" },
+      { title: "Web Research & Lead Sourcing", desc: "Targeted B2B leads & competitor intel" },
+    ],
+  },
+];
 
 interface NavbarProps {
   onOpenPostJob: () => void;
@@ -38,6 +250,8 @@ export default function Navbar({
 }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<"talent" | "work" | "why" | null>(null);
+  const [selectedTalentCatIdx, setSelectedTalentCatIdx] = useState(0);
+  const [selectedWorkCatIdx, setSelectedWorkCatIdx] = useState(0);
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleMouseEnter = (menu: "talent" | "work" | "why") => {
@@ -69,7 +283,7 @@ export default function Navbar({
             </Link>
 
             <nav className="hidden lg:flex items-center gap-1 text-[13px] font-semibold text-slate-700">
-              {/* 1. Find Talent Dropdown */}
+              {/* 1. Find Talent Mega Menu (Upwork Style) */}
               <div
                 className="relative"
                 onMouseEnter={() => handleMouseEnter("talent")}
@@ -91,69 +305,114 @@ export default function Navbar({
                 </button>
 
                 {activeDropdown === "talent" && (
-                  <div className="absolute top-full left-0 w-80 pt-2 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-3 space-y-1">
-                      <button
-                        onClick={() => {
-                          setActiveDropdown(null);
-                          onOpenPostJob();
-                        }}
-                        className="w-full text-left p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-                          <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
-                            {lang === "en" ? "Post a Job (Free)" : "কাজ পোস্ট করুন (ফ্রি)"}
-                          </p>
+                  <div
+                    className="absolute top-full left-0 w-[860px] max-w-[calc(100vw-3rem)] pt-2 animate-in fade-in zoom-in-95 duration-150 z-50"
+                    onMouseEnter={() => handleMouseEnter("talent")}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col">
+                      
+                      {/* 2-Pane Upwork Mega Menu Body */}
+                      <div className="flex min-h-[380px]">
+                        
+                        {/* Left Pane: Categories List */}
+                        <div className="w-56 border-r border-slate-100/90 py-3 px-2 bg-white flex flex-col justify-start shrink-0">
+                          <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 pt-1 pb-2">
+                            CATEGORIES
+                          </span>
+                          <div className="space-y-0.5">
+                            {TALENT_CATEGORIES.map((cat, idx) => (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                onMouseEnter={() => setSelectedTalentCatIdx(idx)}
+                                onClick={() => setSelectedTalentCatIdx(idx)}
+                                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-[13px] transition-colors text-left cursor-pointer ${
+                                  selectedTalentCatIdx === idx
+                                    ? "bg-slate-100 text-slate-900 font-semibold"
+                                    : "text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-normal"
+                                }`}
+                              >
+                                <span>{lang === "en" ? cat.name : cat.nameBn}</span>
+                                <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                        <p className="text-[11px] text-slate-500 mt-1 pl-6">
-                          {lang === "en"
-                            ? "Get proposals from verified local talent within hours"
-                            : "কয়েক ঘণ্টার মধ্যে ভেরিফায়েড ফ্রিল্যান্সারদের থেকে আবেদন পান"}
-                        </p>
-                      </button>
 
-                      <Link
-                        href="/#freelancers-section"
-                        onClick={() => setActiveDropdown(null)}
-                        className="block p-3 rounded-xl hover:bg-slate-50 transition-colors group"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-                          <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
-                            {lang === "en" ? "Talent Marketplace" : "ট্যালেন্ট মার্কেটপ্লেস"}
-                          </p>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-1 pl-6">
-                          {lang === "en"
-                            ? "Browse pre-vetted Bangladeshi developers, designers & experts"
-                            : "দক্ষ ডেভেলপার, ডিজাইনার ও বিশেষজ্ঞদের পোর্টফোলিও দেখুন"}
-                        </p>
-                      </Link>
+                        {/* Right Pane: 2-Column Skills Grid */}
+                        <div className="flex-1 py-4 px-7 bg-white flex flex-col justify-between">
+                          <div>
+                            <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-4">
+                              {lang === "en"
+                                ? TALENT_CATEGORIES[selectedTalentCatIdx].name
+                                : TALENT_CATEGORIES[selectedTalentCatIdx].nameBn}
+                            </span>
 
-                      <Link
-                        href="/dashboard/client"
-                        onClick={() => setActiveDropdown(null)}
-                        className="block p-3 rounded-xl hover:bg-slate-50 transition-colors group"
-                      >
-                        <div className="flex items-center gap-2">
-                          <LayoutDashboard className="w-4 h-4 text-slate-500 group-hover:text-emerald-600 transition-colors" />
-                          <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
-                            {lang === "en" ? "Employer Dashboard" : "নিয়োগকর্তা ড্যাশবোর্ড"}
-                          </p>
+                            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                              {TALENT_CATEGORIES[selectedTalentCatIdx].roles.map((role) => (
+                                <Link
+                                  key={role.title}
+                                  href="/#freelancers-section"
+                                  onClick={() => {
+                                    setActiveDropdown(null);
+                                    onSearchChange(role.title);
+                                  }}
+                                  className="group block text-left"
+                                >
+                                  <h4 className="text-[13px] font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                                    {role.title}
+                                  </h4>
+                                  <p className="text-[12px] text-slate-500 mt-0.5 leading-snug group-hover:text-slate-600">
+                                    {role.desc}
+                                  </p>
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-[11px] text-slate-500 mt-1 pl-6">
-                          {lang === "en"
-                            ? "Manage your posted jobs, proposals, and BDT escrow funding"
-                            : "পোস্ট করা কাজ, আবেদন ও এসক্রো ফান্ড পরিচালনা করুন"}
-                        </p>
-                      </Link>
+
+                      </div>
+
+                      {/* Footer Action Bar (Upwork Style) */}
+                      <div className="border-t border-slate-100 px-7 py-3.5 flex items-center gap-6 text-[13px]">
+                        <Link
+                          href="/#freelancers-section"
+                          onClick={() => setActiveDropdown(null)}
+                          className="font-medium text-[#108a00] hover:text-[#14a800] hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>{lang === "en" ? "See all talent" : "সকল ট্যালেন্ট দেখুন"}</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveDropdown(null);
+                            onOpenPostJob();
+                          }}
+                          className="font-medium text-[#108a00] hover:text-[#14a800] hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>{lang === "en" ? "Post a job for free" : "ফ্রি কাজ পোস্ট করুন"}</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+
+                        <Link
+                          href="/dashboard/client"
+                          onClick={() => setActiveDropdown(null)}
+                          className="font-medium text-[#108a00] hover:text-[#14a800] hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>{lang === "en" ? "Talent marketplace" : "ট্যালেন্ট মার্কেটপ্লেস"}</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* 2. Find Work Dropdown */}
+              {/* 2. Find Work Dropdown (Upwork 2-Column Style) */}
               <div
                 className="relative"
                 onMouseEnter={() => handleMouseEnter("work")}
@@ -178,72 +437,105 @@ export default function Navbar({
                 </button>
 
                 {activeDropdown === "work" && (
-                  <div className="absolute top-full left-0 w-80 pt-2 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-3 space-y-1">
-                      <Link
-                        href="/#jobs-section"
-                        onClick={() => setActiveDropdown(null)}
-                        className="block p-3 rounded-xl hover:bg-slate-50 transition-colors group"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-                          <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
-                            {lang === "en" ? "Browse Open Jobs" : "চলমান কাজসমূহ দেখুন"}
-                          </p>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-1 pl-6">
-                          {lang === "en"
-                            ? "Explore high-paying jobs with guaranteed BDT milestone payments"
-                            : "নিরাপদ বিডিটি মাইলস্টোন পেমেন্টে কাজ খুঁজুন ও বিড করুন"}
-                        </p>
-                      </Link>
-
-                      {onOpenMyBids && (
-                        <button
-                          onClick={() => {
-                            setActiveDropdown(null);
-                            onOpenMyBids();
-                          }}
-                          className="w-full text-left p-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <FileText className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-                              <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
-                                {lang === "en" ? "My Submitted Bids" : "আমার জমা দেওয়া বিড"}
-                              </p>
-                            </div>
-                            {myBidsCount > 0 && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
-                                {myBidsCount}
-                              </span>
-                            )}
+                  <div
+                    className="absolute top-full left-0 w-[860px] max-w-[calc(100vw-3rem)] pt-2 animate-in fade-in zoom-in-95 duration-150 z-50"
+                    onMouseEnter={() => handleMouseEnter("work")}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col">
+                      
+                      {/* 2-Pane Upwork Mega Menu Body */}
+                      <div className="flex min-h-[380px]">
+                        
+                        {/* Left Pane: Categories List */}
+                        <div className="w-56 border-r border-slate-100/90 py-3 px-2 bg-white flex flex-col justify-start shrink-0">
+                          <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 pt-1 pb-2">
+                            CATEGORIES
+                          </span>
+                          <div className="space-y-0.5">
+                            {WORK_CATEGORIES.map((cat, idx) => (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                onMouseEnter={() => setSelectedWorkCatIdx(idx)}
+                                onClick={() => setSelectedWorkCatIdx(idx)}
+                                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-[13px] transition-colors text-left cursor-pointer ${
+                                  selectedWorkCatIdx === idx
+                                    ? "bg-slate-100 text-slate-900 font-semibold"
+                                    : "text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-normal"
+                                }`}
+                              >
+                                <span>{lang === "en" ? cat.name : cat.nameBn}</span>
+                                <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              </button>
+                            ))}
                           </div>
-                          <p className="text-[11px] text-slate-500 mt-1 pl-6">
-                            {lang === "en"
-                              ? "Track proposal statuses, interview invites & accepted contracts"
-                              : "জমা দেওয়া প্রস্তাবনা ও ক্লায়েন্টের প্রতিক্রিয়া ট্র্যাক করুন"}
-                          </p>
-                        </button>
-                      )}
-
-                      <Link
-                        href="/dashboard/freelancer"
-                        onClick={() => setActiveDropdown(null)}
-                        className="block p-3 rounded-xl hover:bg-slate-50 transition-colors group"
-                      >
-                        <div className="flex items-center gap-2">
-                          <LayoutDashboard className="w-4 h-4 text-slate-500 group-hover:text-emerald-600 transition-colors" />
-                          <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
-                            {lang === "en" ? "Freelancer Dashboard" : "ফ্রিল্যান্সার ড্যাশবোর্ড"}
-                          </p>
                         </div>
-                        <p className="text-[11px] text-slate-500 mt-1 pl-6">
-                          {lang === "en"
-                            ? "Manage your active contracts, profile strength & bKash payouts"
-                            : "চলমান চুক্তি, ওয়ালেট আয় ও বিকাশ ক্যাশআউট পরিচালনা করুন"}
-                        </p>
-                      </Link>
+
+                        {/* Right Pane: 2-Column Job Specialties Grid */}
+                        <div className="flex-1 py-4 px-7 bg-white flex flex-col justify-between">
+                          <div>
+                            <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-4">
+                              {lang === "en"
+                                ? WORK_CATEGORIES[selectedWorkCatIdx].name
+                                : WORK_CATEGORIES[selectedWorkCatIdx].nameBn}
+                            </span>
+
+                            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                              {WORK_CATEGORIES[selectedWorkCatIdx].roles.map((role) => (
+                                <Link
+                                  key={role.title}
+                                  href="/#jobs-section"
+                                  onClick={() => {
+                                    setActiveDropdown(null);
+                                    onSearchChange(role.title);
+                                  }}
+                                  className="group block text-left"
+                                >
+                                  <h4 className="text-[13px] font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
+                                    {role.title}
+                                  </h4>
+                                  <p className="text-[12px] text-slate-500 mt-0.5 leading-snug group-hover:text-slate-600">
+                                    {role.desc}
+                                  </p>
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* Footer Action Bar (Directly from Upwork Image 1) */}
+                      <div className="border-t border-slate-100 px-7 py-3.5 flex items-center gap-6 text-[13px]">
+                        <Link
+                          href="/#jobs-section"
+                          onClick={() => setActiveDropdown(null)}
+                          className="font-medium text-[#108a00] hover:text-[#14a800] hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>{lang === "en" ? "See all jobs" : "সকল কাজ দেখুন"}</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+
+                        <Link
+                          href="/dashboard/freelancer"
+                          onClick={() => setActiveDropdown(null)}
+                          className="font-medium text-[#108a00] hover:text-[#14a800] hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>{lang === "en" ? "Win work with ads" : "বিজ্ঞাপনে কাজ জিতুন"}</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+
+                        <Link
+                          href="/dashboard/freelancer"
+                          onClick={() => setActiveDropdown(null)}
+                          className="font-medium text-[#108a00] hover:text-[#14a800] hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>{lang === "en" ? "Ways to earn" : "উপার্জনের উপায়"}</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+
                     </div>
                   </div>
                 )}

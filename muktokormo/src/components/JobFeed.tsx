@@ -2,14 +2,14 @@
 
 import React, { useState } from "react";
 import { Job } from "@/types";
-import { 
-  Briefcase, 
-  MapPin, 
-  Star, 
-  ShieldCheck, 
-  Clock, 
-  FileText, 
-  Filter, 
+import {
+  Briefcase,
+  MapPin,
+  Star,
+  ShieldCheck,
+  Clock,
+  FileText,
+  Filter,
   Send,
   Lock,
   Sparkles,
@@ -64,7 +64,7 @@ export default function JobFeed({
   return (
     <section id="jobs-section" className="py-16 bg-white text-slate-900 min-h-[500px]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Header & Controls */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
           <div>
@@ -109,41 +109,37 @@ export default function JobFeed({
 
             <button
               onClick={() => setSelectedBudgetRange("ALL")}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                selectedBudgetRange === "ALL"
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${selectedBudgetRange === "ALL"
                   ? "bg-slate-900 text-white shadow-xs"
                   : "bg-slate-100 text-slate-600 hover:text-slate-900"
-              }`}
+                }`}
             >
               {lang === "en" ? "All Budgets" : "সব বাজেট"}
             </button>
             <button
               onClick={() => setSelectedBudgetRange("UNDER_15K")}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                selectedBudgetRange === "UNDER_15K"
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${selectedBudgetRange === "UNDER_15K"
                   ? "bg-slate-900 text-white shadow-xs"
                   : "bg-slate-100 text-slate-600 hover:text-slate-900"
-              }`}
+                }`}
             >
               &lt; ৳15k
             </button>
             <button
               onClick={() => setSelectedBudgetRange("15K_40K")}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                selectedBudgetRange === "15K_40K"
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${selectedBudgetRange === "15K_40K"
                   ? "bg-slate-900 text-white shadow-xs"
                   : "bg-slate-100 text-slate-600 hover:text-slate-900"
-              }`}
+                }`}
             >
               ৳15k - ৳40k
             </button>
             <button
               onClick={() => setSelectedBudgetRange("40K_PLUS")}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                selectedBudgetRange === "40K_PLUS"
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${selectedBudgetRange === "40K_PLUS"
                   ? "bg-slate-900 text-white shadow-xs"
                   : "bg-slate-100 text-slate-600 hover:text-slate-900"
-              }`}
+                }`}
             >
               ৳40k+
             </button>
@@ -178,7 +174,7 @@ export default function JobFeed({
                 className="bg-white hover:bg-slate-50/50 border border-slate-200/80 hover:border-slate-300 rounded-2xl p-5 sm:p-6 transition-all duration-150 shadow-xs hover:shadow-sm group"
               >
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                  
+
                   {/* Left Column: Job Info */}
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
