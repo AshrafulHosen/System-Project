@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import {
   Briefcase,
   ShieldCheck,
@@ -16,6 +18,14 @@ import { INITIAL_WORKSPACE_CONTRACTS } from "@/data/mockContracts";
 import { WorkspaceContract } from "@/types";
 
 export default function ContractsHubPage() {
+  const router = useRouter();
+  const { email, loading: userLoading } = useCurrentUser();
+
+  useEffect(() => {
+    if (!userLoading && !email) {
+      router.replace("/login?next=/contracts");
+    }
+  }, [userLoading, email, router]);
   const [contracts] = useState<WorkspaceContract[]>(INITIAL_WORKSPACE_CONTRACTS);
   const [filter, setFilter] = useState<"ALL" | "ACTIVE" | "COMPLETED">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -43,6 +53,14 @@ export default function ContractsHubPage() {
 
   const activeCount = contracts.filter((c) => c.stage === "ACTIVE").length;
   const completedCount = contracts.filter((c) => c.stage === "COMPLETED").length;
+
+  if (userLoading || !email) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="w-8 h-8 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/70 text-slate-900 font-sans">

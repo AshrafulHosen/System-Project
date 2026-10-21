@@ -156,14 +156,15 @@ export default function DashboardShell({
 
             {/* Wallet chip */}
             {role !== "admin" && walletLabel && (
-              <Link
-                href={role === "client" ? "#payments" : "#wallet"}
-                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-all"
+              <button
+                type="button"
+                onClick={() => handleTabClick(role === "client" ? "payments" : "wallet")}
+                className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-all cursor-pointer"
               >
                 <Wallet className="w-3.5 h-3.5" />
                 <span>৳{walletBdt.toLocaleString()}</span>
                 <span className="text-emerald-600 font-semibold hidden md:inline">{walletLabel}</span>
-              </Link>
+              </button>
             )}
 
             {/* Primary action */}
@@ -298,16 +299,7 @@ export default function DashboardShell({
 
           <div className="px-4 pb-4 space-y-2">
             <div className="border-t border-slate-100 pt-4 space-y-1">
-              <Link
-                href="/contracts"
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-50/70 border border-emerald-200/60 hover:bg-emerald-100 transition-all"
-              >
-                <Handshake className="w-4 h-4 text-emerald-600" />
-                <span>
-                  {lang === "en" ? "Contracts Workspace" : "কন্ট্রাক্ট ওয়ার্কস্পেস"}
-                </span>
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              </Link>
+
 
               <button
                 onClick={async () => {
@@ -321,19 +313,7 @@ export default function DashboardShell({
               </button>
             </div>
 
-            <div className="rounded-2xl bg-slate-900 p-4 text-white">
-              <div className="flex items-center gap-2 mb-2">
-                <Check className="w-4 h-4 text-emerald-400" />
-                <span className="text-[10px] font-black uppercase tracking-wider">
-                  {lang === "en" ? "BDT Escrow" : "বিডিটি এসক্রো"}
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed">
-                {lang === "en"
-                  ? "Every contract is milestone funded. Money moves only when work is approved."
-                  : "প্রতিটি চুক্তি মাইলস্টোনে জমা। কাজ অনুমোদন হলেই টাকা মুক্ত হয়।"}
-              </p>
-            </div>
+
           </div>
         </aside>
 

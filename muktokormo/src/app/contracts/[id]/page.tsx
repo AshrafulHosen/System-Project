@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import { 
   ShieldCheck, 
   Lock, 
@@ -40,6 +42,21 @@ export default function ContractWorkspacePage({ params }: PageProps) {
   const initialData = INITIAL_WORKSPACE_CONTRACTS.find(
     (c) => c.id === contractId || c.contractCode.toLowerCase() === contractId.toLowerCase()
   ) || INITIAL_WORKSPACE_CONTRACTS[0];
+
+  const router = useRouter();
+  const { email, role, loading: userLoading } = useCurrentUser();
+
+  useEffect(() => {
+    if (!userLoading && !email) {
+      router.replace(`/login?next=/contracts/${contractId}`);
+    }
+  }, [userLoading, email, router, contractId]);
+
+  useEffect(() => {
+    if (role === "client" || role === "freelancer") {
+      setActiveRole(role);
+    }
+  }, [role]);
 
   const [contract, setContract] = useState<WorkspaceContract>(initialData);
   const [activeRole, setActiveRole] = useState<"client" | "freelancer">("freelancer");
