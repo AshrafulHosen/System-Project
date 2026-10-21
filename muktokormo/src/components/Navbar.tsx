@@ -6,6 +6,8 @@ import {
   Search,
   Menu,
   X,
+  Globe,
+  LogOut,
   ChevronDown,
   ChevronRight,
   ArrowRight,
@@ -18,6 +20,8 @@ import {
   Handshake,
 } from "lucide-react";
 import Logo from "./Logo";
+import useCurrentUser from "@/lib/hooks/useCurrentUser";
+import { dashboardPathForRole } from "@/lib/auth";
 
 const TALENT_CATEGORIES = [
   {
@@ -248,6 +252,8 @@ export default function Navbar({
   myBidsCount = 0,
   onOpenMyBids,
 }: NavbarProps) {
+  const { name, email, role, loading: userLoading, signOut } = useCurrentUser();
+  const isLoggedIn = !userLoading && Boolean(email);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<"talent" | "work" | "why" | null>(null);
   const [selectedTalentCatIdx, setSelectedTalentCatIdx] = useState(0);
@@ -605,54 +611,99 @@ export default function Navbar({
                 )}
               </div>
 
-              {/* 4. Workspaces Link (Clean plain text, no loud buttons) */}
-              <Link
-                href="/contracts"
-                className="px-3 py-2 rounded-lg hover:text-emerald-700 transition-colors"
-              >
-                <span>{lang === "en" ? "Workspaces" : "কন্ট্রাক্ট"}</span>
-              </Link>
+              
             </nav>
           </div>
 
           {/* Right: Clean, Upwork-style Actions */}
-          <div className="hidden sm:flex items-center gap-4">
-            
-            {/* Upwork Search Bar */}
+          <div className="hidden sm:flex items-center gap-3">
+            {/* Search Bar */}
             <div className="hidden xl:flex items-center relative w-52 2xl:w-60">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none" />
               <input
                 type="search"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder={lang === "en" ? "Search" : "অনুসন্ধান"}
-                className="w-full pl-8 pr-3 py-1.5 bg-slate-50 hover:bg-slate-100/70 focus:bg-white border border-slate-200 focus:border-emerald-600 rounded-full text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 text-slate-800"
+                placeholder={lang === "en" ? "Search talent or jobs..." : "ট্যালেন্ট বা কাজ খুঁজুন..."}
+                className="w-full pl-8 pr-3 py-1.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-emerald-600 rounded-full text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 text-slate-800"
               />
             </div>
 
-            {/* Language Toggle (Clean minimal text) */}
+            {/* Language Toggle with subtle pill & Globe icon */}
             <button
               onClick={onToggleLang}
-              className="text-xs font-semibold text-slate-600 hover:text-slate-950 transition-colors cursor-pointer px-1 py-1"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-slate-200"
+              title={lang === "en" ? "Switch to বাংলা" : "Switch to English"}
             >
-              {lang === "en" ? "বাংলা" : "English"}
+              <Globe className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{lang === "en" ? "বাংলা" : "English"}</span>
             </button>
 
-            {/* Log In */}
-            <Link
-              href="/login"
-              className="text-xs font-bold text-slate-800 hover:text-emerald-600 px-2 py-1.5 transition-colors cursor-pointer"
-            >
-              <span>{lang === "en" ? "Log In" : "লগইন"}</span>
-            </Link>
+            {/* Subtle Divider */}
+            <div className="h-5 w-px bg-slate-200 mx-0.5" />
 
-            {/* Sign Up (Upwork signature green pill button) */}
-            <Link
-              href="/signup"
-              className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs px-5 py-2 rounded-full transition-all cursor-pointer shadow-xs"
-            >
-              <span>{lang === "en" ? "Sign Up" : "সাইন আপ"}</span>
-            </Link>
+            {/* Authenticated vs Guest Actions */}
+            {!userLoading && email ? (
+              <div className="flex items-center gap-2.5">
+                {/* User Profile Pill */}
+                <Link
+                  href={dashboardPathForRole(role || "freelancer")}
+                  title={lang === "en" ? "View profile & dashboard" : "প্রোফাইল ও ড্যাশবোর্ড"}
+                  className="group flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200/80 transition-all"
+                >
+                  <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-[11px] font-black flex items-center justify-center shrink-0 uppercase shadow-xs">
+                    {(name ? name.trim()[0] : email[0]).toUpperCase()}
+                  </span>
+                  <span className="text-xs font-bold text-slate-800 max-w-[100px] truncate group-hover:text-emerald-700 transition-colors">
+                    {name ? name.split(" ")[0] : email.split("@")[0]}
+                  </span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
+                      role === "client"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-sky-100 text-sky-800"
+                    }`}
+                  >
+                    {role === "client" ? "Client" : "Freelancer"}
+                  </span>
+                </Link>
+
+                {/* Dashboard Primary CTA */}
+                <Link
+                  href={dashboardPathForRole(role || "freelancer")}
+                  className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-full transition-all cursor-pointer shadow-xs hover:shadow-emerald-600/20"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <span>{lang === "en" ? "Dashboard" : "ড্যাশবোর্ড"}</span>
+                </Link>
+
+                {/* Sign Out Button with Icon */}
+                <button
+                  type="button"
+                  onClick={() => signOut()}
+                  title={lang === "en" ? "Sign Out" : "লগআউট"}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden xl:inline">{lang === "en" ? "Sign Out" : "লগআউট"}</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="text-xs font-bold text-slate-700 hover:text-emerald-700 px-3 py-2 rounded-full hover:bg-slate-50 transition-all cursor-pointer"
+                >
+                  <span>{lang === "en" ? "Log In" : "লগইন"}</span>
+                </Link>
+                <Link
+                  href="/signup"
+                  className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs px-4 py-2 rounded-full transition-all cursor-pointer shadow-xs hover:shadow-emerald-600/20"
+                >
+                  <span>{lang === "en" ? "Sign Up" : "সাইন আপ"}</span>
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Toggle Button */}
@@ -702,13 +753,7 @@ export default function Navbar({
             >
               {lang === "en" ? "Hire Talent" : "ট্যালেন্ট খুঁজুন"}
             </Link>
-            <Link
-              href="/contracts"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-1 hover:text-emerald-600"
-            >
-              {lang === "en" ? "Contract Workspaces" : "কন্ট্রাক্ট ওয়ার্কস্পেস"}
-            </Link>
+            
             <Link
               href="/dashboard"
               onClick={() => setMobileMenuOpen(false)}
@@ -735,20 +780,52 @@ export default function Navbar({
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center gap-3">
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex-1 text-center py-2 text-xs font-bold text-slate-800 border border-slate-200 rounded-full hover:bg-slate-50"
-            >
-              {lang === "en" ? "Log In" : "লগইন"}
-            </Link>
-            <Link
-              href="/signup"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex-1 text-center py-2 text-xs font-bold text-white bg-emerald-600 rounded-full hover:bg-emerald-700 shadow-xs"
-            >
-              {lang === "en" ? "Sign Up" : "সাইন আপ"}
-            </Link>
+            {!userLoading && email ? (
+              <div className="w-full space-y-2">
+                <div className="flex items-center justify-between text-xs px-1 font-bold text-slate-700">
+                  <span className="truncate">{name || email}</span>
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-800">
+                    {role === "client" ? "Client" : "Freelancer"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href={dashboardPathForRole(role || "freelancer")}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex-1 text-center py-2 text-xs font-bold text-white bg-emerald-600 rounded-full hover:bg-emerald-700 shadow-xs"
+                  >
+                    {lang === "en" ? "Dashboard" : "ড্যাশবোর্ড"}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      signOut();
+                    }}
+                    className="flex-1 text-center py-2 text-xs font-bold text-rose-600 border border-rose-200 rounded-full hover:bg-rose-50"
+                  >
+                    {lang === "en" ? "Sign Out" : "লগআউট"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 text-center py-2 text-xs font-bold text-slate-800 border border-slate-200 rounded-full hover:bg-slate-50"
+                >
+                  {lang === "en" ? "Log In" : "লগইন"}
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 text-center py-2 text-xs font-bold text-white bg-emerald-600 rounded-full hover:bg-emerald-700 shadow-xs"
+                >
+                  {lang === "en" ? "Sign Up" : "সাইন আপ"}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

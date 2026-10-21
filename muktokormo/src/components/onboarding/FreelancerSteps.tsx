@@ -369,6 +369,7 @@ export function CategoriesSkillsStep({
   onSkillsChange,
   onBack,
   onNext,
+  lang = "en",
 }: {
   category: string;
   onCategoryChange: (c: string) => void;
@@ -376,6 +377,7 @@ export function CategoriesSkillsStep({
   onSkillsChange: (s: string[]) => void;
   onBack: () => void;
   onNext: () => void;
+  lang?: "en" | "bn";
 }) {
   const [group, setGroup] = useState(PROFILE_CATEGORIES[0].group);
   const [query, setQuery] = useState("");
@@ -461,7 +463,7 @@ export function CategoriesSkillsStep({
 
       {/* Category groups */}
       <div className="space-y-2.5">
-        <span className="block text-xs font-bold text-slate-900">Type of work you do</span>
+        <span className="block text-xs font-bold text-slate-900">{lang === "bn" ? "আপনি যে ধরণের কাজ করেন" : "Type of work you do"}</span>
         <div className="flex flex-wrap gap-1.5">
           {PROFILE_CATEGORIES.map((g) => (
             <button
@@ -478,7 +480,7 @@ export function CategoriesSkillsStep({
                   : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
               }`}
             >
-              {g.groupBn}
+              {lang === "bn" ? g.groupBn : g.group}
             </button>
           ))}
         </div>
@@ -509,7 +511,7 @@ export function CategoriesSkillsStep({
                         : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    {bn}
+                    {lang === "bn" ? bn : en}
                   </button>
                 );
               })}
@@ -518,8 +520,8 @@ export function CategoriesSkillsStep({
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-          {activeGroup.itemsBn.map((label, i) => {
-            const en = activeGroup.items[i];
+          {activeGroup.items.map((en, i) => {
+            const label = lang === "bn" ? (activeGroup.itemsBn?.[i] ?? en) : en;
             const isSelected = skills.includes(en);
             return (
               <button
@@ -619,12 +621,14 @@ export function ProfileInfoSteps({
   onBack,
   isFinal,
   onFinish,
+  lang = "en",
 }: {
   value: ProfileFormState;
   onChange: (v: ProfileFormState) => void;
   onBack: () => void;
-  isFinal: boolean;
-  onFinish: () => void;
+  isFinal?: boolean;
+  onFinish?: () => void;
+  lang?: "en" | "bn";
 }) {
   const [tab, setTab] = useState(PROFILE_TABS[0].id);
   const tabIndex = PROFILE_TABS.findIndex((t) => t.id === tab);
@@ -658,7 +662,7 @@ export function ProfileInfoSteps({
                 : "border-transparent text-slate-500 hover:text-slate-900"
             }`}
           >
-            {t.labelBn}
+            {lang === "bn" ? t.labelBn : t.label}
             <span className="ml-1.5 text-[9px] text-slate-400">{i + 1}</span>
           </button>
         ))}

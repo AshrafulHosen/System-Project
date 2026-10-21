@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Send,
   Handshake,
@@ -44,10 +44,12 @@ import { fetchMyProposals, submitProposal } from "@/lib/data/proposals";
 import { Job, WalletEntry, TrackedProposal } from "@/types";
 import { PLATFORM_FEE_PCT } from "@/lib/data/mappers";
 
-export default function FreelancerDashboardPage() {
+function FreelancerDashboardContent() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const { name, email, role, freelancerId, loading: userLoading } = useCurrentUser();
+  const searchParams = useSearchParams();
+  const deniedFrom = searchParams ? searchParams.get("denied") : null;
+  const { name, email, role, freelancerId, title, avatarUrl, loading: userLoading } = useCurrentUser();
   const [lang, setLang] = useState<"en" | "bn">("en");
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [pickedSkills, setPickedSkills] = useState<string[]>([]);
@@ -80,15 +82,20 @@ export default function FreelancerDashboardPage() {
   }, [supabase, freelancerId]);
 
   useEffect(() => {
-    if (!userLoading && role === "client") {
-      router.replace("/dashboard/client");
-    } else if (!userLoading && role === "admin") {
-      router.replace("/dashboard/admin");
+    if (!userLoading) {
+      if (!email) {
+        router.replace("/login?next=/dashboard/freelancer");
+      } else if (role === "client") {
+        router.replace("/dashboard/client?denied=freelancer");
+      } else if (role === "admin") {
+        router.replace("/dashboard/admin");
+      }
     }
-  }, [userLoading, role, router]);
+  }, [userLoading, role, email, router]);
 
   const displayName = name.trim() || (lang === "en" ? "Freelancer" : "ফ্রিল্যান্সার");
   const firstName = displayName.split(" ")[0];
+  const displayAvatar = avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
   // MFS Withdrawal Modal State
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
@@ -189,7 +196,7 @@ export default function FreelancerDashboardPage() {
       nav={FREELANCER_NAV}
       userName={displayName}
       userMeta={email}
-      avatar="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+      avatar={displayAvatar}
       walletBdt={available}
       walletLabel={lang === "en" ? "available" : "উত্তোলনযোগ্য"}
       activeTab={activeTab}
@@ -203,6 +210,21 @@ export default function FreelancerDashboardPage() {
       }}
     >
       <div className="max-w-6xl mx-auto space-y-8">
+        {deniedFrom === "client" && (
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold flex items-center justify-between gap-3 shadow-xs animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center font-black">!</span>
+              <span>
+                {lang === "en"
+                  ? "Access Restricted: You are signed in as a Freelancer. Only Employer / Client accounts can access the Client Hiring dashboard."
+                  : "অ্যাক্সেস সংরক্ষিত: আপনি ফ্রিল্যান্সার হিসেবে লগইন করেছেন। শুধুমাত্র নিয়োগদাতা অ্যাকাউন্টই ক্লায়েন্ট ড্যাশবোর্ডে প্রবেশ করতে পারে।"}
+              </span>
+            </div>
+            <button onClick={() => router.replace("/dashboard/freelancer")} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
         {/* Welcome Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -240,25 +262,7 @@ export default function FreelancerDashboardPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                setWithdrawStep("FORM");
-                setWithdrawModalOpen(true);
-              }}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
-            >
-              <Wallet className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{lang === "en" ? "Withdraw Cash" : "টাকা উত্তোলন"}</span>
-            </button>
-            <button
-              onClick={() => setActiveTab("find-work")}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span>{lang === "en" ? "Find Work" : "কাজ খুঁজুন"}</span>
-            </button>
-          </div>
+
         </div>
 
         {/* Tab Quick Selector Pills */}
@@ -882,5 +886,20 @@ export default function FreelancerDashboardPage() {
         </div>
       )}
     </DashboardShell>
+  );
+}
+
+
+export default function FreelancerDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl h-96 bg-white border border-slate-200/90 rounded-3xl shadow-xl animate-pulse" />
+        </div>
+      }
+    >
+      <FreelancerDashboardContent />
+    </Suspense>
   );
 }

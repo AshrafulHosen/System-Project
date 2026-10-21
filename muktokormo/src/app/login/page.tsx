@@ -54,9 +54,17 @@ function LoginForm() {
     const storedRole = data.user ? await resolveUserRole(supabase, data.user.id) : null;
     const resolvedRole = storedRole ?? role;
     setTargetRole(resolvedRole);
-    // Honour ?next= redirect (only for safe same-origin paths)
-    const destination =
-      nextPath && nextPath.startsWith("/") ? nextPath : dashboardPathForRole(resolvedRole);
+
+    let destination = dashboardPathForRole(resolvedRole);
+    if (nextPath && nextPath.startsWith("/")) {
+      if (resolvedRole === "client" && nextPath.includes("freelancer")) {
+        destination = "/dashboard/client";
+      } else if (resolvedRole === "freelancer" && nextPath.includes("client")) {
+        destination = "/dashboard/freelancer";
+      } else {
+        destination = nextPath;
+      }
+    }
     goToDashboard(destination);
   };
 
