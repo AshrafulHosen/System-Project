@@ -18,12 +18,15 @@ import {
   X,
   Smartphone,
   Building,
+  Trash2,
+  CreditCard,
+  Check,
   RefreshCw,
   ChevronRight,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
-import { ContractCard, LedgerList, ResourceGrid } from "@/components/dashboard/Widgets";
+import { ContractCard, LedgerList } from "@/components/dashboard/Widgets";
 import {
   ProposalTracker,
   ProfileStrength,
@@ -34,7 +37,6 @@ import {
   FREELANCER_ONBOARDING_TASKS,
   FREELANCER_CONTRACTS,
   FREELANCER_LEDGER,
-  FREELANCER_RESOURCES,
 } from "@/data/dashboardData";
 import { formatBdt } from "@/lib/format";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
@@ -97,7 +99,104 @@ function FreelancerDashboardContent() {
   const firstName = displayName.split(" ")[0];
   const displayAvatar = avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
-  // MFS Withdrawal Modal State
+  // Payout Methods State
+  interface PayoutMethod {
+    id: string;
+    type: "BKASH" | "NAGAD" | "ROCKET" | "BANK";
+    accountType?: "Personal" | "Merchant";
+    accountNumber: string;
+    accountHolder: string;
+    bankName?: string;
+    branchName?: string;
+    routingNumber?: string;
+    isPrimary: boolean;
+    status: "VERIFIED" | "PENDING";
+  }
+
+  const [payoutMethods, setPayoutMethods] = useState<PayoutMethod[]>([
+    {
+      id: "pm-1",
+      type: "BKASH",
+      accountType: "Personal",
+      accountNumber: "+880 1712-345678",
+      accountHolder: displayName || "Tanvir Rahman",
+      isPrimary: true,
+      status: "VERIFIED",
+    },
+    {
+      id: "pm-2",
+      type: "BANK",
+      bankName: "BRAC Bank PLC",
+      branchName: "Gulshan Branch",
+      accountNumber: "1501 2039 4810 2001",
+      accountHolder: displayName || "Tanvir Rahman",
+      routingNumber: "060261345",
+      isPrimary: false,
+      status: "VERIFIED",
+    },
+  ]);
+
+  const [addMethodModalOpen, setAddMethodModalOpen] = useState(false);
+  const [newMethodType, setNewMethodType] = useState<"BKASH" | "NAGAD" | "ROCKET" | "BANK">("BKASH");
+  const [newAccountType, setNewAccountType] = useState<"Personal" | "Merchant">("Personal");
+  const [newAccountNumber, setNewAccountNumber] = useState("");
+  const [newAccountHolder, setNewAccountHolder] = useState(displayName || "");
+  const [newBankName, setNewBankName] = useState("BRAC Bank PLC");
+  const [newBranchName, setNewBranchName] = useState("");
+  const [newRoutingNumber, setNewRoutingNumber] = useState("");
+  const [newIsPrimary, setNewIsPrimary] = useState(false);
+  const [addMethodSuccess, setAddMethodSuccess] = useState(false);
+
+  const handleSetPrimaryMethod = (id: string) => {
+    setPayoutMethods((prev) =>
+      prev.map((m) => ({
+        ...m,
+        isPrimary: m.id === id,
+      }))
+    );
+  };
+
+  const handleRemoveMethod = (id: string) => {
+    setPayoutMethods((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  const handleSavePaymentMethod = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAccountNumber.trim()) return;
+
+    const newId = `pm-${Date.now()}`;
+    const newMethod: PayoutMethod = {
+      id: newId,
+      type: newMethodType,
+      accountType: newMethodType !== "BANK" ? newAccountType : undefined,
+      accountNumber: newAccountNumber.trim(),
+      accountHolder: newAccountHolder.trim() || displayName || "Account Holder",
+      bankName: newMethodType === "BANK" ? newBankName : undefined,
+      branchName: newMethodType === "BANK" ? newBranchName : undefined,
+      routingNumber: newMethodType === "BANK" ? newRoutingNumber : undefined,
+      isPrimary: newIsPrimary || payoutMethods.length === 0,
+      status: "VERIFIED",
+    };
+
+    setPayoutMethods((prev) => {
+      if (newMethod.isPrimary) {
+        return [...prev.map((m) => ({ ...m, isPrimary: false })), newMethod];
+      }
+      return [...prev, newMethod];
+    });
+
+    setAddMethodSuccess(true);
+    setTimeout(() => {
+      setAddMethodSuccess(false);
+      setAddMethodModalOpen(false);
+      setNewAccountNumber("");
+      setNewBranchName("");
+      setNewRoutingNumber("");
+      setNewIsPrimary(false);
+    }, 1000);
+  };
+
+    // MFS Withdrawal Modal State
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState<number>(25000);
   const [withdrawGateway, setWithdrawGateway] = useState<"BKASH" | "NAGAD" | "BANK">("BKASH");
@@ -265,32 +364,10 @@ function FreelancerDashboardContent() {
 
         </div>
 
-        {/* Tab Quick Selector Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-          {[
-            { id: "overview", label: "Overview", labelBn: "সংক্ষিপ্ত বিবরণ" },
-            { id: "find-work", label: "Recommended Jobs", labelBn: "প্রস্তাবিত কাজ" },
-            { id: "proposals", label: "My Proposals", labelBn: "আমার আবেদন" },
-            { id: "contracts", label: "Contracts & Delivery", labelBn: "চুক্তি ও ডেলিভারি" },
-            { id: "wallet", label: "Wallet & Cashout", labelBn: "ওয়ালেট ও ক্যাশআউট" },
-            { id: "profile", label: "Profile Strength", labelBn: "প্রোফাইল পূর্ণতা" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer ${
-                activeTab === tab.id
-                  ? "bg-slate-900 text-white shadow-xs"
-                  : "bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              }`}
-            >
-              {lang === "en" ? tab.label : tab.labelBn}
-            </button>
-          ))}
-        </div>
 
-        {/* Stats Grid */}
-        {(activeTab === "overview" || activeTab === "wallet") && (
+
+        {/* Stats Grid (Only on Overview) */}
+        {activeTab === "overview" && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
             <StatCard
               icon={Wallet}
@@ -329,56 +406,15 @@ function FreelancerDashboardContent() {
           </div>
         )}
 
-        {/* Wallet summary & Profile completeness */}
-        {(activeTab === "overview" || activeTab === "wallet" || activeTab === "profile") && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
-            <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 rounded-2xl p-6 text-white shadow-sm lg:col-span-1 border border-slate-800">
-              <div className="flex items-center gap-2 mb-3">
-                <Wallet className="w-4 h-4 text-emerald-400" />
-                <span className="text-[10px] font-black uppercase tracking-wider">
-                  {lang === "en" ? "MFS Payout Wallet" : "এমএফএস ওয়ালেট"}
-                </span>
-              </div>
-              <p className="text-3xl font-black tracking-tight">{formatBdt(available)}</p>
-              <p className="text-[11px] text-slate-400 mt-1">
-                {lang === "en" ? "Available for instant transfer" : "তাৎক্ষণিক উত্তোলনের জন্য প্রস্তুত"}
-              </p>
-
-              <div className="grid grid-cols-2 gap-2 mt-4">
-                <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase">
-                    {lang === "en" ? "In Escrow" : "এসক্রোতে"}
-                  </p>
-                  <p className="text-sm font-black text-amber-300">{formatBdt(inEscrow)}</p>
-                </div>
-                <div className="bg-white/5 rounded-xl p-3 border border-white/5">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase">
-                    {lang === "en" ? "Lifetime Earned" : "সর্বমোট আয়"}
-                  </p>
-                  <p className="text-sm font-black text-emerald-300">{formatBdt(earned)}</p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  setWithdrawStep("FORM");
-                  setWithdrawModalOpen(true);
-                }}
-                className="mt-4 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all cursor-pointer shadow-md shadow-emerald-500/20"
-              >
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>{lang === "en" ? "Withdraw to bKash / Nagad" : "বিকাশ বা নগদে ক্যাশআউট"}</span>
-              </button>
-            </div>
-
-            <div className="lg:col-span-2">
-              <ProfileStrength
-                pct={72}
-                missing={missingProfile}
-                missingBn={missingProfileBn}
-                lang={lang}
-              />
-            </div>
+        {/* Profile completeness (Shown in overview and profile, without wallet card) */}
+        {(activeTab === "overview" || activeTab === "profile") && (
+          <div>
+            <ProfileStrength
+              pct={72}
+              missing={missingProfile}
+              missingBn={missingProfileBn}
+              lang={lang}
+            />
           </div>
         )}
 
@@ -540,33 +576,246 @@ function FreelancerDashboardContent() {
           </div>
         )}
 
-        {/* Wallet ledger */}
-        {(activeTab === "overview" || activeTab === "wallet") && (
-          <div id="wallet" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <SectionHeading
-                title="Wallet transactions"
-                titleBn="ওয়ালেট লেনদেন বিবরণী"
-                subtitle="Milestone releases, service fees and MFS withdrawals"
-                subtitleBn="মাইলস্টোন মুক্তি, সার্ভিস ফি এবং বিকাশ/নগদ উত্তোলন"
-                lang={lang}
-              />
-              <button
-                onClick={() => {
-                  setWithdrawStep("FORM");
-                  setWithdrawModalOpen(true);
-                }}
-                className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all cursor-pointer"
-              >
-                + {lang === "en" ? "New Withdrawal" : "নতুন উত্তোলন"}
-              </button>
+        {/* Wallet Section (Only shown in wallet tab) */}
+        {activeTab === "wallet" && (
+          <div id="wallet" className="space-y-6">
+            {/* MFS Payout Wallet Card */}
+            <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 rounded-2xl p-6 text-white shadow-sm border border-slate-800">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Wallet className="w-4 h-4 text-emerald-400" />
+                    <span className="text-[10px] font-black uppercase tracking-wider">
+                      {lang === "en" ? "MFS Payout Wallet" : "এমএফএস ওয়ালেট"}
+                    </span>
+                  </div>
+                  <p className="text-3xl font-black tracking-tight">{formatBdt(available)}</p>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    {lang === "en" ? "Available for instant transfer" : "তাৎক্ষণিক উত্তোলনের জন্য প্রস্তুত"}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/5 text-center">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase">
+                      {lang === "en" ? "In Escrow" : "এসক্রোতে"}
+                    </p>
+                    <p className="text-sm font-black text-amber-300">{formatBdt(inEscrow)}</p>
+                  </div>
+                  <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/5 text-center">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase">
+                      {lang === "en" ? "Lifetime Earned" : "সর্বমোট আয়"}
+                    </p>
+                    <p className="text-sm font-black text-emerald-300">{formatBdt(earned)}</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setWithdrawStep("FORM");
+                      setWithdrawModalOpen(true);
+                    }}
+                    className="flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all cursor-pointer shadow-md shadow-emerald-500/20 active:scale-95"
+                  >
+                    <Smartphone className="w-4 h-4" />
+                    <span>{lang === "en" ? "Withdraw to bKash / Nagad" : "বিকাশ বা নগদে ক্যাশআউট"}</span>
+                  </button>
+                </div>
+              </div>
             </div>
-            <LedgerList
-              entries={ledgerEntries}
-              lang={lang}
-              emptyLabel="No wallet activity yet"
-              emptyLabelBn="এখনো কোনো লেনদেন নেই"
-            />
+
+                        {/* Payout & Payment Methods Section */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
+                    <CreditCard className="w-5 h-5 text-emerald-600" />
+                    <span>{lang === "en" ? "Payout & Payment Methods" : "উত্তোলন ও পেমেন্ট মাধ্যম"}</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {lang === "en"
+                      ? "Manage verified Bangladeshi MFS and local bank accounts for instant earnings withdrawal."
+                      : "আপনার ভেরিফাইড বিকাশ, নগদ ও লোকাল ব্যাংক হিসাবসমূহ ব্যবস্থাপনা করুন।"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAddMethodModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer hover:scale-[1.02] active:scale-95 shrink-0"
+                >
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
+                  <span>{lang === "en" ? "Add Payment Method" : "নতুন মাধ্যম যোগ করুন"}</span>
+                </button>
+              </div>
+
+              {/* Methods Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {payoutMethods.map((m) => {
+                  const isBkash = m.type === "BKASH";
+                  const isNagad = m.type === "NAGAD";
+                  const isRocket = m.type === "ROCKET";
+                  const isBank = m.type === "BANK";
+
+                  return (
+                    <div
+                      key={m.id}
+                      className={`relative rounded-2xl p-4.5 border transition-all flex flex-col justify-between ${
+                        m.isPrimary
+                          ? "bg-white border-emerald-500/80 shadow-sm ring-2 ring-emerald-500/20"
+                          : "bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs"
+                      }`}
+                    >
+                      <div>
+                        {/* Card Header: Type Badge & Primary Pill */}
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <div className="flex items-center gap-2">
+                            {isBkash && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-pink-50 text-pink-700 border border-pink-200">
+                                <Smartphone className="w-3.5 h-3.5 text-pink-600" />
+                                bKash
+                              </span>
+                            )}
+                            {isNagad && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-orange-50 text-orange-700 border border-orange-200">
+                                <Smartphone className="w-3.5 h-3.5 text-orange-600" />
+                                Nagad
+                              </span>
+                            )}
+                            {isRocket && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-purple-50 text-purple-700 border border-purple-200">
+                                <Smartphone className="w-3.5 h-3.5 text-purple-600" />
+                                Rocket
+                              </span>
+                            )}
+                            {isBank && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-sky-50 text-sky-700 border border-sky-200">
+                                <Building className="w-3.5 h-3.5 text-sky-600" />
+                                Bank (NPSB)
+                              </span>
+                            )}
+
+                            {m.accountType && (
+                              <span className="text-[10px] font-bold text-slate-400 uppercase">
+                                {m.accountType}
+                              </span>
+                            )}
+                          </div>
+
+                          {m.isPrimary ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                              {lang === "en" ? "Primary" : "প্রধান"}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSetPrimaryMethod(m.id)}
+                              className="text-[11px] font-bold text-slate-400 hover:text-emerald-700 hover:underline cursor-pointer"
+                            >
+                              {lang === "en" ? "Make Primary" : "প্রধান করুন"}
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Account Details */}
+                        <div className="space-y-1">
+                          {isBank ? (
+                            <>
+                              <h4 className="text-sm font-black text-slate-900 leading-tight">
+                                {m.bankName || "Bank Account"}
+                              </h4>
+                              {m.branchName && (
+                                <p className="text-[11px] text-slate-500 font-medium">{m.branchName}</p>
+                              )}
+                              <p className="text-xs font-mono font-bold text-slate-700 pt-1">
+                                A/C: {m.accountNumber}
+                              </p>
+                              {m.routingNumber && (
+                                <p className="text-[10px] font-mono text-slate-400">
+                                  Routing: {m.routingNumber}
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-sm font-mono font-black text-slate-900 tracking-wide">
+                                {m.accountNumber}
+                              </p>
+                              <p className="text-[11px] text-slate-500 font-medium">
+                                {m.accountHolder}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Card Footer: Status and Delete */}
+                      <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>{lang === "en" ? "Verified for Cashout" : "উত্তোলনের জন্য প্রস্তুত"}</span>
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveMethod(m.id)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title={lang === "en" ? "Remove method" : "মাধ্যমটি মুছুন"}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Add New Method Dashed Button Card */}
+                <button
+                  type="button"
+                  onClick={() => setAddMethodModalOpen(true)}
+                  className="rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/30 p-5 flex flex-col items-center justify-center text-center gap-2 transition-all cursor-pointer group min-h-[160px]"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-emerald-100 text-slate-500 group-hover:text-emerald-700 flex items-center justify-center transition-colors">
+                    <Plus className="w-5 h-5 stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 group-hover:text-emerald-700 block">
+                      {lang === "en" ? "Add New Payment Method" : "নতুন মাধ্যম যোগ করুন"}
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">
+                      {lang === "en"
+                        ? "bKash, Nagad, Rocket or local Bangladeshi Bank"
+                        : "বিকাশ, নগদ, রকেট বা যেকোনো বাংলাদেশি ব্যাংক"}
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <SectionHeading
+                  title="Wallet transactions"
+                  titleBn="ওয়ালেট লেনদেন বিবরণী"
+                  subtitle="Milestone releases, service fees and MFS withdrawals"
+                  subtitleBn="মাইলস্টোন মুক্তি, সার্ভিস ফি এবং বিকাশ/নগদ উত্তোলন"
+                  lang={lang}
+                />
+                <button
+                  onClick={() => {
+                    setWithdrawStep("FORM");
+                    setWithdrawModalOpen(true);
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all cursor-pointer"
+                >
+                  + {lang === "en" ? "New Withdrawal" : "নতুন উত্তোলন"}
+                </button>
+              </div>
+              <LedgerList
+                entries={ledgerEntries}
+                lang={lang}
+                emptyLabel="No wallet activity yet"
+                emptyLabelBn="এখনো কোনো লেনদেন নেই"
+              />
+            </div>
           </div>
         )}
 
@@ -584,21 +833,239 @@ function FreelancerDashboardContent() {
           </div>
         )}
 
-        {/* Resources */}
-        {activeTab === "overview" && (
-          <div id="resources" className="space-y-4">
-            <SectionHeading
-              title="Bangladeshi freelancer guides"
-              titleBn="বাংলাদেশি ফ্রিল্যান্সারদের গাইড"
-              subtitle="Taxes, MFS transfers, English client communication & dispute handling"
-              subtitleBn="ট্যাক্স, এমএফএস লেনদেন, ইংরেজি ক্লায়েন্ট যোগাযোগ ও বিরোধ নিষ্পত্তি"
-              lang={lang}
-            />
-            <ResourceGrid resources={FREELANCER_RESOURCES} lang={lang} />
-          </div>
-        )}
+
       </div>
 
+      {/* Add Payment Method Modal */}
+      {addMethodModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                  <CreditCard className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900">
+                    {lang === "en" ? "Add Payment Method" : "পেমেন্ট মাধ্যম যোগ করুন"}
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    {lang === "en" ? "Link an account for instant withdrawals" : "তাৎক্ষণিক উত্তোলনের জন্য অ্যাকাউন্ট যুক্ত করুন"}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAddMethodModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 p-1 rounded-full cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {addMethodSuccess ? (
+              <div className="py-8 text-center space-y-3">
+                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                  <Check className="w-8 h-8" />
+                </div>
+                <h4 className="text-base font-black text-slate-900">
+                  {lang === "en" ? "Payment Method Added!" : "পেমেন্ট মাধ্যম যুক্ত হয়েছে!"}
+                </h4>
+                <p className="text-xs text-slate-500">
+                  {lang === "en"
+                    ? "Your payout method has been verified and saved."
+                    : "আপনার উত্তোলনের মাধ্যম সফলভাবে সংরক্ষিত ও যাচাই করা হয়েছে।"}
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={handleSavePaymentMethod} className="space-y-4">
+                {/* Method Type Selector */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-900 mb-2">
+                    {lang === "en" ? "Select Gateway" : "গেটওয়ে নির্বাচন করুন"}
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {(["BKASH", "NAGAD", "ROCKET", "BANK"] as const).map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setNewMethodType(type)}
+                        className={`py-2.5 px-2 rounded-xl border text-xs font-black transition-all cursor-pointer text-center ${
+                          newMethodType === type
+                            ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                            : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
+                        }`}
+                      >
+                        {type === "BANK" ? (lang === "en" ? "Bank" : "ব্যাংক") : type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Account Type for MFS */}
+                {newMethodType !== "BANK" && (
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-900">
+                      {lang === "en" ? "Account Type" : "অ্যাকাউন্টের ধরন"}
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["Personal", "Merchant"] as const).map((at) => (
+                        <button
+                          key={at}
+                          type="button"
+                          onClick={() => setNewAccountType(at)}
+                          className={`py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                            newAccountType === at
+                              ? "bg-slate-900 text-white border-slate-900"
+                              : "bg-white text-slate-700 border-slate-200"
+                          }`}
+                        >
+                          {at === "Personal" ? (lang === "en" ? "Personal" : "ব্যক্তিগত") : (lang === "en" ? "Merchant / Agent" : "মার্চেন্ট")}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Bank Fields */}
+                {newMethodType === "BANK" ? (
+                  <>
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-900">
+                        {lang === "en" ? "Bank Name" : "ব্যাংকের নাম"}
+                      </label>
+                      <select
+                        value={newBankName}
+                        onChange={(e) => setNewBankName(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        {[
+                          "BRAC Bank PLC",
+                          "Dutch-Bangla Bank PLC",
+                          "The City Bank PLC",
+                          "Eastern Bank PLC",
+                          "Islami Bank Bangladesh PLC",
+                          "Prime Bank PLC",
+                          "Mutual Trust Bank PLC",
+                        ].map((b) => (
+                          <option key={b} value={b}>
+                            {b}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-900">
+                        {lang === "en" ? "Branch Name" : "শাখার নাম"}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newBranchName}
+                        onChange={(e) => setNewBranchName(e.target.value)}
+                        placeholder="e.g. Gulshan, Banani, Motijheel"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-900">
+                        {lang === "en" ? "Bank Account Number" : "ব্যাংক হিসাব নম্বর"}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newAccountNumber}
+                        onChange={(e) => setNewAccountNumber(e.target.value)}
+                        placeholder="1501 2039 4810 2001"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-900">
+                        {lang === "en" ? "Routing Number (Optional)" : "রাউটিং নম্বর (ঐচ্ছিক)"}
+                      </label>
+                      <input
+                        type="text"
+                        value={newRoutingNumber}
+                        onChange={(e) => setNewRoutingNumber(e.target.value)}
+                        placeholder="9-digit routing code"
+                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-bold text-slate-900">
+                      {newMethodType} {lang === "en" ? "Mobile Number" : "মোবাইল নম্বর"}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newAccountNumber}
+                      onChange={(e) => setNewAccountNumber(e.target.value)}
+                      placeholder="+880 1XXXXXXXXX"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                )}
+
+                {/* Account Holder Name */}
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-900">
+                    {lang === "en" ? "Account Holder Name (as on NID)" : "অ্যাকাউন্টধারীর নাম (এনআইডি অনুযায়ী)"}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newAccountHolder}
+                    onChange={(e) => setNewAccountHolder(e.target.value)}
+                    placeholder="e.g. Tanvir Rahman"
+                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                {/* Make Primary Checkbox */}
+                <label className="flex items-center gap-2 cursor-pointer pt-1">
+                  <input
+                    type="checkbox"
+                    checked={newIsPrimary}
+                    onChange={(e) => setNewIsPrimary(e.target.checked)}
+                    className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                  <span className="text-xs font-semibold text-slate-700">
+                    {lang === "en"
+                      ? "Set as primary withdrawal method"
+                      : "প্রধান উত্তোলনের মাধ্যম হিসেবে সেট করুন"}
+                  </span>
+                </label>
+
+                {/* Submit button */}
+                <div className="pt-2 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setAddMethodModalOpen(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
+                  >
+                    {lang === "en" ? "Cancel" : "বাতিল"}
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
+                  >
+                    {lang === "en" ? "Save Method" : "সংরক্ষণ করুন"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+      
       {/* Interactive MFS Cashout Modal */}
       {withdrawModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
