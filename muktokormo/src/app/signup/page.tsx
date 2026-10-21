@@ -132,15 +132,28 @@ function SignUpFlow() {
     setIsLoading(true);
     setAuthError(null);
 
-    const email = role === "client" ? clientAccount.email : account.email;
+    const email = (role === "client" ? clientAccount.email : account.email).trim();
     const password = role === "client" ? clientAccount.password : account.password;
-    const fullName =
-      role === "client" ? clientAccount.name : `${account.firstName} ${account.lastName}`;
+    const fullName = (
+      role === "client"
+        ? clientAccount.name
+        : `${account.firstName} ${account.lastName}`
+    ).trim() || (role === "client" ? "Client User" : "Freelancer User");
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: {
+          full_name: fullName,
+          role: role,
+          company_name: role === "client" ? (org.companyName || null) : null,
+          title: role === "freelancer" ? (profile.title || null) : null,
+          hourly_rate: role === "freelancer" ? profile.hourlyRate : null,
+          skills: role === "freelancer" ? skills : [],
+          bio: role === "freelancer" ? (profile.intro || null) : null,
+        },
+      },
     });
 
     if (error) {
@@ -149,38 +162,50 @@ function SignUpFlow() {
       return;
     }
 
-    if (!data.session) {
+    let activeSession = data.session;
+    let userId = data.user?.id;
+
+    if (!activeSession && email && password) {
+      const signInRes = await supabase.auth.signInWithPassword({ email, password });
+      if (signInRes.data?.session) {
+        activeSession = signInRes.data.session;
+        userId = signInRes.data.user?.id;
+      }
+    }
+
+    if (!activeSession || !userId) {
       setIsLoading(false);
       setNeedsConfirmation(email);
       return;
     }
 
-    const userId = data.user?.id;
-    if (!userId) {
-      setIsLoading(false);
-      setNeedsConfirmation(email);
-      return;
-    }
-    if (role === "client") {
-      const { error: pErr } = await supabase.from("clients").insert({
-        user_id: userId,
-        company_name: org.companyName || null,
-      });
-      if (pErr) console.error("client profile insert failed:", pErr.message);
-    } else {
-      const { error: pErr } = await supabase.from("freelancers").insert({
-        user_id: userId,
-        title: profile.title || null,
-        hourly_rate: profile.hourlyRate,
-        skills,
-        bio: profile.intro || null,
-      });
-      if (pErr) console.error("freelancer profile insert failed:", pErr.message);
+    try {
+      if (role === "client") {
+        const { error: pErr } = await supabase.from("clients").upsert({
+          user_id: userId,
+          company_name: org.companyName || null,
+          display_name: fullName,
+        }, { onConflict: "user_id" });
+        if (pErr) console.warn("client profile upsert:", pErr.message);
+      } else {
+        const { error: pErr } = await supabase.from("freelancers").upsert({
+          user_id: userId,
+          title: profile.title || null,
+          hourly_rate: profile.hourlyRate,
+          skills: skills || [],
+          bio: profile.intro || null,
+          display_name: fullName,
+        }, { onConflict: "user_id" });
+        if (pErr) console.warn("freelancer profile upsert:", pErr.message);
+      }
+    } catch (e) {
+      console.warn("Profile save warning:", e);
     }
 
     setIsLoading(false);
     setIsSuccess(true);
-    setTimeout(() => router.push(target), 1800);
+    const destination = target || (role === "client" ? "/dashboard/client" : "/dashboard/freelancer");
+    setTimeout(() => router.push(destination), 1200);
   };
 
   const headerRight = (

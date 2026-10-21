@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Briefcase,
   Send,
@@ -82,9 +82,11 @@ const CONSULTANTS = [
   },
 ];
 
-export default function ClientDashboardPage() {  const router = useRouter();
+function ClientDashboardContent() {  const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
-  const { name, email, role, clientId, loading: userLoading } = useCurrentUser();
+  const searchParams = useSearchParams();
+  const deniedFrom = searchParams ? searchParams.get("denied") : null;
+  const { name, email, role, clientId, companyName, avatarUrl, loading: userLoading } = useCurrentUser();
   const [lang, setLang] = useState<"en" | "bn">("en");
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [consultants, setConsultants] = useState(true);
@@ -113,15 +115,20 @@ export default function ClientDashboardPage() {  const router = useRouter();
   }, [supabase, clientId]);
 
   useEffect(() => {
-    if (!userLoading && role === "freelancer") {
-      router.replace("/dashboard/freelancer");
-    } else if (!userLoading && role === "admin") {
-      router.replace("/dashboard/admin");
+    if (!userLoading) {
+      if (!email) {
+        router.replace("/login?next=/dashboard/client");
+      } else if (role === "freelancer") {
+        router.replace("/dashboard/freelancer?denied=client");
+      } else if (role === "admin") {
+        router.replace("/dashboard/admin");
+      }
     }
-  }, [userLoading, role, router]);
+  }, [userLoading, role, email, router]);
 
   const displayName = name.trim() || (lang === "en" ? "Employer" : "নিয়োগদাতা");
   const firstName = displayName.split(" ")[0];
+  const displayAvatar = avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
   // Escrow Deposit Modal
   const [depositModalOpen, setDepositModalOpen] = useState(false);
@@ -165,7 +172,7 @@ export default function ClientDashboardPage() {  const router = useRouter();
       nav={CLIENT_NAV}
       userName={displayName}
       userMeta={email}
-      avatar="https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=100&auto=format&fit=crop&q=80"
+      avatar={displayAvatar}
       walletBdt={escrowHeld}
       walletLabel={lang === "en" ? "in escrow safe" : "এসক্রোতে সুরক্ষিত"}
       activeTab={activeTab}
@@ -179,6 +186,21 @@ export default function ClientDashboardPage() {  const router = useRouter();
       }}
     >
       <div className="max-w-6xl mx-auto space-y-8">
+        {deniedFrom === "freelancer" && (
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold flex items-center justify-between gap-3 shadow-xs animate-in fade-in">
+            <div className="flex items-center gap-2.5">
+              <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center font-black">!</span>
+              <span>
+                {lang === "en"
+                  ? "Access Restricted: You are signed in as an Employer / Client. Only Freelancers can access the Freelancer command center."
+                  : "অ্যাক্সেস সংরক্ষিত: আপনি নিয়োগদাতা হিসেবে লগইন করেছেন। শুধুমাত্র ফ্রিল্যান্সাররাই ফ্রিল্যান্সার ড্যাশবোর্ডে প্রবেশ করতে পারেন।"}
+              </span>
+            </div>
+            <button onClick={() => router.replace("/dashboard/client")} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
         {/* Welcome Header */}
         <div id="overview" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -815,5 +837,20 @@ export default function ClientDashboardPage() {  const router = useRouter();
         </div>
       )}
     </DashboardShell>
+  );
+}
+
+
+export default function ClientDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl h-96 bg-white border border-slate-200/90 rounded-3xl shadow-xl animate-pulse" />
+        </div>
+      }
+    >
+      <ClientDashboardContent />
+    </Suspense>
   );
 }

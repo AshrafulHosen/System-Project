@@ -10,9 +10,10 @@ interface ClientOrgStepProps {
   onChange: (v: ClientOrgDetails) => void;
   onBack: () => void;
   onNext: () => void;
+  lang?: "en" | "bn";
 }
 
-export function ClientOrgStep({ value, onChange, onBack, onNext }: ClientOrgStepProps) {
+export function ClientOrgStep({ value, onChange, onBack, onNext, lang = "en" }: ClientOrgStepProps) {
   const set = <K extends keyof ClientOrgDetails>(key: K, val: ClientOrgDetails[K]) =>
     onChange({ ...value, [key]: val });
 
@@ -31,7 +32,7 @@ export function ClientOrgStep({ value, onChange, onBack, onNext }: ClientOrgStep
 
       {/* Company name */}
       <div className="space-y-1.5">
-        <label className="block text-xs font-bold text-slate-900">Company Name</label>
+        <label className="block text-xs font-bold text-slate-900">{lang === "bn" ? "প্রতিষ্ঠানের নাম" : "Company Name"}</label>
         <div className="relative">
           <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -47,7 +48,7 @@ export function ClientOrgStep({ value, onChange, onBack, onNext }: ClientOrgStep
       {/* Website + Role */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-900">Website</label>
+          <label className="block text-xs font-bold text-slate-900">{lang === "bn" ? "ওয়েবসাইট" : "Website"}</label>
           <div className="relative">
             <Globe className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
@@ -61,7 +62,7 @@ export function ClientOrgStep({ value, onChange, onBack, onNext }: ClientOrgStep
         </div>
 
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-900">Your role</label>
+          <label className="block text-xs font-bold text-slate-900">{lang === "bn" ? "আপনার পদবী" : "Your role"}</label>
           <select
             value={value.role}
             onChange={(e) => set("role", e.target.value)}
@@ -104,7 +105,7 @@ export function ClientOrgStep({ value, onChange, onBack, onNext }: ClientOrgStep
                     <Check className="w-2.5 h-2.5 stroke-[3]" />
                   </span>
                 )}
-                {opt.labelBn}
+                {lang === "bn" ? opt.labelBn : opt.label}
               </button>
             );
           })}

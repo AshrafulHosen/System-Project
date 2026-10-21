@@ -53,6 +53,7 @@ export default function JobPostWizard({
 }) {
   const router = useRouter();
   const [step, setStep] = useState(initialStep);
+  const [lang, setLang] = useState<"en" | "bn">("en");
 
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<JobCategory>(CATEGORIES[0].name);
@@ -173,8 +174,8 @@ export default function JobPostWizard({
 
   return (
     <OnboardingShell
-      eyebrow={`Job post ${step + 1}/${STEPS.length}`}
-      title={STEPS[step].label}
+      eyebrow={lang === "bn" ? `জব পোস্ট ${step + 1}/${STEPS.length}` : `Job post ${step + 1}/${STEPS.length}`}
+      title={lang === "bn" ? STEPS[step].labelBn : STEPS[step].label}
       subtitle={
         step === 0
           ? "This helps your job post stand out to the right candidates."
@@ -238,7 +239,9 @@ export default function JobPostWizard({
         <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 rounded-xl p-3">
           <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
-            Just a reminder to publish your job post, you&apos;ll need to verify your phone number.
+            {lang === "bn"
+              ? "আপনার জব পোস্টটি প্রকাশ করতে ফোন নম্বর যাচাই করতে হবে।"
+              : "Just a reminder to publish your job post, you'll need to verify your phone number."}
           </p>
         </div>
 
@@ -247,16 +250,16 @@ export default function JobPostWizard({
           <div className="space-y-4 animate-in fade-in duration-200">
             <div className="space-y-1.5">
               <label className="block text-xs font-black text-slate-900">
-                Let&apos;s start with a strong title.
+                {lang === "bn" ? "একটি আকর্ষণীয় শিরোনাম দিয়ে শুরু করুন।" : "Let's start with a strong title."}
               </label>
               <p className="text-[11px] text-slate-500 leading-relaxed">
-                It&apos;s the first thing candidates will see, so make it count!
+                {lang === "bn" ? "এটি প্রার্থীরা সবার আগে দেখতে পাবে, তাই সঠিকভাবে লিখুন!" : "It's the first thing candidates will see, so make it count!"}
               </p>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Write a title for your job post"
+                placeholder={lang === "bn" ? "আপনার কাজের জন্য একটি শিরোনাম লিখুন" : "Write a title for your job post"}
                 className="w-full px-3.5 py-3 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
               <div className="flex items-center justify-between">
@@ -285,7 +288,7 @@ export default function JobPostWizard({
                         : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    {c.nameBn}
+                    {lang === "bn" ? c.nameBn : c.name}
                   </button>
                 ))}
               </div>
@@ -321,7 +324,7 @@ export default function JobPostWizard({
                 type="search"
                 value={skillQuery}
                 onChange={(e) => setSkillQuery(e.target.value)}
-                placeholder="Search skills or add your own"
+                placeholder={lang === "bn" ? "দক্ষতা খুঁজুন বা নিজে যোগ করুন" : "Search skills or add your own"}
                 className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
@@ -397,7 +400,7 @@ export default function JobPostWizard({
                         : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
                     }`}
                   >
-                    {opt.labelBn}
+                    {lang === "bn" ? opt.labelBn : opt.label}
                   </button>
                 ))}
               </div>
@@ -408,7 +411,7 @@ export default function JobPostWizard({
                 What level of experience will it need?
               </label>
               <p className="text-[11px] text-slate-500 leading-relaxed">
-                This won&apos;t restrict any proposals, but helps match expertise to your budget.
+                {lang === "bn" ? "এটি কোনো প্রস্তাবকে সীমাবদ্ধ করবে না, তবে আপনার বাজেটের সাথে দক্ষতা মেলাতে সাহায্য করে।" : "This won't restrict any proposals, but helps match expertise to your budget."}
               </p>
               <div className="space-y-2">
                 {EXPERIENCE_OPTIONS.map((opt) => (
@@ -439,10 +442,10 @@ export default function JobPostWizard({
                           experience === opt.value ? "text-emerald-900" : "text-slate-900"
                         }`}
                       >
-                        {opt.labelBn}
+                        {lang === "bn" ? opt.labelBn : opt.label}
                       </span>
                       <span className="block text-[11px] text-slate-500 mt-0.5">
-                        {opt.hintBn}
+                        {lang === "bn" ? opt.hintBn : opt.hint}
                       </span>
                     </span>
                   </button>
@@ -458,7 +461,7 @@ export default function JobPostWizard({
                 className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
               />
               <span className="text-xs font-bold text-slate-900">
-                Is this job a contract-to-hire opportunity?
+                {lang === "bn" ? "এটি কি চুক্তিতে নিয়োগের সুযোগ?" : "Is this job a contract-to-hire opportunity?"}
                 <span className="block text-[11px] font-normal text-slate-500 mt-0.5">
                   This helps set expectations with talent and won&apos;t restrict who can submit
                   proposals.
@@ -491,9 +494,9 @@ export default function JobPostWizard({
                       pricing === p.id ? "text-emerald-900" : "text-slate-900"
                     }`}
                   >
-                    {p.labelBn}
+                    {lang === "bn" ? p.labelBn : p.label}
                   </span>
-                  <span className="block text-[11px] text-slate-500 mt-0.5">{p.hint}</span>
+                  <span className="block text-[11px] text-slate-500 mt-0.5">{lang === "bn" ? (p.id === "fixed" ? "নির্দিষ্ট লক্ষ্য অর্জনের জন্য" : "ধারাবাহিক সহযোগিতার জন্য") : p.hint}</span>
                 </button>
               ))}
             </div>
@@ -502,7 +505,7 @@ export default function JobPostWizard({
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-900">From</label>
+                    <label className="block text-xs font-bold text-slate-900">{lang === "bn" ? "শুরু" : "From"}</label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
                         ৳
@@ -518,7 +521,7 @@ export default function JobPostWizard({
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-900">To</label>
+                    <label className="block text-xs font-bold text-slate-900">{lang === "bn" ? "সর্বোচ্চ" : "To"}</label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
                         ৳
@@ -554,11 +557,11 @@ export default function JobPostWizard({
                       className="flex-1 accent-emerald-600"
                     />
                     <span className="text-xs font-black text-slate-900 w-20 text-right">
-                      {milestones} milestones
+                      {lang === "bn" ? `${milestones}টি মাইলস্টোন` : `${milestones} milestones`}
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-500">
-                    Funds are released per milestone, held in BDT escrow until you approve.
+                    {lang === "bn" ? "তহবিল মাইলস্টোন অনুযায়ী মুক্ত করা হয়, অনুমোদনের আগ পর্যন্ত বিডিটি এসক্রোতে সংরক্ষিত থাকে।" : "Funds are released per milestone, held in BDT escrow until you approve."}
                   </p>
                 </div>
               </div>
