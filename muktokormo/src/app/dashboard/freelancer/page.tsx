@@ -25,6 +25,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import WorkspaceMessagesSection from "@/components/dashboard/WorkspaceMessagesSection";
 import { SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
 import { ContractCard, LedgerList } from "@/components/dashboard/Widgets";
 import {
@@ -39,6 +40,15 @@ import {
   FREELANCER_LEDGER,
 } from "@/data/dashboardData";
 import { formatBdt } from "@/lib/format";
+import {
+  PayoutMethod,
+  fetchLivePayoutMethods,
+  saveLivePayoutMethod,
+  removeLivePayoutMethod,
+  setPrimaryLivePayoutMethod,
+  getStoredWalletLedger,
+  recordStoredWalletEntry,
+} from "@/lib/data/wallet";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import { createClient } from "@/lib/supabase/client";
 import { fetchOpenJobs } from "@/lib/data/jobs";
@@ -51,9 +61,33 @@ function FreelancerDashboardContent() {
   const supabase = useMemo(() => createClient(), []);
   const searchParams = useSearchParams();
   const deniedFrom = searchParams ? searchParams.get("denied") : null;
-  const { name, email, role, freelancerId, title, avatarUrl, loading: userLoading } = useCurrentUser();
+  const { userId, name, email, role, freelancerId, title, avatarUrl, loading: userLoading } = useCurrentUser();
   const [lang, setLang] = useState<"en" | "bn">("en");
-  const [activeTab, setActiveTab] = useState<string>("overview");
+  const tabParam = searchParams ? searchParams.get("tab") : null;
+  const [activeTab, setActiveTab] = useState<string>(tabParam || "overview");
+
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam);
+    } else if (typeof window !== "undefined") {
+      const hash = window.location.hash.replace("#", "");
+      if (hash && ["overview", "find-work", "proposals", "contracts", "messages", "wallet", "profile"].includes(hash)) {
+        setActiveTab(hash);
+      }
+    }
+
+    const handleHashChange = () => {
+      if (typeof window !== "undefined") {
+        const hash = window.location.hash.replace("#", "");
+        if (hash && ["overview", "find-work", "proposals", "contracts", "messages", "wallet", "profile"].includes(hash)) {
+          setActiveTab(hash);
+        }
+      }
+    };
+
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, [tabParam]);
   const [pickedSkills, setPickedSkills] = useState<string[]>([]);
   const [available, setAvailable] = useState<number>(87500);
   const [ledgerEntries, setLedgerEntries] = useState<WalletEntry[]>(FREELANCER_LEDGER);
@@ -100,41 +134,21 @@ function FreelancerDashboardContent() {
   const displayAvatar = avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
   // Payout Methods State
-  interface PayoutMethod {
-    id: string;
-    type: "BKASH" | "NAGAD" | "ROCKET" | "BANK";
-    accountType?: "Personal" | "Merchant";
-    accountNumber: string;
-    accountHolder: string;
-    bankName?: string;
-    branchName?: string;
-    routingNumber?: string;
-    isPrimary: boolean;
-    status: "VERIFIED" | "PENDING";
-  }
+  const [payoutMethods, setPayoutMethods] = useState<PayoutMethod[]>([]);
 
-  const [payoutMethods, setPayoutMethods] = useState<PayoutMethod[]>([
-    {
-      id: "pm-1",
-      type: "BKASH",
-      accountType: "Personal",
-      accountNumber: "+880 1712-345678",
-      accountHolder: displayName || "Tanvir Rahman",
-      isPrimary: true,
-      status: "VERIFIED",
-    },
-    {
-      id: "pm-2",
-      type: "BANK",
-      bankName: "BRAC Bank PLC",
-      branchName: "Gulshan Branch",
-      accountNumber: "1501 2039 4810 2001",
-      accountHolder: displayName || "Tanvir Rahman",
-      routingNumber: "060261345",
-      isPrimary: false,
-      status: "VERIFIED",
-    },
-  ]);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const live = await fetchLivePayoutMethods(supabase, userId || null);
+      if (!cancelled && live) {
+        setPayoutMethods(live);
+      }
+    })();
+    setLedgerEntries(getStoredWalletLedger());
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, userId]);
 
   const [addMethodModalOpen, setAddMethodModalOpen] = useState(false);
   const [newMethodType, setNewMethodType] = useState<"BKASH" | "NAGAD" | "ROCKET" | "BANK">("BKASH");
@@ -147,20 +161,17 @@ function FreelancerDashboardContent() {
   const [newIsPrimary, setNewIsPrimary] = useState(false);
   const [addMethodSuccess, setAddMethodSuccess] = useState(false);
 
-  const handleSetPrimaryMethod = (id: string) => {
-    setPayoutMethods((prev) =>
-      prev.map((m) => ({
-        ...m,
-        isPrimary: m.id === id,
-      }))
-    );
+  const handleSetPrimaryMethod = async (id: string) => {
+    const updated = await setPrimaryLivePayoutMethod(supabase, id);
+    setPayoutMethods(updated);
   };
 
-  const handleRemoveMethod = (id: string) => {
-    setPayoutMethods((prev) => prev.filter((m) => m.id !== id));
+  const handleRemoveMethod = async (id: string) => {
+    const updated = await removeLivePayoutMethod(supabase, id);
+    setPayoutMethods(updated);
   };
 
-  const handleSavePaymentMethod = (e: React.FormEvent) => {
+  const handleSavePaymentMethod = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAccountNumber.trim()) return;
 
@@ -178,12 +189,8 @@ function FreelancerDashboardContent() {
       status: "VERIFIED",
     };
 
-    setPayoutMethods((prev) => {
-      if (newMethod.isPrimary) {
-        return [...prev.map((m) => ({ ...m, isPrimary: false })), newMethod];
-      }
-      return [...prev, newMethod];
-    });
+    const updated = await saveLivePayoutMethod(supabase, newMethod, userId || null);
+    setPayoutMethods(updated);
 
     setAddMethodSuccess(true);
     setTimeout(() => {
@@ -255,7 +262,8 @@ function FreelancerDashboardContent() {
         createdLabel: "Just now",
       };
 
-      setLedgerEntries((prev) => [newEntry, ...prev]);
+      const updated = recordStoredWalletEntry(newEntry);
+      setLedgerEntries(updated);
       setWithdrawStep("SUCCESS");
     }, 1200);
   };
@@ -573,6 +581,18 @@ function FreelancerDashboardContent() {
               }
             />
             <ProposalTracker proposals={myProposals} lang={lang} />
+          </div>
+        )}
+
+        {/* Real-Time Messages Section (Only shown in messages tab) */}
+        {activeTab === "messages" && (
+          <div id="messages" className="space-y-4">
+            <WorkspaceMessagesSection
+              role="freelancer"
+              lang={lang}
+              currentUserName={displayName}
+              currentUserAvatar={displayAvatar}
+            />
           </div>
         )}
 

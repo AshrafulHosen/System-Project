@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Send, Sparkles, TrendingUp, Clock, ArrowRight } from "lucide-react";
+import { Send, Sparkles, TrendingUp, Clock, ArrowRight, MessageSquare, Lock } from "lucide-react";
 import { TrackedProposal, TrackedProposalStatus } from "@/types";
 import { formatBdt } from "@/lib/format";
 
@@ -92,14 +92,28 @@ export function ProposalTracker({
                         {lang === "en" ? status.label : status.labelBn}
                       </span>
 
-                      {p.status === "ACCEPTED" && (
-                        <Link
-                          href="/contracts/ctr-8842"
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-colors"
-                        >
-                          <span>Workspace</span>
-                          <ArrowRight className="w-2.5 h-2.5" />
-                        </Link>
+                      {p.status === "ACCEPTED" ? (
+                        <div className="flex items-center gap-1.5">
+                          <Link
+                            href="/dashboard/freelancer#messages"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                          >
+                            <MessageSquare className="w-2.5 h-2.5" />
+                            <span>{lang === "en" ? "Chat" : "চ্যাট"}</span>
+                          </Link>
+                          <Link
+                            href="/contracts/ctr-8842"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-colors"
+                          >
+                            <span>Workspace</span>
+                            <ArrowRight className="w-2.5 h-2.5" />
+                          </Link>
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] text-slate-400 bg-slate-50 border border-slate-200/60 font-medium">
+                          <Lock className="w-2.5 h-2.5 text-slate-400" />
+                          <span>{lang === "en" ? "Chat locked" : "চ্যাট লকড"}</span>
+                        </span>
                       )}
                     </div>
                   </td>

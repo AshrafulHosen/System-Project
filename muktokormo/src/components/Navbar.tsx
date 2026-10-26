@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   Sparkles,
   Handshake,
+  MessageSquare,
 } from "lucide-react";
 import Logo from "./Logo";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
