@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, use, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import { 
   ShieldCheck, 
   Lock, 
@@ -16,11 +14,17 @@ import {
   AlertCircle, 
   Check, 
   Layers, 
+  Calendar, 
   MessageSquare, 
   FileText, 
+  DollarSign, 
   RotateCcw, 
   Star, 
+  ChevronRight, 
+  Smartphone, 
   Upload, 
+  Sparkles,
+  HelpCircle,
   Eye,
   CheckCheck,
   X
@@ -28,7 +32,16 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { INITIAL_WORKSPACE_CONTRACTS } from "@/data/mockContracts";
+import { createClient } from "@/lib/supabase/client";
+import {
+  fetchContractById,
+  submitMilestoneDeliverable,
+  approveMilestone,
+  requestMilestoneRevision,
+} from "@/lib/data/contracts";
 import { WorkspaceContract, WorkspaceMilestone, MilestoneSubmission, ContractActivity } from "@/types";
+import { useWorkspaceSocket, WorkspaceUser, ChatMessage } from "@/lib/socket";
+import { Paperclip, Wifi, WifiOff } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -43,24 +56,28 @@ export default function ContractWorkspacePage({ params }: PageProps) {
     (c) => c.id === contractId || c.contractCode.toLowerCase() === contractId.toLowerCase()
   ) || INITIAL_WORKSPACE_CONTRACTS[0];
 
-  const router = useRouter();
-  const { email, role, loading: userLoading } = useCurrentUser();
-
-  useEffect(() => {
-    if (!userLoading && !email) {
-      router.replace(`/login?next=/contracts/${contractId}`);
-    }
-  }, [userLoading, email, router, contractId]);
-
-  useEffect(() => {
-    if (role === "client" || role === "freelancer") {
-      setActiveRole(role);
-    }
-  }, [role]);
-
+  const supabase = useMemo(() => createClient(), []);
   const [contract, setContract] = useState<WorkspaceContract>(initialData);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const live = await fetchContractById(supabase, contractId);
+        if (!cancelled && live) {
+          setContract(live);
+        }
+      } catch (err) {
+        console.error("Failed to load contract:", err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, contractId]);
   const [activeRole, setActiveRole] = useState<"client" | "freelancer">("freelancer");
   const [lang, setLang] = useState<"en" | "bn">("en");
+  const toggleLang = () => setLang((prev) => (prev === "en" ? "bn" : "en"));
 
   // Modals & Drawers
   const [selectedMilestoneForSubmit, setSelectedMilestoneForSubmit] = useState<WorkspaceMilestone | null>(null);
@@ -73,7 +90,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
   const [submitNotes, setSubmitNotes] = useState(
     "Hi Nafisur! I have completed all product grid layouts, responsive navigation, cart drawer animations, and bKash payment modal mockups. Please check the live Vercel URL and attached repository."
   );
-  const [submitFiles] = useState<string[]>([
+  const [submitFiles, setSubmitFiles] = useState<string[]>([
     "apex_storefront_src.zip",
     "Tailwind_Theme_Tokens.pdf",
     "lighthouse_performance_report.png",
@@ -85,144 +102,121 @@ export default function ContractWorkspacePage({ params }: PageProps) {
   );
 
   // Quick message input
+    // Quick message input & Real-Time Socket.IO Workspace
   const [quickMessage, setQuickMessage] = useState("");
-  const [messages, setMessages] = useState<Array<{ sender: string; time: string; text: string; isClient: boolean }>>([
-    {
-      sender: "Nafisur Rahman",
-      time: "Oct 2, 02:40 PM",
-      text: "Welcome to the project Tanvir! Milestone 1 is funded in bKash Escrow. Let me know if you need any asset files.",
-      isClient: true,
+  
+  const currentSocketUser: WorkspaceUser = useMemo(
+    () => ({
+      id: activeRole === "client" ? contract.client.name.replace(/\s+/g, '-').toLowerCase() : contract.freelancer.name.replace(/\s+/g, '-').toLowerCase(),
+      name: activeRole === "client" ? contract.client.name : contract.freelancer.name,
+      role: activeRole,
+      avatar: activeRole === "client" ? contract.client.avatar : contract.freelancer.avatar,
+    }),
+    [activeRole, contract]
+  );
+
+  const initialContractMessages: ChatMessage[] = useMemo(
+    () => [
+      {
+        id: "cmsg-1",
+        sender: contract.client.name,
+        time: "Oct 2, 02:40 PM",
+        text: "Welcome to the project! Milestone 1 is funded in bKash Escrow safe. Let me know if you need any asset files.",
+        isClient: true,
+      },
+      {
+        id: "cmsg-2",
+        sender: contract.freelancer.name,
+        time: "Oct 2, 03:00 PM",
+        text: "Thanks! I am beginning with the Next.js App Router structure and responsive UI now.",
+        isClient: false,
+      },
+    ],
+    [contract]
+  );
+
+  const {
+    messages,
+    sendMessage: socketSendMessage,
+    sendTyping: socketSendTyping,
+    broadcastMilestoneEvent,
+    isConnected: socketConnected,
+    typingUsers,
+    onlineMembers,
+  } = useWorkspaceSocket({
+    roomId: `contract:${contract.id}`,
+    currentUser: currentSocketUser,
+    initialMessages: initialContractMessages,
+    onMilestoneUpdated: async () => {
+      const fresh = await fetchContractById(supabase, contract.id);
+      if (fresh) setContract(fresh);
     },
-    {
-      sender: "Tanvir Rahman",
-      time: "Oct 2, 03:00 PM",
-      text: "Thanks Nafisur! I am beginning with the Next.js App Router structure and responsive header now.",
-      isClient: false,
-    },
-  ]);
+  });
 
   // Handle Freelancer submitting work
-  const handleConfirmSubmitWork = (e: React.FormEvent) => {
+  const handleConfirmSubmitWork = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMilestoneForSubmit) return;
 
-    const newSubmission: MilestoneSubmission = {
-      id: `sub-${Date.now()}`,
-      milestoneId: selectedMilestoneForSubmit.id,
-      title: submitTitle,
-      notes: submitNotes,
-      demoUrl: submitDemoUrl.trim() || undefined,
-      fileNames: submitFiles,
-      submittedAt: "Just now",
-    };
+    const updated = await submitMilestoneDeliverable(
+      supabase,
+      contract.id,
+      selectedMilestoneForSubmit.id,
+      {
+        notes: submitNotes,
+        demoUrl: submitDemoUrl.trim() || undefined,
+        attachments: submitFiles,
+      }
+    );
 
-    const newActivity: ContractActivity = {
-      id: `act-${Date.now()}`,
-      timestamp: "Just now",
-      actor: contract.freelancer.name,
-      actorRole: "FREELANCER",
-      action: `Work Deliverables Submitted for Milestone #${selectedMilestoneForSubmit.order}`,
-      details: submitTitle,
-      badgeType: "SUBMISSION",
-    };
-
-    setContract((prev) => ({
-      ...prev,
-      milestones: prev.milestones.map((m) =>
-        m.id === selectedMilestoneForSubmit.id
-          ? { ...m, status: "SUBMITTED" as const, submission: newSubmission }
-          : m
-      ),
-      activityLogs: [newActivity, ...prev.activityLogs],
-    }));
-
+    if (updated) {
+      setContract(updated);
+      broadcastMilestoneEvent("SUBMITTED", selectedMilestoneForSubmit);
+    }
     setSelectedMilestoneForSubmit(null);
   };
 
   // Handle Client approving work & releasing funds
-  const handleConfirmApproval = () => {
+  const handleConfirmApproval = async () => {
     if (!selectedMilestoneForApproval) return;
 
-    const trxCode = `TRX-REL-${Math.floor(100000 + Math.random() * 900000)}`;
+    const updated = await approveMilestone(
+      supabase,
+      contract.id,
+      selectedMilestoneForApproval.id
+    );
 
-    const newActivity: ContractActivity = {
-      id: `act-${Date.now()}`,
-      timestamp: "Just now",
-      actor: contract.client.name,
-      actorRole: "CLIENT",
-      action: `Milestone #${selectedMilestoneForApproval.order} Approved & ৳${selectedMilestoneForApproval.amountBdt.toLocaleString()} Released`,
-      details: `Escrow released to freelancer's ${contract.freelancer.payoutMethod} account (${contract.freelancer.payoutAccount}).`,
-      badgeType: "PAYOUT",
-      trxId: trxCode,
-    };
-
-    setContract((prev) => {
-      const updatedReleased = prev.releasedBdt + selectedMilestoneForApproval.amountBdt;
-      const updatedEscrow = Math.max(0, prev.escrowHeldBdt - selectedMilestoneForApproval.amountBdt);
-
-      return {
-        ...prev,
-        releasedBdt: updatedReleased,
-        escrowHeldBdt: updatedEscrow,
-        milestones: prev.milestones.map((m) =>
-          m.id === selectedMilestoneForApproval.id
-            ? { ...m, status: "APPROVED_RELEASED" as const, mfsTrxId: trxCode, releasedAt: "Just now" }
-            : m
-        ),
-        activityLogs: [newActivity, ...prev.activityLogs],
-      };
-    });
-
+    if (updated) {
+      setContract(updated);
+      broadcastMilestoneEvent("APPROVED", selectedMilestoneForApproval);
+    }
     setSelectedMilestoneForApproval(null);
   };
 
   // Handle Client requesting revision
-  const handleConfirmRevision = (e: React.FormEvent) => {
+  const handleConfirmRevision = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMilestoneForRevision) return;
 
-    const newActivity: ContractActivity = {
-      id: `act-${Date.now()}`,
-      timestamp: "Just now",
-      actor: contract.client.name,
-      actorRole: "CLIENT",
-      action: `Revision Requested for Milestone #${selectedMilestoneForRevision.order}`,
-      details: revisionNotes,
-      badgeType: "REVISION",
-    };
+    const updated = await requestMilestoneRevision(
+      supabase,
+      contract.id,
+      selectedMilestoneForRevision.id,
+      revisionNotes
+    );
 
-    setContract((prev) => ({
-      ...prev,
-      milestones: prev.milestones.map((m) =>
-        m.id === selectedMilestoneForRevision.id
-          ? {
-              ...m,
-              status: "REVISION_REQUESTED" as const,
-              submission: m.submission
-                ? { ...m.submission, revisionFeedback: revisionNotes }
-                : undefined,
-            }
-          : m
-      ),
-      activityLogs: [newActivity, ...prev.activityLogs],
-    }));
-
+    if (updated) {
+      setContract(updated);
+      broadcastMilestoneEvent("REVISION_REQUESTED", selectedMilestoneForRevision);
+    }
     setSelectedMilestoneForRevision(null);
   };
 
-  // Send message
+  // Send message via Socket.IO
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!quickMessage.trim()) return;
-
-    const newMsg = {
-      sender: activeRole === "client" ? contract.client.name : contract.freelancer.name,
-      time: "Just now",
-      text: quickMessage.trim(),
-      isClient: activeRole === "client",
-    };
-
-    setMessages((prev) => [...prev, newMsg]);
+    socketSendMessage(quickMessage.trim());
     setQuickMessage("");
   };
 
@@ -233,7 +227,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
       <Navbar
         onOpenPostJob={() => {}}
         lang={lang}
-        onToggleLang={() => setLang((prev) => (prev === "en" ? "bn" : "en"))}
+        onToggleLang={toggleLang}
         searchQuery=""
         onSearchChange={() => {}}
       />
@@ -249,7 +243,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
               className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>All Contracts</span>
+              <span>{lang === "en" ? "All Contracts" : "সকল কন্ট্রাক্ট"}</span>
             </Link>
 
             <span className="text-slate-300">/</span>
@@ -268,7 +262,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
           <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-2xl border border-slate-200/70">
             <span className="text-[11px] font-bold text-slate-500 px-2.5 flex items-center gap-1">
               <Eye className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Workspace Role:</span>
+              <span>{lang === "en" ? "Workspace Role:" : "ওয়ার্কস্পেস রোল:"}</span>
             </span>
 
             <button
@@ -279,7 +273,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Freelancer ({contract.freelancer.name.split(" ")[0]})
+              {lang === "en" ? "Freelancer" : "ফ্রিল্যান্সার"} ({contract.freelancer.name.split(" ")[0]})
             </button>
 
             <button
@@ -290,7 +284,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              Client ({contract.client.name.split(" ")[0]})
+              {lang === "en" ? "Client" : "ক্লায়েন্ট"} ({contract.client.name.split(" ")[0]})
             </button>
           </div>
         </div>
@@ -302,9 +296,13 @@ export default function ContractWorkspacePage({ params }: PageProps) {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Active Contract & Escrow Protected
+                  {lang === "en" ? "Active Contract & Escrow Protected" : "চলতি কন্ট্রাক্ট ও এসক্রো সুরক্ষিত"}
                 </span>
-                <span className="text-xs text-slate-400">• Started {contract.startedAt} • Due {contract.deadlineDate}</span>
+                <span className="text-xs text-slate-400">
+                  {lang === "en"
+                    ? `• Started ${contract.startedAt} • Due ${contract.deadlineDate}`
+                    : `• শুরু: ${contract.startedAt} • শেষ: ${contract.deadlineDate}`}
+                </span>
               </div>
 
               <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">
@@ -315,7 +313,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
             {/* Quick Summary Pill */}
             <div className="text-left lg:text-right shrink-0">
               <span className="text-xs uppercase font-bold tracking-wider text-slate-400 block">
-                Total Contract Value
+                {lang === "en" ? "Total Contract Value" : "মোট চুক্তির মূল্য"}
               </span>
               <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
                 ৳{contract.totalBdt.toLocaleString()} <span className="text-sm font-bold text-slate-500">BDT</span>
@@ -334,7 +332,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
               />
               <div className="flex-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Employer / Client
+                  {lang === "en" ? "Employer / Client" : "নিয়োগকারী / ক্লায়েন্ট"}
                 </span>
                 <div className="flex items-center gap-1.5">
                   <h4 className="text-sm font-black text-slate-900">{contract.client.name}</h4>
@@ -347,7 +345,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                 <p className="text-xs text-slate-500 font-medium">{contract.client.company} • {contract.client.location}</p>
                 <div className="flex items-center gap-1 text-amber-500 text-xs font-bold mt-0.5">
                   <Star className="w-3.5 h-3.5 fill-amber-400" />
-                  <span>{contract.client.rating.toFixed(1)} rating</span>
+                  <span>{contract.client.rating.toFixed(1)} {lang === "en" ? "rating" : "রেটিং"}</span>
                 </div>
               </div>
             </div>
@@ -361,7 +359,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
               />
               <div className="flex-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                  Assigned Freelancer
+                  {lang === "en" ? "Assigned Freelancer" : "নিয়োজিত ফ্রিল্যান্সার"}
                 </span>
                 <div className="flex items-center gap-1.5">
                   <h4 className="text-sm font-black text-slate-900">{contract.freelancer.name}</h4>
@@ -374,7 +372,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                 <p className="text-xs text-slate-500 font-medium">{contract.freelancer.title}</p>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-slate-700 border border-slate-200">
-                    Wallet: {contract.freelancer.payoutMethod} ({contract.freelancer.payoutAccount})
+                    {lang === "en" ? "Wallet: " : "ওয়ালেট: "}{contract.freelancer.payoutMethod} ({contract.freelancer.payoutAccount})
                   </span>
                 </div>
               </div>
@@ -390,28 +388,38 @@ export default function ContractWorkspacePage({ params }: PageProps) {
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-emerald-300 text-xs font-bold uppercase tracking-wider">
                 <Lock className="w-4 h-4" />
-                <span>MuktoKormo BDT Escrow Vault</span>
+                <span>{lang === "en" ? "MuktoKormo BDT Escrow Vault" : "মুক্তকর্ম টাকা এসক্রো ভল্ট"}</span>
               </div>
               <h3 className="text-xl sm:text-2xl font-black text-white">
-                ৳{contract.escrowHeldBdt.toLocaleString()} BDT Locked in Safe Custody
+                {lang === "en"
+                  ? `৳${contract.escrowHeldBdt.toLocaleString()} BDT Locked in Safe Custody`
+                  : `৳${contract.escrowHeldBdt.toLocaleString()} টাকা নিরাপদ হেফাজতে সংরক্ষিত`}
               </h3>
               <p className="text-xs text-slate-300 max-w-lg leading-relaxed">
-                Client funds are held in compliant escrow via bKash/Nagad Merchant Safe. Money is only released to the freelancer after the client reviews and approves each milestone deliverable.
+                {lang === "en"
+                  ? "Client funds are held in compliant escrow via bKash/Nagad Merchant Safe. Money is only released to the freelancer after the client reviews and approves each milestone deliverable."
+                  : "ক্লায়েন্টের টাকা বিকাশ/নগদ মার্চেন্ট সেফের মাধ্যমে এসক্রোতে সংরক্ষিত থাকে। প্রতিটি মাইলস্টোনের কাজ ক্লায়েন্ট দেখে অনুমোদন করলেই ফ্রিল্যান্সারের কাছে টাকা পৌঁছায়।"}
               </p>
             </div>
 
             {/* Financial Ledger Grid */}
             <div className="grid grid-cols-3 gap-3 shrink-0">
               <div className="bg-white/10 rounded-2xl p-3 border border-white/10 text-center backdrop-blur-xs">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-300 block">Locked in Escrow</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-300 block">
+                  {lang === "en" ? "Locked in Escrow" : "এসক্রোতে সংরক্ষিত"}
+                </span>
                 <span className="text-base sm:text-lg font-black text-white">৳{contract.escrowHeldBdt.toLocaleString()}</span>
               </div>
               <div className="bg-white/10 rounded-2xl p-3 border border-white/10 text-center backdrop-blur-xs">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-300 block">Released (Paid)</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-300 block">
+                  {lang === "en" ? "Released (Paid)" : "পরিশোধিত"}
+                </span>
                 <span className="text-base sm:text-lg font-black text-emerald-400">৳{contract.releasedBdt.toLocaleString()}</span>
               </div>
               <div className="bg-white/10 rounded-2xl p-3 border border-white/10 text-center backdrop-blur-xs">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-300 block">Next Milestone</span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-300 block">
+                  {lang === "en" ? "Next Milestone" : "পরবর্তী মাইলস্টোন"}
+                </span>
                 <span className="text-base sm:text-lg font-black text-slate-300">৳{contract.remainingBdt.toLocaleString()}</span>
               </div>
             </div>
@@ -423,16 +431,22 @@ export default function ContractWorkspacePage({ params }: PageProps) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-lg sm:text-xl font-black text-slate-900">
-                Milestone Deliverables Pipeline
+                {lang === "en" ? "Milestone Deliverables Pipeline" : "মাইলস্টোন ডেলিভারি পাইপলাইন"}
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Track each deliverable phase, submit completed code/designs, and release escrow funds.
+                {lang === "en"
+                  ? "Track each deliverable phase, submit completed code/designs, and release escrow funds."
+                  : "প্রতিটি ধাপের অগ্রগতি দেখুন, কোড/ডিজাইন জমা দিন এবং এসক্রো ফান্ড রিলিজ করুন।"}
               </p>
             </div>
 
             <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
               <Layers className="w-4 h-4 text-emerald-600" />
-              <span>{contract.milestones.length} Milestones Scheduled</span>
+              <span>
+                {lang === "en"
+                  ? `${contract.milestones.length} Milestones Scheduled`
+                  : `${contract.milestones.length}টি মাইলস্টোন নির্ধারিত`}
+              </span>
             </div>
           </div>
 
@@ -464,54 +478,54 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                     <div className="flex-1 space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="px-2.5 py-0.5 rounded-md text-[11px] font-black bg-slate-100 text-slate-700">
-                          Milestone #{milestone.order}
+                          {lang === "en" ? `Milestone #${milestone.order}` : `মাইলস্টোন #${milestone.order}`}
                         </span>
 
                         {isReleased && (
                           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
                             <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
-                            Approved & Escrow Released
+                            {lang === "en" ? "Approved & Escrow Released" : "অনুমোদিত ও টাকা পরিশোধিত"}
                           </span>
                         )}
 
                         {isSubmitted && (
                           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 border border-sky-300 flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5 text-sky-600" />
-                            Pending Client Approval
+                            {lang === "en" ? "Pending Client Approval" : "ক্লায়েন্ট অনুমোদনের অপেক্ষায়"}
                           </span>
                         )}
 
                         {isRevision && (
                           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
                             <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
-                            Revision Requested by Client
+                            {lang === "en" ? "Revision Requested by Client" : "ক্লায়েন্ট রিভিশন চেয়েছেন"}
                           </span>
                         )}
 
                         {isInProgress && (
                           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 flex items-center gap-1">
                             <Clock className="w-3.5 h-3.5 text-slate-500" />
-                            Work In Progress
+                            {lang === "en" ? "Work In Progress" : "কাজ চলমান"}
                           </span>
                         )}
 
                         {isLocked && (
                           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-500 flex items-center gap-1">
                             <Lock className="w-3.5 h-3.5 text-slate-400" />
-                            Locked (Phase 2 Escrow)
+                            {lang === "en" ? "Locked (Phase 2 Escrow)" : "সংরক্ষিত (ধাপ ২ এসক্রো)"}
                           </span>
                         )}
 
                         <span className="text-xs text-slate-400 ml-auto lg:ml-2">
-                          Due by {milestone.dueDate}
+                          {lang === "en" ? `Due by ${milestone.dueDate}` : `মেয়াদ: ${milestone.dueDate}`}
                         </span>
                       </div>
 
                       <h4 className="text-base sm:text-lg font-bold text-slate-900">
-                        {milestone.title}
+                        {lang === "bn" && (milestone as any).titleBn ? (milestone as any).titleBn : milestone.title}
                       </h4>
                       <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                        {milestone.description}
+                        {lang === "bn" && (milestone as any).descriptionBn ? (milestone as any).descriptionBn : milestone.description}
                       </p>
                     </div>
 
@@ -519,10 +533,10 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                     <div className="text-left lg:text-right shrink-0 lg:pl-6 border-t lg:border-t-0 pt-3 lg:pt-0 border-slate-100 flex lg:flex-col items-center lg:items-end justify-between gap-3">
                       <div>
                         <span className="text-[11px] uppercase tracking-wider text-slate-400 block font-semibold">
-                          Milestone Amount
+                          {lang === "en" ? "Milestone Amount" : "মাইলস্টোন পরিমাণ"}
                         </span>
                         <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                          ৳{milestone.amountBdt.toLocaleString()} BDT
+                          ৳{milestone.amountBdt.toLocaleString()} <span className="text-sm font-bold text-slate-500">BDT</span>
                         </span>
                       </div>
 
@@ -535,7 +549,11 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                             className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
                           >
                             <Upload className="w-3.5 h-3.5 stroke-[2.5]" />
-                            <span>{isRevision ? "Resubmit Revised Work" : "Submit Work for Review"}</span>
+                            <span>
+                              {isRevision
+                                ? (lang === "en" ? "Resubmit Revised Work" : "সংশোধিত কাজ জমা দিন")
+                                : (lang === "en" ? "Submit Work for Review" : "রিভিউয়ের জন্য কাজ জমা দিন")}
+                            </span>
                           </button>
                         )}
 
@@ -546,7 +564,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                               onClick={() => setSelectedMilestoneForRevision(milestone)}
                               className="px-3 py-2 rounded-xl border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
                             >
-                              Request Changes
+                              {lang === "en" ? "Request Changes" : "পরিবর্তনের অনুরোধ"}
                             </button>
 
                             <button
@@ -554,7 +572,11 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                               className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs hover:scale-105 active:scale-95 transition-all cursor-pointer"
                             >
                               <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                              <span>Approve & Release ৳{milestone.amountBdt.toLocaleString()}</span>
+                              <span>
+                                {lang === "en"
+                                  ? `Approve & Release ৳${milestone.amountBdt.toLocaleString()}`
+                                  : `অনুমোদন ও ৳${milestone.amountBdt.toLocaleString()} রিলিজ`}
+                              </span>
                             </button>
                           </>
                         )}
@@ -562,7 +584,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                         {/* Released Payout Stamp */}
                         {isReleased && milestone.mfsTrxId && (
                           <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-300">
-                            MFS Paid: {milestone.mfsTrxId}
+                            {lang === "en" ? "MFS Paid: " : "এমএফএস পরিশোধ: "}{milestone.mfsTrxId}
                           </span>
                         )}
                       </div>
@@ -577,7 +599,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          Submitted Deliverables ({milestone.submission.submittedAt})
+                          {lang === "en" ? "Submitted Deliverables" : "জমা দেওয়া ডেলিভারি"} ({milestone.submission.submittedAt})
                         </span>
                         {milestone.submission.demoUrl && (
                           <a
@@ -586,14 +608,14 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                             rel="noreferrer"
                             className="inline-flex items-center gap-1 text-xs font-bold text-sky-600 hover:underline"
                           >
-                            <span>Inspect Live Demo</span>
+                            <span>{lang === "en" ? "Inspect Live Demo" : "লাইভ ডেমো দেখুন"}</span>
                             <ExternalLink className="w-3 h-3" />
                           </a>
                         )}
                       </div>
 
                       <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
-                        &ldquo;{milestone.submission.notes}&rdquo;
+                        "{milestone.submission.notes}"
                       </p>
 
                       {/* Files list */}
@@ -617,7 +639,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                         <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 flex items-start gap-2">
                           <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                           <div>
-                            <span className="font-bold block">Client Revision Notes:</span>
+                            <span className="font-bold block">{lang === "en" ? "Client Revision Notes:" : "ক্লায়েন্টের রিভিশন নোট:"}</span>
                             <span>{milestone.submission.revisionFeedback}</span>
                           </div>
                         </div>
@@ -634,62 +656,81 @@ export default function ContractWorkspacePage({ params }: PageProps) {
         {/* Contract Collaboration Hub: Live Chat & Activity Audit Trail */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
-          {/* Quick Chat & Communication Thread */}
-          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs flex flex-col h-[480px]">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-emerald-600" />
-                <h4 className="text-sm font-black text-slate-900">Contract Discussion</h4>
+          {/* Contract Messaging Redirect Card */}
+          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs flex flex-col justify-between h-[480px]">
+            <div>
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-emerald-600" />
+                  <h4 className="text-sm font-black text-slate-900">
+                    {lang === "en" ? "Contract Discussion" : "কন্ট্রাক্ট আলোচনা"}
+                  </h4>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  {lang === "en" ? "In Messages Section" : "মেসেজ সেকশনে পরিচালিত"}
+                </span>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                End-to-End Logged
-              </span>
-            </div>
 
-            {/* Messages Scroll Area */}
-            <div className="flex-1 overflow-y-auto py-4 space-y-3.5">
-              {messages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`flex flex-col ${msg.isClient ? "items-start" : "items-end"}`}
-                >
-                  <div className="flex items-center gap-1.5 mb-1 text-[10px] text-slate-400">
-                    <span className="font-bold text-slate-600">{msg.sender}</span>
-                    <span>• {msg.time}</span>
+              {/* Explanatory Banner */}
+              <div className="mt-4 p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/70 space-y-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-900">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    {lang === "en"
+                      ? "Real-time messaging for this contract is conducted in your dedicated Messages section."
+                      : "এই কন্ট্রাক্টের সকল রিয়েল-টাইম আলোচনা আপনার ড্যাশবোর্ডের মেসেজ সেকশনে পরিচালিত হয়।"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-emerald-800 leading-relaxed">
+                  {lang === "en"
+                    ? "Chat directly with typing indicators, presence tracking, and milestone escrow audit integration."
+                    : "লাইভ Socket.IO কানেকশন, টাইপিং ইন্ডিকেটর ও মাইলস্টোন সিঙ্ক সহ সরাসরি বার্তা আদান-প্রদান করুন।"}
+                </p>
+              </div>
+
+              {/* Workspace Participants */}
+              <div className="mt-4 space-y-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  {lang === "en" ? "Workspace Participants" : "ওয়ার্কস্পেস সদস্যবৃন্দ"}
+                </p>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <img src={contract.client.avatar} alt={contract.client.name} className="w-7 h-7 rounded-full object-cover" />
+                      <div>
+                        <p className="font-bold text-slate-800 leading-tight">{contract.client.name}</p>
+                        <p className="text-[10px] text-slate-400">{contract.client.company}</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-600 bg-slate-200/60 px-2 py-0.5 rounded-md">Client</span>
                   </div>
-                  <div
-                    className={`p-3 rounded-2xl max-w-xs sm:max-w-sm text-xs leading-relaxed ${
-                      msg.isClient
-                        ? "bg-slate-100 text-slate-800 rounded-tl-none"
-                        : "bg-emerald-600 text-white rounded-tr-none shadow-xs"
-                    }`}
-                  >
-                    {msg.text}
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <img src={contract.freelancer.avatar} alt={contract.freelancer.name} className="w-7 h-7 rounded-full object-cover" />
+                      <div>
+                        <p className="font-bold text-slate-800 leading-tight">{contract.freelancer.name}</p>
+                        <p className="text-[10px] text-slate-400">{contract.freelancer.title}</p>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">Freelancer</span>
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
 
-            {/* Message Input Box */}
-            <form onSubmit={handleSendMessage} className="pt-3 border-t border-slate-100 flex items-center gap-2">
-              <input
-                type="text"
-                value={quickMessage}
-                onChange={(e) => setQuickMessage(e.target.value)}
-                placeholder={
-                  activeRole === "client"
-                    ? `Message ${contract.freelancer.name}...`
-                    : `Message ${contract.client.name}...`
-                }
-                className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
-              />
-              <button
-                type="submit"
-                className="p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl cursor-pointer shadow-xs transition-transform active:scale-95"
+            {/* Go to Messages Section CTA */}
+            <div className="pt-4 border-t border-slate-100">
+              <Link
+                href={activeRole === "client" ? "/dashboard/client#messages" : "/dashboard/freelancer#messages"}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-transform active:scale-98"
               >
-                <Send className="w-4 h-4 stroke-[2.5]" />
-              </button>
-            </form>
+                <MessageSquare className="w-4 h-4" />
+                <span>
+                  {lang === "en" ? "Open Messages Section" : "মেসেজ সেকশনে বার্তা খুলুন"}
+                </span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
           </div>
 
           {/* Activity Log & Immutable Escrow Audit Trail */}
@@ -697,10 +738,12 @@ export default function ContractWorkspacePage({ params }: PageProps) {
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <h4 className="text-sm font-black text-slate-900">Audit Trail & Escrow Events</h4>
+                <h4 className="text-sm font-black text-slate-900">
+                  {lang === "en" ? "Audit Trail & Escrow Events" : "অডিট ট্রেইল ও লেনদেন রেকর্ড"}
+                </h4>
               </div>
               <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                Bangladesh Bank Aligned
+                {lang === "en" ? "Bangladesh Bank Aligned" : "বাংলাদেশ ব্যাংক গাইডলাইন"}
               </span>
             </div>
 
@@ -724,10 +767,16 @@ export default function ContractWorkspacePage({ params }: PageProps) {
 
                   <div className="flex-1 space-y-0.5">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900">{act.action}</span>
-                      <span className="text-[10px] text-slate-400">{act.timestamp}</span>
+                      <span className="font-bold text-slate-900">
+                        {lang === "bn" && (act as any).actionBn ? (act as any).actionBn : act.action}
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        {lang === "bn" && (act as any).timestampBn ? (act as any).timestampBn : act.timestamp}
+                      </span>
                     </div>
-                    <p className="text-slate-600 text-[11px] leading-relaxed">{act.details}</p>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      {lang === "bn" && (act as any).detailsBn ? (act as any).detailsBn : act.details}
+                    </p>
                     {act.trxId && (
                       <span className="inline-block text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                         {act.trxId}
@@ -741,7 +790,11 @@ export default function ContractWorkspacePage({ params }: PageProps) {
             {/* Footer verification statement */}
             <div className="pt-3 border-t border-slate-100 text-[11px] text-slate-400 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span>All escrow transactions audited under Bangladesh ICT Act 2006/2018</span>
+              <span>
+                {lang === "en"
+                  ? "All escrow transactions audited under Bangladesh ICT Act 2006/2018"
+                  : "সকল এসক্রো লেনদেন বাংলাদেশ আইসিটি আইন ২০০৬/২০১৮ অনুসারে পরিচালিত"}
+              </span>
             </div>
           </div>
 
@@ -760,9 +813,11 @@ export default function ContractWorkspacePage({ params }: PageProps) {
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
               <div>
                 <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 block">
-                  Milestone #{selectedMilestoneForSubmit.order} Deliverable
+                  {lang === "en" ? `Milestone #${selectedMilestoneForSubmit.order} Deliverable` : `মাইলস্টোন #${selectedMilestoneForSubmit.order} ডেলিভারি`}
                 </span>
-                <h3 className="text-base font-black text-slate-900">Submit Work for Client Inspection</h3>
+                <h3 className="text-base font-black text-slate-900">
+                  {lang === "en" ? "Submit Work for Client Inspection" : "ক্লায়েন্টের পরীক্ষার জন্য কাজ জমা দিন"}
+                </h3>
               </div>
               <button
                 onClick={() => setSelectedMilestoneForSubmit(null)}
@@ -774,7 +829,9 @@ export default function ContractWorkspacePage({ params }: PageProps) {
 
             <form onSubmit={handleConfirmSubmitWork} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Deliverable Title</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  {lang === "en" ? "Deliverable Title" : "ডেলিভারি শিরোনাম"}
+                </label>
                 <input
                   type="text"
                   required
@@ -785,7 +842,9 @@ export default function ContractWorkspacePage({ params }: PageProps) {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Live Demo / Repository URL</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  {lang === "en" ? "Live Demo / Repository URL" : "লাইভ ডেমো বা রিপোজিটরি লিংক"}
+                </label>
                 <div className="relative">
                   <ExternalLink className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
                   <input
@@ -799,7 +858,9 @@ export default function ContractWorkspacePage({ params }: PageProps) {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Delivery Notes for Client</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  {lang === "en" ? "Delivery Notes for Client" : "ক্লায়েন্টের জন্য ডেলিভারি নোট"}
+                </label>
                 <textarea
                   rows={4}
                   required
@@ -811,7 +872,9 @@ export default function ContractWorkspacePage({ params }: PageProps) {
 
               {/* Attachments preview */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Attached Deliverable Files</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  {lang === "en" ? "Attached Deliverable Files" : "সংযুক্ত ডেলিভারি ফাইলসমূহ"}
+                </label>
                 <div className="space-y-1.5">
                   {submitFiles.map((file, i) => (
                     <div key={i} className="flex items-center justify-between px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700">
@@ -819,7 +882,9 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                         <FileText className="w-3.5 h-3.5 text-emerald-600" />
                         {file}
                       </span>
-                      <span className="text-[10px] text-slate-400 font-mono">Ready</span>
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {lang === "en" ? "Ready" : "প্রস্তুত"}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -831,14 +896,14 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                   onClick={() => setSelectedMilestoneForSubmit(null)}
                   className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
                 >
-                  Cancel
+                  {lang === "en" ? "Cancel" : "বাতিল"}
                 </button>
                 <button
                   type="submit"
                   className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-full cursor-pointer shadow-xs"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>Send Deliverable to Client</span>
+                  <span>{lang === "en" ? "Send Deliverable to Client" : "ক্লায়েন্টকে ডেলিভারি পাঠান"}</span>
                 </button>
               </div>
             </form>
@@ -858,8 +923,12 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                   <Check className="w-5 h-5 stroke-[3]" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-slate-900">Approve Milestone Deliverable</h3>
-                  <p className="text-[11px] text-slate-500">Release BDT Escrow to Freelancer</p>
+                  <h3 className="text-sm font-black text-slate-900">
+                    {lang === "en" ? "Approve Milestone Deliverable" : "মাইলস্টোন ডেলিভারি অনুমোদন করুন"}
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    {lang === "en" ? "Release BDT Escrow to Freelancer" : "ফ্রিল্যান্সারকে টাকা রিলিজ করুন"}
+                  </p>
                 </div>
               </div>
               <button
@@ -872,32 +941,38 @@ export default function ContractWorkspacePage({ params }: PageProps) {
 
             <div className="p-6 space-y-4">
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center space-y-1">
-                <span className="text-xs text-slate-400 uppercase font-bold tracking-wider">Release Amount</span>
+                <span className="text-xs text-slate-400 uppercase font-bold tracking-wider">
+                  {lang === "en" ? "Release Amount" : "রিলিজের পরিমাণ"}
+                </span>
                 <span className="text-2xl font-black text-slate-900 block">
-                  ৳{selectedMilestoneForApproval.amountBdt.toLocaleString()} BDT
+                  ৳{selectedMilestoneForApproval.amountBdt.toLocaleString()} <span className="text-sm font-bold text-slate-500">BDT</span>
                 </span>
                 <span className="text-xs text-emerald-700 font-semibold block">
-                  Will be credited to {contract.freelancer.name}&apos;s {contract.freelancer.payoutMethod} Wallet
+                  {lang === "en"
+                    ? `Will be credited to ${contract.freelancer.name}'s ${contract.freelancer.payoutMethod} Wallet`
+                    : `${contract.freelancer.name}-এর ${contract.freelancer.payoutMethod} ওয়ালেটে জমা হবে`}
                 </span>
               </div>
 
               <div className="space-y-2 text-xs text-slate-600 bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-200">
                 <div className="flex justify-between">
-                  <span>Gross Milestone Amount:</span>
+                  <span>{lang === "en" ? "Gross Milestone Amount:" : "মোট মাইলস্টোন পরিমাণ:"}</span>
                   <span className="font-bold text-slate-900">৳{selectedMilestoneForApproval.amountBdt.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>MuktoKormo Platform Fee (7%):</span>
+                  <span>{lang === "en" ? "MuktoKormo Platform Fee (7%):" : "মুক্তকর্ম প্ল্যাটফর্ম ফি (৭%):"}</span>
                   <span className="font-bold text-rose-600">-৳{Math.round(selectedMilestoneForApproval.amountBdt * 0.07).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between pt-1 border-t border-emerald-200 font-bold text-slate-900">
-                  <span>Freelancer Take-Home:</span>
+                  <span>{lang === "en" ? "Freelancer Take-Home:" : "ফ্রিল্যান্সারের প্রাপ্য:"}</span>
                   <span className="text-emerald-700">৳{Math.round(selectedMilestoneForApproval.amountBdt * 0.93).toLocaleString()} BDT</span>
                 </div>
               </div>
 
               <p className="text-[11px] text-slate-500 leading-relaxed">
-                By approving, you verify that the freelancer has met all deliverables for this milestone. This transaction is final and irreversible.
+                {lang === "en"
+                  ? "By approving, you verify that the freelancer has met all deliverables for this milestone. This transaction is final and irreversible."
+                  : "অনুমোদন করার মাধ্যমে আপনি নিশ্চিত করছেন যে ফ্রিল্যান্সার এই মাইলস্টোনের কাজ সঠিকভাবে সম্পন্ন করেছেন। এই লেনদেনটি চূড়ান্ত।"}
               </p>
 
               <div className="pt-2 flex items-center justify-between">
@@ -906,7 +981,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                   onClick={() => setSelectedMilestoneForApproval(null)}
                   className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
                 >
-                  Cancel
+                  {lang === "en" ? "Cancel" : "বাতিল"}
                 </button>
                 <button
                   type="button"
@@ -914,7 +989,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                   className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-full cursor-pointer shadow-md shadow-emerald-600/20"
                 >
                   <Lock className="w-3.5 h-3.5" />
-                  <span>Confirm Release & Pay</span>
+                  <span>{lang === "en" ? "Confirm Release & Pay" : "অনুমোদন নিশ্চিত ও পেমেন্ট করুন"}</span>
                 </button>
               </div>
             </div>
@@ -934,8 +1009,14 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                   <RotateCcw className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-slate-900">Request Revision</h3>
-                  <p className="text-[11px] text-slate-500">Provide constructive feedback to {contract.freelancer.name}</p>
+                  <h3 className="text-sm font-black text-slate-900">
+                    {lang === "en" ? "Request Revision" : "রিভিশনের অনুরোধ"}
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    {lang === "en"
+                      ? `Provide constructive feedback to ${contract.freelancer.name}`
+                      : `${contract.freelancer.name}-কে প্রয়োজনীয় পরিবর্তনের পরামর্শ দিন`}
+                  </p>
                 </div>
               </div>
               <button
@@ -948,20 +1029,26 @@ export default function ContractWorkspacePage({ params }: PageProps) {
 
             <form onSubmit={handleConfirmRevision} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Revision Specifics</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  {lang === "en" ? "Revision Specifics" : "রিভিশনের বিবরণ"}
+                </label>
                 <textarea
                   rows={4}
                   required
                   value={revisionNotes}
                   onChange={(e) => setRevisionNotes(e.target.value)}
-                  placeholder="Detail what needs to be changed or fixed..."
+                  placeholder={lang === "en" ? "Detail what needs to be changed or fixed..." : "কি পরিবর্তন বা ঠিক করতে হবে তা বিস্তারিত লিখুন..."}
                   className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-amber-500 resize-none leading-relaxed"
                 />
               </div>
 
               <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-500 flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Escrow funds remain securely locked until revisions are approved.</span>
+                <span>
+                  {lang === "en"
+                    ? "Escrow funds remain securely locked until revisions are approved."
+                    : "রিভিশন অনুমোদন না হওয়া পর্যন্ত এসক্রোর ফান্ড সম্পূর্ণ নিরাপদে সংরক্ষিত থাকবে।"}
+                </span>
               </div>
 
               <div className="pt-2 flex items-center justify-between">
@@ -970,14 +1057,14 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                   onClick={() => setSelectedMilestoneForRevision(null)}
                   className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
                 >
-                  Cancel
+                  {lang === "en" ? "Cancel" : "বাতিল"}
                 </button>
                 <button
                   type="submit"
                   className="flex items-center gap-2 px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-full cursor-pointer shadow-xs"
                 >
                   <Send className="w-3.5 h-3.5" />
-                  <span>Send Revision Request</span>
+                  <span>{lang === "en" ? "Send Revision Request" : "রিভিশন অনুরোধ পাঠান"}</span>
                 </button>
               </div>
             </form>

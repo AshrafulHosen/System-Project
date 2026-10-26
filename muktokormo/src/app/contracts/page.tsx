@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, {  useState, useEffect , useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { INITIAL_WORKSPACE_CONTRACTS } from "@/data/mockContracts";
+import { createClient } from "@/lib/supabase/client";
+import { fetchUserContracts } from "@/lib/data/contracts";
 import { WorkspaceContract } from "@/types";
 
 export default function ContractsHubPage() {
@@ -26,7 +28,28 @@ export default function ContractsHubPage() {
       router.replace("/login?next=/contracts");
     }
   }, [userLoading, email, router]);
-  const [contracts] = useState<WorkspaceContract[]>(INITIAL_WORKSPACE_CONTRACTS);
+  const supabase = useMemo(() => createClient(), []);
+  const [contracts, setContracts] = useState<WorkspaceContract[]>(INITIAL_WORKSPACE_CONTRACTS);
+  const [contractsLoading, setContractsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const live = await fetchUserContracts(supabase);
+        if (!cancelled && live && live.length > 0) {
+          setContracts(live);
+        }
+      } catch (e) {
+        console.error("Failed to fetch live contracts:", e);
+      } finally {
+        if (!cancelled) setContractsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase]);
   const [filter, setFilter] = useState<"ALL" | "ACTIVE" | "COMPLETED">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [lang, setLang] = useState<"en" | "bn">("en");
