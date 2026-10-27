@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   MessageSquare,
@@ -15,8 +16,22 @@ import {
   AlertCircle,
   Clock,
   ArrowRight,
+  Radio,
 } from "lucide-react";
 import { useWorkspaceSocket, ChatMessage, WorkspaceUser } from "@/lib/socket";
+import { TALKJS_APP_ID, TalkUserDef } from "@/lib/talkjs";
+
+// Dynamically load TalkJSChat on client side (SSR false)
+const TalkJSChat = dynamic(() => import("@/components/chat/TalkJSChat"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-slate-50">
+      <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mb-3" />
+      <p className="text-xs font-bold text-slate-700">Connecting TalkJS Cloud Engine...</p>
+      <p className="text-[11px] text-slate-400 mt-1">App ID: {TALKJS_APP_ID}</p>
+    </div>
+  ),
+});
 
 export interface ConversationThread {
   id: string;
@@ -260,6 +275,7 @@ export default function WorkspaceMessagesSection({
   const [inputText, setInputText] = useState("");
   const [showContractInfo, setShowContractInfo] = useState(true);
   const [acceptingBid, setAcceptingBid] = useState(false);
+  const [chatEngine, setChatEngine] = useState<"talkjs" | "socket">("talkjs");
 
   const activeThread = useMemo(
     () => threads.find((t) => t.id === activeThreadId) || threads[0],
@@ -277,6 +293,36 @@ export default function WorkspaceMessagesSection({
     }),
     [currentUserName, role, currentUserAvatar]
   );
+
+  // TalkJS user representations
+  const talkMe: TalkUserDef = useMemo(() => {
+    return {
+      id: `${role}-${currentUserName.replace(/\s+/g, "-").toLowerCase()}`,
+      name: currentUserName,
+      email: `${currentUserName.replace(/\s+/g, "").toLowerCase()}@muktokormo.bd`,
+      role: role,
+      photoUrl:
+        currentUserAvatar ||
+        (role === "client"
+          ? "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?auto=format&fit=crop&w=150&q=80"
+          : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80"),
+      welcomeMessage:
+        role === "client"
+          ? "Hello! Welcome to the contract workspace."
+          : "Hello! I am ready to collaborate on project deliverables.",
+    };
+  }, [role, currentUserName, currentUserAvatar]);
+
+  const talkOther: TalkUserDef = useMemo(() => {
+    return {
+      id: `${activeThread.participantRole}-${activeThread.participantName.replace(/\s+/g, "-").toLowerCase()}`,
+      name: activeThread.participantName,
+      email: `${activeThread.participantName.replace(/\s+/g, "").toLowerCase()}@muktokormo.bd`,
+      role: activeThread.participantRole,
+      photoUrl: activeThread.participantAvatar,
+      welcomeMessage: "Looking forward to working together.",
+    };
+  }, [activeThread]);
 
   const handleBidAcceptedEvent = (data: any) => {
     setThreads((prev) =>
@@ -357,9 +403,9 @@ export default function WorkspaceMessagesSection({
   const isBidAccepted = activeThread.bidStatus === "ACCEPTED";
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs overflow-hidden flex flex-col h-[720px]">
-      {/* Top Banner / Socket Status Header */}
-      <div className="px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
+    <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs overflow-hidden flex flex-col h-[740px]">
+      {/* Top Banner / Engine Status Header */}
+      <div className="px-6 py-3.5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
             <MessageSquare className="w-5 h-5" />
@@ -370,41 +416,58 @@ export default function WorkspaceMessagesSection({
                 {lang === "en" ? "Workspace Real-Time Messaging" : "ওয়ার্কস্পেস রিয়েল-টাইম বার্তা"}
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                Socket.IO
+                TalkJS Live
+              </span>
+              <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700 hidden sm:inline">
+                App ID: {TALKJS_APP_ID}
               </span>
             </div>
             <p className="text-[11px] text-slate-400">
               {lang === "en"
-                ? "Direct messaging is unlocked after bid acceptance for secure contract collaboration"
-                : "নিরাপদ চুক্তি পরিচালনার জন্য বিড অনুমোদনের পর সরাসরি বার্তা সক্রিয় হয়"}
+                ? "Direct messaging unlocked for active contracts with live bi-directional sync"
+                : "সক্রিয় চুক্তির জন্য সরাসরি রিয়েল-টাইম মেসেজিং ও ফাইল শেয়ারিং"}
             </p>
           </div>
         </div>
 
-        {/* Live Socket Connection Badge & Actions */}
-        <div className="flex items-center gap-2.5">
-          <div
-            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border transition-colors ${
-              isConnected
-                ? "bg-emerald-950/80 border-emerald-500/40 text-emerald-400"
-                : "bg-amber-950/80 border-amber-500/40 text-amber-400"
-            }`}
-          >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isConnected ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
+        {/* Live Controls & External Messenger Link */}
+        <div className="flex items-center gap-2">
+          {/* Engine Selector */}
+          <div className="hidden sm:flex items-center bg-slate-800 p-0.5 rounded-xl border border-slate-700 text-xs font-bold text-slate-300">
+            <button
+              type="button"
+              onClick={() => setChatEngine("talkjs")}
+              className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1 ${
+                chatEngine === "talkjs" ? "bg-emerald-600 text-white" : "hover:text-white"
               }`}
-            />
-            <span>
-              {isConnected
-                ? (lang === "en" ? "Socket Connected :3001" : "সকেট কানেক্টেড :৩০০১")
-                : (lang === "en" ? "Connecting to Socket..." : "কানেক্ট হচ্ছে...")}
-            </span>
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
+              <span>TalkJS</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setChatEngine("socket")}
+              className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                chatEngine === "socket" ? "bg-slate-700 text-white" : "hover:text-white"
+              }`}
+            >
+              <span>Socket.IO</span>
+            </button>
           </div>
+
+          <Link
+            href={`/messages?conversationId=${activeThread.id}`}
+            title="Open Dedicated Fullscreen Messenger"
+            className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all cursor-pointer"
+          >
+            <span>{lang === "en" ? "Full Messenger" : "ফুল মেসেঞ্জার"}</span>
+            <ExternalLink className="w-3 h-3" />
+          </Link>
+
           <button
             type="button"
             onClick={() => setShowContractInfo(!showContractInfo)}
-            className="text-xs font-bold px-3 py-1 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
+            className="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors cursor-pointer"
           >
             {showContractInfo
               ? (lang === "en" ? "Hide Context" : "লুকান")
@@ -560,13 +623,13 @@ export default function WorkspaceMessagesSection({
             ) : null}
           </div>
 
-          {/* Messages Scroll Area */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/30">
-            {/* If Bid is NOT accepted: Show prominent Banner & Unlock Action */}
-            {!isBidAccepted && (
-              <div className="p-5 rounded-3xl bg-amber-50/90 border border-amber-200/90 shadow-sm space-y-3">
+          {/* Chat Body: TalkJS or Locked Banner / Socket fallback */}
+          {!isBidAccepted ? (
+            /* If Bid is NOT accepted: Show prominent Banner & Unlock Action */
+            <div className="flex-1 p-6 flex flex-col justify-center items-center bg-slate-50/50">
+              <div className="w-full max-w-lg p-6 rounded-3xl bg-amber-50/90 border border-amber-200/90 shadow-sm space-y-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
                     <Lock className="w-5 h-5" />
                   </div>
                   <div className="space-y-1 min-w-0">
@@ -586,7 +649,7 @@ export default function WorkspaceMessagesSection({
                 </div>
 
                 {/* Bid Details Summary Box */}
-                <div className="p-3.5 rounded-2xl bg-white border border-amber-200/60 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="p-4 rounded-2xl bg-white border border-amber-200/60 flex flex-wrap items-center justify-between gap-3 text-xs">
                   <div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       {lang === "en" ? "Proposed Bid Amount" : "প্রস্তাবিত বিড"}
@@ -622,155 +685,112 @@ export default function WorkspaceMessagesSection({
                   )}
                 </div>
               </div>
-            )}
-
-            {/* Safety Notice when Bid is Accepted */}
-            {isBidAccepted && (
-              <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/70 text-emerald-800 text-[11px] flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>
-                  {lang === "en"
-                    ? "Bid accepted! Real-time communication is live and protected under MuktoKormo Escrow terms."
-                    : "বিড অনুমোদিত! রিয়েল-টাইম আলোচনা সক্রিয় এবং মুক্তকর্ম এসক্রো শর্তানুযায়ী সুরক্ষিত।"}
-                </span>
-              </div>
-            )}
-
-            {/* Chat Messages */}
-            {messages.map((msg: any) => {
-              const isMine =
-                (role === "client" && msg.isClient) ||
-                (role === "freelancer" && !msg.isClient);
-
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}
-                >
-                  <div className="flex items-center gap-1.5 mb-1 text-[10px] text-slate-400">
-                    <span className="font-bold text-slate-700">{msg.sender}</span>
-                    <span>• {msg.time}</span>
-                  </div>
-
-                  <div
-                    className={`p-3.5 rounded-2xl max-w-sm sm:max-w-md text-xs leading-relaxed shadow-xs ${
-                      msg.isSystem
-                        ? "bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl font-semibold text-center w-full max-w-lg mx-auto"
-                        : isMine
-                        ? "bg-emerald-600 text-white rounded-tr-none font-medium"
-                        : "bg-white text-slate-800 border border-slate-200/80 rounded-tl-none"
-                    }`}
-                  >
-                    {msg.text}
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Typing Indicator (Only active when bid accepted) */}
-            {isBidAccepted && typingUsers.length > 0 && (
-              <div className="flex items-center gap-2 text-xs text-slate-400 italic py-1">
-                <span className="flex gap-1 items-center">
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce" />
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.2s]" />
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:0.4s]" />
-                </span>
-                <span>
-                  {activeThread.participantName} {lang === "en" ? "is typing..." : "লিখছেন..."}
-                </span>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Quick Reply Chips (Only if Bid Accepted) */}
-          {isBidAccepted ? (
-            <div className="px-4 py-2 border-t border-slate-100 bg-white flex items-center gap-2 overflow-x-auto no-scrollbar">
-              <span className="text-[10px] font-bold text-slate-400 shrink-0 uppercase tracking-wider">
-                {lang === "en" ? "Quick:" : "দ্রুত:"}
-              </span>
-              {quickReplies.map((reply, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    socketSendMessage(reply);
-                  }}
-                  className="text-[11px] font-medium bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 border border-slate-200/80 px-2.5 py-1 rounded-full text-slate-600 shrink-0 transition-colors cursor-pointer"
-                >
-                  {reply}
-                </button>
-              ))}
+            </div>
+          ) : chatEngine === "talkjs" ? (
+            /* TalkJS Real-Time Browser Chat */
+            <div className="flex-1 flex flex-col min-h-0 bg-white">
+              <TalkJSChat
+                mode="chatbox"
+                conversationId={activeThread.id}
+                currentUser={talkMe}
+                otherUser={talkOther}
+                subject={activeThread.contractTitle}
+                height="100%"
+                className="h-full flex-1"
+                customData={{
+                  contractId: activeThread.contractId,
+                  budgetBdt: String(activeThread.budgetBdt),
+                }}
+              />
             </div>
           ) : (
-            <div className="px-4 py-2 border-t border-amber-100 bg-amber-50/60 flex items-center justify-between gap-2 text-[11px] text-amber-800">
-              <span className="flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-amber-600" />
-                <span>{lang === "en" ? "Accept the bid above to enable quick replies and live messaging." : "দ্রুত মেসেজ ও চ্যাট করতে উপরের বিডটি অনুমোদন করুন।"}</span>
-              </span>
-              {role === "client" && (
-                <button
-                  type="button"
-                  onClick={handleAcceptBid}
-                  className="text-[11px] font-bold text-emerald-700 underline hover:text-emerald-800 cursor-pointer"
-                >
-                  {lang === "en" ? "Accept Bid Now" : "এখনই বিড অনুমোদন করুন"}
-                </button>
-              )}
-            </div>
-          )}
+            /* Socket.IO Mode Fallback */
+            <div className="flex-1 flex flex-col min-h-0 bg-white">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/30">
+                <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/70 text-emerald-800 text-[11px] flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    {lang === "en"
+                      ? "Bid accepted! Socket.IO real-time channel connected on port 3001."
+                      : "বিড অনুমোদিত! সকেট চ্যানেল সক্রিয়।"}
+                  </span>
+                </div>
 
-          {/* Message Input Box */}
-          <form
-            onSubmit={handleSend}
-            className="p-3 border-t border-slate-200 bg-white flex items-center gap-2"
-          >
-            <input
-              type="text"
-              disabled={!isBidAccepted}
-              value={inputText}
-              onChange={(e) => {
-                setInputText(e.target.value);
-                if (isBidAccepted) socketSendTyping();
-              }}
-              placeholder={
-                !isBidAccepted
-                  ? (lang === "en"
-                      ? "🔒 Real-time messaging will unlock once the freelancer's bid is accepted."
-                      : "🔒 ফ্রিল্যান্সারের বিড অনুমোদনের পর মেসেজিং চালু হবে।")
-                  : (lang === "en"
-                      ? `Write a real-time message to ${activeThread.participantName}...`
-                      : `${activeThread.participantName}-কে বার্তা লিখুন...`)
-              }
-              className={`flex-1 px-4 py-2.5 border rounded-2xl text-xs transition-all ${
-                !isBidAccepted
-                  ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed placeholder:text-slate-400"
-                  : "bg-slate-50 text-slate-900 border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-              }`}
-            />
-            <button
-              type="submit"
-              disabled={!isBidAccepted || !inputText.trim()}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all ${
-                !isBidAccepted || !inputText.trim()
-                  ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                  : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs shadow-emerald-600/20 cursor-pointer"
-              }`}
-            >
-              {!isBidAccepted ? (
-                <>
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>{lang === "en" ? "Locked" : "লকড"}</span>
-                </>
-              ) : (
-                <>
+                {messages.map((msg: any) => {
+                  const isMine =
+                    (role === "client" && msg.isClient) ||
+                    (role === "freelancer" && !msg.isClient);
+
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex flex-col ${isMine ? "items-end" : "items-start"}`}
+                    >
+                      <div className="flex items-center gap-1.5 mb-1 text-[10px] text-slate-400">
+                        <span className="font-bold text-slate-700">{msg.sender}</span>
+                        <span>• {msg.time}</span>
+                      </div>
+
+                      <div
+                        className={`p-3.5 rounded-2xl max-w-sm sm:max-w-md text-xs leading-relaxed shadow-xs ${
+                          msg.isSystem
+                            ? "bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl font-semibold text-center w-full max-w-lg mx-auto"
+                            : isMine
+                            ? "bg-emerald-600 text-white rounded-tr-none font-medium"
+                            : "bg-white text-slate-800 border border-slate-200/80 rounded-tl-none"
+                        }`}
+                      >
+                        {msg.text}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Quick Reply Chips */}
+              <div className="px-4 py-2 border-t border-slate-100 bg-white flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <span className="text-[10px] font-bold text-slate-400 shrink-0 uppercase tracking-wider">
+                  {lang === "en" ? "Quick:" : "দ্রুত:"}
+                </span>
+                {quickReplies.map((reply, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => socketSendMessage(reply)}
+                    className="text-[11px] font-medium bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 border border-slate-200/80 px-2.5 py-1 rounded-full text-slate-600 shrink-0 transition-colors cursor-pointer"
+                  >
+                    {reply}
+                  </button>
+                ))}
+              </div>
+
+              {/* Socket Input Box */}
+              <form
+                onSubmit={handleSend}
+                className="p-3 border-t border-slate-200 bg-white flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => {
+                    setInputText(e.target.value);
+                    socketSendTyping();
+                  }}
+                  placeholder={`Write a message to ${activeThread.participantName}...`}
+                  className="flex-1 px-4 py-2.5 border rounded-2xl text-xs bg-slate-50 text-slate-900 border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputText.trim()}
+                  className="px-4 py-2.5 rounded-2xl text-xs font-bold flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                >
                   <span>{lang === "en" ? "Send" : "পাঠান"}</span>
                   <Send className="w-3.5 h-3.5" />
-                </>
-              )}
-            </button>
-          </form>
+                </button>
+              </form>
+            </div>
+          )}
         </div>
 
         {/* Right: Contract Context Drawer */}

@@ -721,12 +721,12 @@ export default function ContractWorkspacePage({ params }: PageProps) {
             {/* Go to Messages Section CTA */}
             <div className="pt-4 border-t border-slate-100">
               <Link
-                href={activeRole === "client" ? "/dashboard/client#messages" : "/dashboard/freelancer#messages"}
+                href={`/messages?conversationId=conv-${contract.id}`}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-transform active:scale-98"
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>
-                  {lang === "en" ? "Open Messages Section" : "মেসেজ সেকশনে বার্তা খুলুন"}
+                  {lang === "en" ? "Open Real-Time Chat (TalkJS)" : "লাইভ চ্যাট খুলুন (TalkJS)"}
                 </span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>

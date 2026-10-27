@@ -1,247 +1,126 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef, Suspense } from "react";
+import React, { useState, useMemo, Suspense } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   MessageSquare,
-  Send,
-  Paperclip,
-  CheckCheck,
-  Check,
-  Search,
-  Sparkles,
   ShieldCheck,
-  Handshake,
-  Lock,
   ChevronRight,
   ExternalLink,
-  Wifi,
-  WifiOff,
-  Clock,
-  MoreVertical,
-  User,
-  Building,
-  Smartphone,
-  FileCode,
-  Image as ImageIcon,
+  Lock,
   CheckCircle2,
-  X,
+  Sparkles,
+  Users,
+  Briefcase,
+  Layers,
+  ArrowRight,
+  CheckCheck,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { formatBdt } from "@/lib/format";
-
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
-import { INITIAL_WORKSPACE_CONTRACTS } from "@/data/mockContracts";
-import { useWorkspaceSocket, ChatMessage, WorkspaceUser } from "@/lib/socket";
+import {
+  TALKJS_APP_ID,
+  TalkUserDef,
+  TalkConversationDef,
+  PRESET_CLIENT_AHAD,
+  PRESET_CLIENT_RAFIQUL,
+  PRESET_FREELANCER_TANVIR,
+  PRESET_FREELANCER_MAHMUDUL,
+  PRESET_FREELANCER_FARHANA,
+  PRESET_CONVERSATIONS,
+} from "@/lib/talkjs";
 
-interface ConversationThread {
-  id: string;
-  contractId: string;
-  participantName: string;
-  participantTitle: string;
-  participantAvatar: string;
-  participantRole: "client" | "freelancer";
-  online: boolean;
-  contractTitle: string;
-  budgetBdt: number;
-  escrowBdt: number;
-  milestoneTitle: string;
-  milestoneStatus: string;
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
-  initialMessages: ChatMessage[];
-}
-
-const MOCK_CONVERSATIONS: ConversationThread[] = [
-  {
-    id: "conv-ctr-8842",
-    contractId: "ctr-8842",
-    participantName: "Tanvir Rahman",
-    participantTitle: "Senior Full-Stack Next.js & MFS Engineer",
-    participantAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-    participantRole: "freelancer",
-    online: true,
-    contractTitle: "Full-Stack Next.js E-Commerce Website with bKash/Nagad Payment",
-    budgetBdt: 42000,
-    escrowBdt: 20000,
-    milestoneTitle: "Milestone 1: Frontend Storefront & Product Catalogue Responsive UI",
-    milestoneStatus: "IN_PROGRESS",
-    lastMessage: "I pushed the updated navbar and bKash webhook integration to the preview URL.",
-    lastMessageTime: "10:45 AM",
-    unreadCount: 1,
-    initialMessages: [
-      {
-        id: "msg-1",
-        sender: "Ahad A (Client)",
-        time: "Yesterday, 02:40 PM",
-        text: "Hello Tanvir! Welcome to the project workspace. Milestone 1 is funded and secured in MuktoKormo Escrow safe.",
-        isClient: true,
-      },
-      {
-        id: "msg-2",
-        sender: "Tanvir Rahman",
-        time: "Yesterday, 03:00 PM",
-        text: "Thanks Ahad! I have set up the Next.js 14 App Router project and connected the Tailwind CSS design system.",
-        isClient: false,
-      },
-      {
-        id: "msg-3",
-        sender: "Tanvir Rahman",
-        time: "Today, 10:45 AM",
-        text: "I pushed the updated navbar and bKash webhook integration to the preview URL.",
-        isClient: false,
-        attachments: [
-          {
-            name: "preview_v1_storefront.png",
-            url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=600&q=80",
-            size: "1.4 MB",
-            type: "image",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "conv-ctr-9120",
-    contractId: "ctr-9120",
-    participantName: "Mahmudul Hasan",
-    participantTitle: "Full Stack Engineer & PostgreSQL Specialist",
-    participantAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
-    participantRole: "freelancer",
-    online: false,
-    contractTitle: "Mobile Banking MFS Gateway & SMS OTP Integration",
-    budgetBdt: 35000,
-    escrowBdt: 17500,
-    milestoneTitle: "Milestone 1: Merchant Webhook Architecture",
-    milestoneStatus: "SUBMITTED",
-    lastMessage: "Submitted code deliverables for Milestone 1. Please review when ready.",
-    lastMessageTime: "Yesterday",
-    unreadCount: 0,
-    initialMessages: [
-      {
-        id: "msg-m1",
-        sender: "Mahmudul Hasan",
-        time: "Oct 14, 04:15 PM",
-        text: "Submitted code deliverables for Milestone 1. Please review when ready.",
-        isClient: false,
-      },
-    ],
-  },
-  {
-    id: "conv-fav-1",
-    contractId: "ctr-8842",
-    participantName: "Farhana Yasmin",
-    participantTitle: "Senior Performance Marketer",
-    participantAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80",
-    participantRole: "freelancer",
-    online: true,
-    contractTitle: "Meta CAPI & Conversion Optimization Project",
-    budgetBdt: 25000,
-    escrowBdt: 12500,
-    milestoneTitle: "Milestone 1: Server-Side Pixel Setup",
-    milestoneStatus: "PLANNING",
-    lastMessage: "Looking forward to starting after the contract terms are finalized.",
-    lastMessageTime: "Oct 12",
-    unreadCount: 0,
-    initialMessages: [
-      {
-        id: "msg-f1",
-        sender: "Farhana Yasmin",
-        time: "Oct 12, 11:20 AM",
-        text: "Looking forward to starting after the contract terms are finalized.",
-        isClient: false,
-      },
-    ],
-  },
-];
+// Dynamically import TalkJSChat on client side (SSR false) to ensure browser-only TalkJS SDK
+const TalkJSChat = dynamic(() => import("@/components/chat/TalkJSChat"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[600px] flex flex-col items-center justify-center bg-slate-50 text-slate-500">
+      <div className="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin mb-3" />
+      <p className="text-xs font-semibold">Loading TalkJS Real-Time Messaging...</p>
+    </div>
+  ),
+});
 
 function MessagesHubContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const { role: userRole } = useCurrentUser();
+  const urlConvId = searchParams.get("conversationId") || searchParams.get("contractId");
 
-  useEffect(() => {
-    if (userRole === "freelancer") {
-      router.replace("/dashboard/freelancer#messages");
-    } else {
-      router.replace("/dashboard/client#messages");
-    }
-  }, [userRole, router]);
+  const { name: currentUserName, email: currentUserEmail, role: userRole } = useCurrentUser();
 
   const [lang, setLang] = useState<"en" | "bn">("en");
   const toggleLang = () => setLang((prev) => (prev === "en" ? "bn" : "en"));
-
-  const [activeRole, setActiveRole] = useState<"client" | "freelancer">("client");
-  const [activeThreadId, setActiveThreadId] = useState<string>("conv-ctr-8842");
   const [searchQuery, setSearchQuery] = useState("");
-  const [inputText, setInputText] = useState("");
-  const [filterType, setFilterType] = useState<"ALL" | "ACTIVE" | "UNREAD">("ALL");
 
-  const activeThread = useMemo(() => {
-    return MOCK_CONVERSATIONS.find((c) => c.id === activeThreadId) || MOCK_CONVERSATIONS[0];
-  }, [activeThreadId]);
+  // Active view role / identity
+  const [selectedRole, setSelectedRole] = useState<"client" | "freelancer">("client");
 
-  const currentUser: WorkspaceUser = useMemo(
-    () => ({
-      id: activeRole === "client" ? "client-user-1" : "freelancer-user-1",
-      name: activeRole === "client" ? "Ahad A (Apex Lifestyle)" : "Tanvir Rahman",
-      role: activeRole,
-    }),
-    [activeRole]
-  );
-
-  // Real-Time Socket.IO Hook
-  const {
-    messages,
-    sendMessage,
-    sendTyping,
-    isConnected,
-    typingUsers,
-    onlineMembers,
-  } = useWorkspaceSocket({
-    roomId: `conversation:${activeThread.id}`,
-    currentUser,
-    initialMessages: activeThread.initialMessages,
+  // Selected conversation thread
+  const [activeConvId, setActiveConvId] = useState<string>(() => {
+    if (urlConvId) {
+      const match = PRESET_CONVERSATIONS.find(
+        (c) => c.id === urlConvId || c.contractId === urlConvId
+      );
+      if (match) return match.id;
+    }
+    return PRESET_CONVERSATIONS[0].id;
   });
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // UI display mode: 'chatbox' (with contract sidebar) vs 'inbox' (TalkJS full inbox)
+  const [viewMode, setViewMode] = useState<"chatbox" | "inbox">("chatbox");
+  const [showContractContext, setShowContractContext] = useState(true);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, typingUsers]);
+  // Resolve current active conversation definition
+  const activeConversation: TalkConversationDef = useMemo(() => {
+    return (
+      PRESET_CONVERSATIONS.find((c) => c.id === activeConvId) ||
+      PRESET_CONVERSATIONS[0]
+    );
+  }, [activeConvId]);
 
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputText.trim()) return;
-    sendMessage(inputText.trim());
-    setInputText("");
-  };
+  // Construct currentUser TalkJS object based on chosen role and logged-in user if available
+  const currentUser: TalkUserDef = useMemo(() => {
+    if (selectedRole === "client") {
+      if (userRole === "client" && currentUserName) {
+        return {
+          id: `user-${currentUserName.replace(/\s+/g, "-").toLowerCase()}`,
+          name: currentUserName,
+          email: currentUserEmail || "client@muktokormo.bd",
+          role: "client",
+          photoUrl: PRESET_CLIENT_AHAD.photoUrl,
+          welcomeMessage: "Hello! Welcome to MuktoKormo contract workspace.",
+          headerTitle: "Verified Client",
+        };
+      }
+      return activeConversation.client;
+    } else {
+      if (userRole === "freelancer" && currentUserName) {
+        return {
+          id: `user-${currentUserName.replace(/\s+/g, "-").toLowerCase()}`,
+          name: currentUserName,
+          email: currentUserEmail || "freelancer@muktokormo.bd",
+          role: "freelancer",
+          photoUrl: PRESET_FREELANCER_TANVIR.photoUrl,
+          welcomeMessage: "Hello! I am ready to collaborate on project deliverables.",
+          headerTitle: "Freelance Specialist",
+        };
+      }
+      return activeConversation.freelancer;
+    }
+  }, [selectedRole, userRole, currentUserName, currentUserEmail, activeConversation]);
 
-  const handleAttachQuickDemo = () => {
-    sendMessage("Shared updated deliverable link: https://storefront-demo.muktokormo.bd", [
-      {
-        name: "muktokormo_ecom_v2.png",
-        url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80",
-        size: "2.1 MB",
-        type: "image",
-      },
-    ]);
-  };
-
-  const filteredThreads = MOCK_CONVERSATIONS.filter((t) => {
-    const matchesSearch =
-      t.participantName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.contractTitle.toLowerCase().includes(searchQuery.toLowerCase());
-    if (!matchesSearch) return false;
-    if (filterType === "UNREAD") return t.unreadCount > 0;
-    return true;
-  });
+  // Construct otherUser TalkJS object
+  const otherUser: TalkUserDef = useMemo(() => {
+    return selectedRole === "client"
+      ? activeConversation.freelancer
+      : activeConversation.client;
+  }, [selectedRole, activeConversation]);
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 flex flex-col selection:bg-emerald-500 selection:text-white">
-      {/* Top Navbar */}
+      {/* Top Navigation */}
       <Navbar
         onOpenPostJob={() => {}}
         lang={lang}
@@ -250,443 +129,396 @@ function MessagesHubContent() {
         onSearchChange={setSearchQuery}
       />
 
-      {/* Real-Time Socket Connection Banner & Perspective Selector */}
-      <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 py-2.5">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border transition-colors ${
-                isConnected
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                  : "bg-amber-50 text-amber-700 border-amber-200"
-              }`}
-            >
-              {isConnected ? (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>{lang === "en" ? "Socket.IO Live Connected (ws://localhost:3001)" : "সকেট কানেকশন সক্রিয় (পোর্ট ৩০০১)"}</span>
-                </>
-              ) : (
-                <>
-                  <WifiOff className="w-3 h-3 text-amber-600" />
-                  <span>{lang === "en" ? "Connecting to Socket.IO..." : "সকেটে সংযুক্ত হচ্ছে..."}</span>
-                </>
-              )}
+      {/* Real-Time Engine & Identity Switcher Banner */}
+      <div className="bg-white border-b border-slate-200/80 px-4 sm:px-6 py-2.5 shadow-xs sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          {/* Left: Engine Status */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>{lang === "en" ? "TalkJS Real-Time Cloud Engine" : "টকজেএস রিয়েল-টাইম ক্লাউড সক্রিয়"}</span>
             </span>
-            <span className="text-xs text-slate-400 hidden sm:inline">•</span>
-            <span className="text-xs text-slate-500 hidden sm:inline">
-              {lang === "en" ? "Real-time bi-directional message exchange & milestone sync" : "রিয়েল-টাইম বার্তা ও মাইলস্টোন সিঙ্ক"}
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+              App ID: {TALKJS_APP_ID}
+            </span>
+            <span className="text-xs text-slate-400 hidden md:inline">•</span>
+            <span className="text-xs text-slate-600 hidden md:inline">
+              {lang === "en"
+                ? "Bi-directional browser chat with typing status, attachments, and cloud sync"
+                : "দ্বি-মুখী ব্রাউজার চ্যাট, টাইপিং স্ট্যাটাস এবং ক্লাউড মেসেজিং"}
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-slate-400 uppercase">
-              {lang === "en" ? "Switch View:" : "ভিউ পরিবর্তন:"}
-            </span>
-            <div className="flex items-center bg-slate-100 p-0.5 rounded-xl text-xs font-bold text-slate-600">
+          {/* Right: Interactive Role & Mode Switcher */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Perspective / Role Switcher */}
+            <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl text-xs font-bold text-slate-600">
+              <span className="text-[10px] uppercase tracking-wider text-slate-400 px-2 font-bold hidden sm:inline">
+                {lang === "en" ? "Testing As:" : "চ্যাট করুন:"}
+              </span>
               <button
                 type="button"
-                onClick={() => setActiveRole("client")}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                  activeRole === "client" ? "bg-white text-emerald-800 shadow-xs" : "hover:text-slate-900"
+                onClick={() => setSelectedRole("client")}
+                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                  selectedRole === "client"
+                    ? "bg-white text-emerald-800 shadow-xs font-black"
+                    : "hover:text-slate-900"
                 }`}
               >
-                {lang === "en" ? "Client View" : "ক্লায়েন্ট ভিউ"}
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span>{lang === "en" ? "Client View" : "ক্লায়েন্ট"}</span>
               </button>
               <button
                 type="button"
-                onClick={() => setActiveRole("freelancer")}
-                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-                  activeRole === "freelancer" ? "bg-white text-emerald-800 shadow-xs" : "hover:text-slate-900"
+                onClick={() => setSelectedRole("freelancer")}
+                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                  selectedRole === "freelancer"
+                    ? "bg-white text-emerald-800 shadow-xs font-black"
+                    : "hover:text-slate-900"
                 }`}
               >
-                {lang === "en" ? "Freelancer View" : "ফ্রিল্যান্সার ভিউ"}
+                <span className="w-2 h-2 rounded-full bg-sky-500" />
+                <span>{lang === "en" ? "Freelancer View" : "ফ্রিল্যান্সার"}</span>
+              </button>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-2xl text-xs font-bold text-slate-600">
+              <button
+                type="button"
+                onClick={() => setViewMode("chatbox")}
+                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  viewMode === "chatbox"
+                    ? "bg-white text-slate-900 shadow-xs font-black"
+                    : "hover:text-slate-900"
+                }`}
+              >
+                {lang === "en" ? "Workspace View" : "ওয়ার্কস্পেস"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("inbox")}
+                className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+                  viewMode === "inbox"
+                    ? "bg-white text-slate-900 shadow-xs font-black"
+                    : "hover:text-slate-900"
+                }`}
+              >
+                {lang === "en" ? "Full Inbox" : "ইনবক্স"}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Workspace Messaging Layout */}
-      <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col">
-        {/* Workspace Hub Container */}
-        <div className="flex-1 bg-white border border-slate-200/90 rounded-3xl shadow-sm overflow-hidden flex flex-col lg:flex-row min-h-[640px]">
-          
-          {/* ------------------------------------------------------------- */}
-          {/* COLUMN 1: CONVERSATIONS LIST (LEFT SIDEBAR)                   */}
-          {/* ------------------------------------------------------------- */}
-          <div className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col bg-slate-50/50">
-            {/* Header & Search */}
-            <div className="p-4 border-b border-slate-200 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">
-                    <MessageSquare className="w-4 h-4" />
+      {/* Main Messaging Interface Container */}
+      <main className="max-w-7xl w-full mx-auto p-4 sm:p-6 flex-1 flex flex-col">
+        {/* Active Identity Bar */}
+        <div className="mb-4 bg-white border border-slate-200/80 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <img
+                src={currentUser.photoUrl}
+                alt={currentUser.name}
+                className="w-10 h-10 rounded-full object-cover ring-2 ring-emerald-500/20"
+              />
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full ring-2 ring-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black text-slate-900">
+                  {currentUser.name}
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider ${
+                    selectedRole === "client"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-sky-100 text-sky-800"
+                  }`}
+                >
+                  {selectedRole === "client" ? "Active Client" : "Active Freelancer"}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                {currentUser.email} • {lang === "en" ? "Real-time presence online" : "অনলাইন উপস্থিতি সক্রিয়"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-slate-500 hidden sm:inline">
+              {lang === "en" ? "Chatting with:" : "কথোপকথন চলছে:"}
+            </span>
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-800">
+              <img
+                src={otherUser.photoUrl}
+                alt={otherUser.name}
+                className="w-5 h-5 rounded-full object-cover"
+              />
+              <span>{otherUser.name}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* TalkJS Embedded View */}
+        {viewMode === "inbox" ? (
+          /* FULL INBOX VIEW */
+          <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs overflow-hidden flex flex-col flex-1">
+            <div className="px-6 py-3.5 bg-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <MessageSquare className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-xs font-black uppercase tracking-wider text-white">
+                  {lang === "en" ? "MuktoKormo Real-Time Messenger (TalkJS Inbox)" : "মুক্তকর্ম রিয়েল-টাইম ইনবক্স"}
+                </h3>
+              </div>
+              <span className="text-[11px] text-slate-400">
+                {lang === "en" ? "Select any thread to chat" : "কথোপকথন বেছে নিন"}
+              </span>
+            </div>
+            <div className="flex-1 min-h-[640px]">
+              <TalkJSChat
+                mode="inbox"
+                conversationId={activeConversation.id}
+                currentUser={currentUser}
+                otherUser={otherUser}
+                subject={activeConversation.subject}
+                height="680px"
+              />
+            </div>
+          </div>
+        ) : (
+          /* WORKSPACE CHATBOX VIEW WITH CONTRACT SIDEBAR */
+          <div className="bg-white border border-slate-200/80 rounded-3xl shadow-xs overflow-hidden flex flex-col lg:flex-row flex-1 min-h-[700px]">
+            {/* Left: Contract Threads Selection */}
+            <div className="w-full lg:w-80 shrink-0 border-r border-slate-200 flex flex-col bg-slate-50/50">
+              <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between">
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                    {lang === "en" ? "Active Contracts" : "চলমান চুক্তি সমূহ"}
+                  </h4>
+                  <p className="text-[10px] text-slate-400">
+                    {lang === "en" ? "Select conversation to collaborate" : "চুক্তি নির্বাচন করুন"}
+                  </p>
+                </div>
+                <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center justify-center">
+                  {PRESET_CONVERSATIONS.length}
+                </span>
+              </div>
+
+              <div className="flex-1 overflow-y-auto divide-y divide-slate-100 p-2 space-y-1.5">
+                {PRESET_CONVERSATIONS.map((conv) => {
+                  const isSelected = conv.id === activeConvId;
+                  const partner = selectedRole === "client" ? conv.freelancer : conv.client;
+
+                  return (
+                    <button
+                      key={conv.id}
+                      type="button"
+                      onClick={() => setActiveConvId(conv.id)}
+                      className={`w-full text-left p-3 rounded-2xl transition-all cursor-pointer flex items-start gap-3 ${
+                        isSelected
+                          ? "bg-white border-2 border-emerald-500 shadow-xs"
+                          : "hover:bg-white/80 border border-transparent"
+                      }`}
+                    >
+                      <div className="relative shrink-0 mt-0.5">
+                        <img
+                          src={partner.photoUrl}
+                          alt={partner.name}
+                          className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-xs"
+                        />
+                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <h5
+                            className={`text-xs font-bold truncate ${
+                              isSelected ? "text-emerald-950 font-black" : "text-slate-900"
+                            }`}
+                          >
+                            {partner.name}
+                          </h5>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                            ৳{conv.budgetBdt.toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 font-medium truncate mb-1">
+                          {conv.subject}
+                        </p>
+                        <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          <span>{conv.milestoneTitle.split(":")[0]}</span>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Center: Live TalkJS Chatbox */}
+            <div className="flex-1 flex flex-col min-w-0 bg-white">
+              {/* Header */}
+              <div className="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between gap-3 bg-white/90 backdrop-blur-xs">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative shrink-0">
+                    <img
+                      src={otherUser.photoUrl}
+                      alt={otherUser.name}
+                      className="w-9 h-9 rounded-full object-cover ring-2 ring-emerald-500/20"
+                    />
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
                   </div>
-                  <div>
-                    <h2 className="text-sm font-black text-slate-900">
-                      {lang === "en" ? "Workspace Messages" : "মেসেজিং হাব"}
-                    </h2>
-                    <p className="text-[10px] text-slate-400">
-                      {lang === "en" ? "Live Socket.IO Rooms" : "লাইভ সকেট রুম"}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-black text-slate-900 truncate">
+                        {otherUser.name}
+                      </h4>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        <span>{lang === "en" ? "TalkJS Live" : "টকজেএস লাইভ"}</span>
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 truncate">
+                      {activeConversation.subject}
                     </p>
                   </div>
                 </div>
 
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800">
-                  {MOCK_CONVERSATIONS.length} {lang === "en" ? "Active" : "সক্রিয়"}
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowContractContext(!showContractContext)}
+                    className="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                  >
+                    {showContractContext
+                      ? (lang === "en" ? "Hide Details" : "বিস্তারিত লুকান")
+                      : (lang === "en" ? "Show Details" : "বিস্তারিত দেখুন")}
+                  </button>
+                  <Link
+                    href={`/contracts/${activeConversation.contractId}`}
+                    className="hidden sm:flex items-center gap-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-full shadow-xs transition-all"
+                  >
+                    <span>{lang === "en" ? "Workspace" : "ওয়ার্কস্পেস"}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </Link>
+                </div>
               </div>
 
-              {/* Search input */}
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  placeholder={lang === "en" ? "Search conversations..." : "কথোপকথন খুঁজুন..."}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 text-xs rounded-xl bg-white border border-slate-200 focus:outline-emerald-500 font-medium"
+              {/* TalkJS Chatbox Mounted Container */}
+              <div className="flex-1 flex flex-col min-h-[580px]">
+                <TalkJSChat
+                  mode="chatbox"
+                  conversationId={activeConversation.id}
+                  currentUser={currentUser}
+                  otherUser={otherUser}
+                  subject={activeConversation.subject}
+                  height="600px"
+                  customData={{
+                    contractId: activeConversation.contractId,
+                    budgetBdt: String(activeConversation.budgetBdt),
+                  }}
                 />
               </div>
-
-              {/* Filter Tabs */}
-              <div className="flex gap-1 text-[10px] font-bold text-slate-600">
-                <button
-                  onClick={() => setFilterType("ALL")}
-                  className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
-                    filterType === "ALL" ? "bg-slate-900 text-white" : "hover:bg-slate-200/60"
-                  }`}
-                >
-                  {lang === "en" ? "All" : "সকল"}
-                </button>
-                <button
-                  onClick={() => setFilterType("UNREAD")}
-                  className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
-                    filterType === "UNREAD" ? "bg-slate-900 text-white" : "hover:bg-slate-200/60"
-                  }`}
-                >
-                  {lang === "en" ? "Unread" : "অপঠিত"}
-                </button>
-              </div>
             </div>
 
-            {/* Threads List */}
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
-              {filteredThreads.map((thread) => {
-                const isSelected = thread.id === activeThreadId;
-                return (
-                  <button
-                    key={thread.id}
-                    onClick={() => setActiveThreadId(thread.id)}
-                    className={`w-full text-left p-4 transition-colors flex items-start gap-3 cursor-pointer ${
-                      isSelected ? "bg-white shadow-xs border-l-4 border-l-emerald-600" : "hover:bg-white/60"
-                    }`}
-                  >
-                    <div className="relative shrink-0">
-                      <img
-                        src={thread.participantAvatar}
-                        alt={thread.participantName}
-                        className="w-11 h-11 rounded-full object-cover ring-2 ring-slate-100"
-                      />
-                      {thread.online && (
-                        <span
-                          className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white"
-                          title="Online now via Socket.IO"
-                        />
-                      )}
-                    </div>
+            {/* Right: Contract Context & Escrow Safe Drawer */}
+            {showContractContext && (
+              <div className="w-full lg:w-72 shrink-0 border-l border-slate-200 p-4 bg-slate-50/50 flex flex-col justify-between overflow-y-auto">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">
+                      {lang === "en" ? "Contract Escrow" : "চুক্তি এসক্রো"}
+                    </h4>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800">
+                      Protected
+                    </span>
+                  </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className="text-xs font-bold text-slate-900 truncate">
-                          {thread.participantName}
-                        </span>
-                        <span className="text-[10px] text-slate-400 shrink-0">{thread.lastMessageTime}</span>
+                  <div className="p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-2xs space-y-2.5">
+                    <p className="text-xs font-bold text-slate-900 leading-snug">
+                      {activeConversation.subject}
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-center">
+                      <div className="p-2 rounded-xl bg-slate-50">
+                        <p className="text-[10px] text-slate-400 font-bold uppercase">
+                          {lang === "en" ? "Budget" : "বাজেট"}
+                        </p>
+                        <p className="text-xs font-black text-slate-900">
+                          ৳{activeConversation.budgetBdt.toLocaleString()}
+                        </p>
                       </div>
+                      <div className="p-2 rounded-xl bg-emerald-50">
+                        <p className="text-[10px] text-emerald-600 font-bold uppercase">
+                          {lang === "en" ? "Escrow" : "এসক্রো"}
+                        </p>
+                        <p className="text-xs font-black text-emerald-700">
+                          ৳{activeConversation.escrowBdt.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
-                      <p className="text-[11px] text-slate-500 truncate mb-1">{thread.contractTitle}</p>
-
-                      <p className="text-[11px] text-slate-600 line-clamp-1 italic font-sans">
-                        "{thread.lastMessage}"
+                  {/* Milestone Card */}
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      {lang === "en" ? "Current Milestone" : "বর্তমান মাইলস্টোন"}
+                    </p>
+                    <div className="p-3 rounded-2xl bg-white border border-slate-200/80 text-xs text-slate-700 space-y-1">
+                      <p className="font-semibold text-slate-900">
+                        {activeConversation.milestoneTitle}
+                      </p>
+                      <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>{lang === "en" ? "bKash / Nagad Escrow locked" : "এসক্রোতে লকড"}</span>
                       </p>
                     </div>
-
-                    {thread.unreadCount > 0 && (
-                      <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-black flex items-center justify-center shrink-0">
-                        {thread.unreadCount}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ------------------------------------------------------------- */}
-          {/* COLUMN 2: ACTIVE CHAT STREAM (CENTER)                         */}
-          {/* ------------------------------------------------------------- */}
-          <div className="flex-1 flex flex-col bg-white">
-            {/* Chat Header */}
-            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <img
-                    src={activeThread.participantAvatar}
-                    alt={activeThread.participantName}
-                    className="w-10 h-10 rounded-full object-cover ring-2 ring-emerald-500/20"
-                  />
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-black text-slate-900">{activeThread.participantName}</h3>
-                    <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                      {activeThread.participantRole === "freelancer"
-                        ? lang === "en"
-                          ? "Freelancer"
-                          : "ফ্রিল্যান্সার"
-                        : lang === "en"
-                        ? "Client"
-                        : "ক্লায়েন্ট"}
-                    </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span>
-                      {onlineMembers.length > 1
-                        ? lang === "en"
-                          ? `${onlineMembers.length} active in workspace room`
-                          : `${onlineMembers.length} জন সক্রিয় রুমে`
-                        : lang === "en"
-                        ? "Online on Socket.IO"
-                        : "সকেটে সক্রিয়"}
-                    </span>
-                  </p>
+
+                  {/* Escrow Rule Note */}
+                  <div className="p-3 bg-emerald-50/80 rounded-2xl border border-emerald-200/80 text-xs text-emerald-900 space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{lang === "en" ? "Protected Chat" : "সুরক্ষিত বার্তা"}</span>
+                    </div>
+                    <p className="text-[11px] text-emerald-800 leading-relaxed">
+                      {lang === "en"
+                        ? "TalkJS real-time communication is logged for milestone review and dispute resolution."
+                        : "মাইলস্টোন রিভিউ ও সুরক্ষার জন্য বার্তা আদান-প্রদান মুক্তকর্মেই সম্পন্ন করুন।"}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/contracts/${activeThread.contractId}`}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs"
-                >
-                  <Handshake className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>{lang === "en" ? "Open Contract Workspace" : "কন্ট্রাক্ট ওয়ার্কস্পেস"}</span>
-                  <ExternalLink className="w-3 h-3 text-slate-400" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Messages Scroll Feed */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/30">
-              <div className="text-center my-2">
-                <span className="px-3 py-1 rounded-full text-[10px] font-bold text-slate-400 bg-slate-100 border border-slate-200">
-                  {lang === "en" ? "Real-Time Socket.IO Workspace Room Connected" : "রিয়েল-টাইম সকেট রুম সংযুক্ত"}
-                </span>
-              </div>
-
-              {messages.map((msg) => {
-                const isOwn =
-                  (activeRole === "client" && msg.isClient) ||
-                  (activeRole === "freelancer" && !msg.isClient);
-
-                return (
-                  <div
-                    key={msg.id}
-                    className={`flex flex-col ${isOwn ? "items-end" : "items-start"}`}
+                <div className="pt-4 border-t border-slate-200">
+                  <Link
+                    href={`/contracts/${activeConversation.contractId}`}
+                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs"
                   >
-                    <div className="flex items-center gap-1.5 mb-1 text-[10px] text-slate-400">
-                      <span className="font-bold text-slate-700">{msg.sender}</span>
-                      <span>• {msg.time}</span>
-                    </div>
-
-                    <div
-                      className={`p-3.5 rounded-2xl max-w-sm sm:max-w-md text-xs leading-relaxed space-y-2 shadow-2xs ${
-                        isOwn
-                          ? "bg-emerald-600 text-white rounded-tr-none"
-                          : "bg-white text-slate-800 border border-slate-200 rounded-tl-none"
-                      }`}
-                    >
-                      <p>{msg.text}</p>
-
-                      {msg.attachments && msg.attachments.length > 0 && (
-                        <div className="pt-2 space-y-1.5 border-t border-white/20">
-                          {msg.attachments.map((att, i) => (
-                            <div
-                              key={i}
-                              className={`p-2 rounded-xl flex items-center justify-between gap-2 ${
-                                isOwn ? "bg-white/10" : "bg-slate-100"
-                              }`}
-                            >
-                              <div className="flex items-center gap-2 truncate">
-                                <ImageIcon className="w-4 h-4 shrink-0 text-emerald-400" />
-                                <span className="text-[11px] font-mono truncate">{att.name}</span>
-                              </div>
-                              <span className="text-[10px] font-bold opacity-80 shrink-0">{att.size}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-1 mt-1 text-[9px] text-slate-400">
-                      <CheckCheck className="w-3 h-3 text-emerald-600" />
-                      <span>{lang === "en" ? "Delivered via Socket.IO" : "বিতরণকৃত"}</span>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Typing indicator */}
-              {typingUsers.length > 0 && (
-                <div className="flex items-center gap-2 text-xs text-slate-500 italic py-1 animate-pulse">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span>
-                    {typingUsers.map((u) => u.name).join(", ")} {lang === "en" ? "is typing..." : "লিখছেন..."}
-                  </span>
+                    <span>{lang === "en" ? "Open Contract Workspace" : "ওয়ার্কস্পেস খুলুন"}</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
-              )}
-
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Quick Action Presets Bar */}
-            <div className="px-6 py-2 bg-slate-50 border-t border-slate-100 flex items-center gap-2 overflow-x-auto text-[11px] font-medium text-slate-600">
-              <span className="text-[10px] font-bold text-slate-400 uppercase shrink-0">
-                {lang === "en" ? "Quick Replies:" : "দ্রুত বার্তা:"}
-              </span>
-              <button
-                type="button"
-                onClick={() => sendMessage("Milestone deliverable ready for inspection.")}
-                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-emerald-500 hover:text-emerald-700 whitespace-nowrap cursor-pointer transition-colors"
-              >
-                {lang === "en" ? "Deliverable ready" : "কাজের ডেলিভারি প্রস্তুত"}
-              </button>
-              <button
-                type="button"
-                onClick={() => sendMessage("Reviewing submitted files now.")}
-                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-emerald-500 hover:text-emerald-700 whitespace-nowrap cursor-pointer transition-colors"
-              >
-                {lang === "en" ? "Reviewing files" : "ফাইল পর্যালোচনা করছি"}
-              </button>
-              <button
-                type="button"
-                onClick={() => sendMessage("Approved! Releasing milestone funds from bKash escrow.")}
-                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-emerald-500 hover:text-emerald-700 whitespace-nowrap cursor-pointer transition-colors"
-              >
-                {lang === "en" ? "Releasing milestone" : "মাইলস্টোন ফান্ড মুক্ত"}
-              </button>
-            </div>
-
-            {/* Input Form */}
-            <form onSubmit={handleSend} className="p-4 border-t border-slate-200 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={handleAttachQuickDemo}
-                className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
-                title={lang === "en" ? "Attach deliverable file" : "ফাইল সংযুক্ত করুন"}
-              >
-                <Paperclip className="w-4 h-4" />
-              </button>
-
-              <input
-                type="text"
-                placeholder={
-                  lang === "en"
-                    ? `Type a real-time message to ${activeThread.participantName}...`
-                    : `${activeThread.participantName}-কে বার্তা লিখুন...`
-                }
-                value={inputText}
-                onChange={(e) => {
-                  setInputText(e.target.value);
-                  sendTyping();
-                }}
-                className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-emerald-500 font-medium"
-              />
-
-              <button
-                type="submit"
-                disabled={!inputText.trim()}
-                className={`px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  inputText.trim()
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 active:scale-95"
-                    : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                }`}
-              >
-                <Send className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>{lang === "en" ? "Send" : "পাঠান"}</span>
-              </button>
-            </form>
+              </div>
+            )}
           </div>
-
-          {/* ------------------------------------------------------------- */}
-          {/* COLUMN 3: CONTRACT & WORKSPACE SUMMARY (RIGHT DRAWER)         */}
-          {/* ------------------------------------------------------------- */}
-          <div className="w-full lg:w-72 border-t lg:border-t-0 lg:border-l border-slate-200 bg-slate-50/50 p-5 space-y-5">
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
-                {lang === "en" ? "Associated Contract" : "চুক্তি সংক্রান্ত তথ্য"}
-              </span>
-              <h4 className="text-xs font-bold text-slate-900 leading-snug">
-                {activeThread.contractTitle}
-              </h4>
-            </div>
-
-            {/* Milestone Escrow Status */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase text-slate-400">
-                  {lang === "en" ? "Escrow Status" : "এসক্রো অবস্থা"}
-                </span>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <ShieldCheck className="w-3 h-3" />
-                  {lang === "en" ? "Funded" : "জমা সম্পন্ন"}
-                </span>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold text-slate-800">{activeThread.milestoneTitle}</p>
-                <p className="text-base font-black text-slate-900 mt-1">
-                  {formatBdt(activeThread.escrowBdt)}
-                </p>
-                <p className="text-[10px] text-slate-400 mt-0.5">
-                  {lang === "en" ? "Protected in MuktoKormo MFS safe" : "মুক্তকর্ম এমএফএস এসক্রোতে সুরক্ষিত"}
-                </p>
-              </div>
-
-              <Link
-                href={`/contracts/${activeThread.contractId}`}
-                className="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer"
-              >
-                <span>{lang === "en" ? "Manage Milestones" : "মাইলস্টোন পরিচালনা"}</span>
-                <ChevronRight className="w-3 h-3" />
-              </Link>
-            </div>
-
-            {/* Collaboration Protocol Guidelines */}
-            <div className="p-3.5 bg-emerald-50/80 rounded-2xl border border-emerald-200/80 space-y-2 text-xs">
-              <div className="flex items-center gap-2 font-bold text-emerald-900">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{lang === "en" ? "Escrow Payment Rules" : "পেমেন্ট নীতিমালা"}</span>
-              </div>
-              <p className="text-[11px] text-emerald-800 leading-relaxed">
-                {lang === "en"
-                  ? "Always keep communications and file deliverables inside MuktoKormo workspace to protect milestone escrow coverage."
-                  : "এসক্রো সুরক্ষার জন্য সমস্ত আলোচনা ও ফাইল আদান-প্রদান মুক্তকর্মেই সম্পন্ন করুন।"}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+        )}
+      </main>
     </div>
   );
 }
 
 export default function MessagesHubPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading Real-Time Messaging Hub...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-slate-50">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
+            <span className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+            <span>Loading TalkJS Real-Time Messaging...</span>
+          </div>
+        </div>
+      }
+    >
       <MessagesHubContent />
     </Suspense>
   );
