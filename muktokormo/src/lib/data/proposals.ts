@@ -83,6 +83,12 @@ export interface ClientProposal {
   deliveryDays: number;
   coverNote: string;
   isShortlisted: boolean;
+  status?: "PENDING" | "SHORTLISTED" | "ACCEPTED" | "REJECTED" | string;
+  freelancerId?: string;
+  projectId?: string;
+  freelancerNameBn?: string;
+  freelancerTitleBn?: string;
+  coverNoteBn?: string;
 }
 
 export async function fetchClientProposals(
@@ -92,7 +98,7 @@ export async function fetchClientProposals(
   const { data, error } = await supabase
     .from("proposals")
     .select(
-      "*, projects!inner(title, title_bn, client_id), freelancers(display_name, title, avatar_url, rating, reviews_count)"
+      "*, projects!inner(id, title, title_bn, client_id), freelancers(id, display_name, title, avatar_url, rating, reviews_count)"
     )
     .eq("projects.client_id", clientId)
     .neq("status", "withdrawn")
@@ -106,7 +112,7 @@ export async function fetchClientProposals(
   return ((data ?? []) as ProposalRow[]).map((row) => {
     const freelancer = firstEmbed(row.freelancers);
     const project = firstEmbed(row.projects);
-    const status = (row.status ?? "").toLowerCase();
+    const status = (row.status ?? "pending").toLowerCase();
     return {
       id: row.id,
       jobTitle: project?.title || "Job Post",
@@ -114,12 +120,15 @@ export async function fetchClientProposals(
       freelancerName: freelancer?.display_name || "Freelancer",
       freelancerAvatar: freelancer?.avatar_url || DEFAULT_AVATAR,
       freelancerTitle: freelancer?.title || "Freelancer",
-      rating: freelancer?.rating ?? 0,
+      rating: freelancer?.rating ?? 5.0,
       reviews: freelancer?.reviews_count ?? 0,
       bidBdt: row.bid_amount,
       deliveryDays: row.delivery_days ?? 0,
       coverNote: row.cover_letter,
-      isShortlisted: status === "shortlisted" || status === "accepted",
+      isShortlisted: status === "shortlisted",
+      status: (row.status ?? "pending").toUpperCase(),
+      freelancerId: row.freelancer_id,
+      projectId: row.project_id,
     };
   });
 }
@@ -197,6 +206,23 @@ export async function submitProposal(
         delivery_days: r.delivery_days,
       }));
     }
+  }
+
+  // Attempt to increment proposals_count on the project
+  try {
+    const { data: proj } = await supabase
+      .from("projects")
+      .select("proposals_count")
+      .eq("id", input.jobId)
+      .maybeSingle();
+    if (proj) {
+      await supabase
+        .from("projects")
+        .update({ proposals_count: (proj.proposals_count || 0) + 1 })
+        .eq("id", input.jobId);
+    }
+  } catch {
+    // Non-fatal
   }
 
   return mapProposalRow(proposal);

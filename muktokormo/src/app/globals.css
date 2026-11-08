@@ -23,3 +23,15 @@ body {
 h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.025em;
 }
+
+/* TalkJS Container & Responsive Iframe Fixes */
+.talkjs-chat-wrapper,
+.talkjs-chat-wrapper > div,
+.talkjs-chat-wrapper iframe,
+iframe[name="____talkjs__chat__ui_internal"] {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 520px !important;
+  display: block !important;
+  border: 0 !important;
+}

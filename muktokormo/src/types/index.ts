@@ -8,6 +8,7 @@ export type JobCategory =
 
 export interface Job {
   id: string;
+  clientId?: string;
   title: string;
   titleBn?: string;
   clientName: string;
@@ -145,6 +146,9 @@ export interface WorkspaceMilestone {
   dueDate: string;
   status: MilestoneStatus;
   submission?: MilestoneSubmission;
+  deliverableNotes?: string;
+  liveUrl?: string;
+  fileNames?: string[];
   mfsTrxId?: string;
   releasedAt?: string;
 }
@@ -164,10 +168,13 @@ export interface WorkspaceContract {
   id: string;
   contractCode: string;
   jobId: string;
+  proposalId?: string;
   title: string;
   titleBn?: string;
   category: JobCategory;
   client: {
+    id?: string;
+    userId?: string;
     name: string;
     company: string;
     location: string;
@@ -176,6 +183,8 @@ export interface WorkspaceContract {
     isVerified: boolean;
   };
   freelancer: {
+    id?: string;
+    userId?: string;
     name: string;
     title: string;
     avatar: string;

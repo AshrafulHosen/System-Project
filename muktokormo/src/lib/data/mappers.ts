@@ -125,6 +125,7 @@ export interface ClientEmbed {
 }
 
 export interface FreelancerEmbed {
+  id?: string | null;
   display_name?: string | null;
   title?: string | null;
   avatar_url?: string | null;
@@ -135,6 +136,7 @@ export interface FreelancerEmbed {
 
 export interface ProjectRow {
   id: string;
+  client_id?: string | null;
   title: string;
   title_bn?: string | null;
   description: string;
@@ -153,6 +155,7 @@ export interface ProjectRow {
   updated_at?: string | null;
   completion_pct?: number | null;
   clients?: ClientEmbed | ClientEmbed[] | null;
+  proposals?: { count: number }[] | null;
 }
 
 export interface FreelancerRow {
@@ -208,8 +211,13 @@ export function firstEmbed<T>(value: T | T[] | null | undefined): T | undefined 
 
 export function mapJobRow(row: ProjectRow): Job {
   const client = firstEmbed(row.clients);
+  const liveProposalCount =
+    Array.isArray(row.proposals) && row.proposals[0]?.count != null
+      ? row.proposals[0].count
+      : (row.proposals_count ?? 0);
   return {
     id: row.id,
+    clientId: row.client_id ?? undefined,
     title: row.title,
     titleBn: row.title_bn ?? undefined,
     clientName: client?.display_name || client?.company_name || "Verified Client",
@@ -223,7 +231,7 @@ export function mapJobRow(row: ProjectRow): Job {
     jobType: toJobType(row.job_type),
     experienceLevel: toExperienceLevel(row.experience_level),
     skills: row.skills_required ?? [],
-    proposalsCount: row.proposals_count ?? 0,
+    proposalsCount: liveProposalCount,
     postedAt: relativeTime(row.created_at),
     deadlineDays: row.timeline_days ?? 7,
     status: toJobStatus(row.status),
@@ -306,6 +314,11 @@ function toDraftStatus(status?: string | null): DraftJob["status"] {
 }
 
 export function mapProjectToDraft(row: ProjectRow): DraftJob {
+  const proposalCount =
+    Array.isArray(row.proposals) && row.proposals[0]?.count != null
+      ? row.proposals[0].count
+      : (row.proposals_count ?? 0);
+
   return {
     id: row.id,
     title: row.title,
@@ -314,7 +327,7 @@ export function mapProjectToDraft(row: ProjectRow): DraftJob {
     budgetBdt: row.budget_bdt ?? row.budget_max ?? row.budget_min ?? 0,
     updatedLabel: `Updated ${relativeTime(row.updated_at || row.created_at)}`,
     completionPct: row.completion_pct ?? 100,
-    proposalCount: row.proposals_count ?? 0,
+    proposalCount,
     status: toDraftStatus(row.status),
   };
 }

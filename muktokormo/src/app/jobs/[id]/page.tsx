@@ -16,11 +16,15 @@ import {
   ChevronRight,
   RefreshCw,
   Users,
+  MessageSquare,
+  Lock,
+  ExternalLink,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
-import { fetchOpenJobs } from "@/lib/data/jobs";
+import { fetchOpenJobs, fetchJobById } from "@/lib/data/jobs";
 import { fetchProposalsForJob, submitProposal, updateProposalStatus } from "@/lib/data/proposals";
+import { createContractFromProposal } from "@/lib/data/contracts";
 import { formatBdt } from "@/lib/format";
 import { PLATFORM_FEE_PCT } from "@/lib/data/mappers";
 import type { Job, JobBid } from "@/types";
@@ -63,6 +67,10 @@ function BidModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!freelancerId) {
+      setErr("Freelancer profile not found. Please log in as a freelancer to submit a bid.");
+      return;
+    }
     if (cover.trim().length < 20) { setErr("Cover letter must be at least 20 characters."); return; }
     setLoading(true); setErr(null);
     const result = await submitProposal(supabase, {
@@ -72,7 +80,7 @@ function BidModal({
       payoutMethod: "BKASH", payoutAccount: "",
     });
     setLoading(false);
-    if (!result) { setErr("Failed to submit proposal. Please try again."); return; }
+    if (!result) { setErr("Failed to submit proposal. You may have already placed a bid on this job."); return; }
     setDone(true);
     setTimeout(() => { onClose(); onSuccess(); }, 1600);
   };
@@ -172,6 +180,12 @@ export default function JobDetailPage() {
     let cancelled = false;
     (async () => {
       setJobLoading(true);
+      const direct = await fetchJobById(supabase, id);
+      if (!cancelled && direct) {
+        setJob(direct);
+        setJobLoading(false);
+        return;
+      }
       const all = await fetchOpenJobs(supabase);
       // Also fetch closed jobs for clients viewing their own
       const found = all.find(j => j.id === id) ?? null;
@@ -198,6 +212,13 @@ export default function JobDetailPage() {
   const handleUpdateStatus = async (proposalId: string, status: JobBid["status"]) => {
     setUpdatingId(proposalId);
     await updateProposalStatus(supabase, proposalId, status);
+    if (status === "ACCEPTED") {
+      try {
+        await createContractFromProposal(supabase, proposalId);
+      } catch (err) {
+        console.error("Failed to create contract on bid acceptance:", err);
+      }
+    }
     const refreshed = await fetchProposalsForJob(supabase, id);
     setProposals(refreshed);
     setUpdatingId(null);
@@ -223,7 +244,7 @@ export default function JobDetailPage() {
     );
   }
 
-  const isOwner = role === "client"; // simplified; for full check: compare job.clientId === clientId
+  const isOwner = role === "client" && (!job.clientId || !clientId || job.clientId === clientId);
   const isFreelancer = role === "freelancer";
   const alreadyBid = !!myBid;
 
@@ -249,9 +270,20 @@ export default function JobDetailPage() {
               </button>
             )}
             {isFreelancer && alreadyBid && (
-              <span className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold">
-                ✓ Proposal Submitted
-              </span>
+              myBid?.status === "ACCEPTED" ? (
+                <Link
+                  href={`/dashboard/freelancer?tab=messages&threadId=${myBid.id}#messages`}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span>Bid Accepted · Chat Live</span>
+                </Link>
+              ) : (
+                <span className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold flex items-center gap-1.5">
+                  <Lock className="w-3 h-3 text-amber-600" />
+                  <span>Bid Pending Review · Chat Locked</span>
+                </span>
+              )
             )}
             {isOwner && (
               <Link href="/post-job"
@@ -417,6 +449,56 @@ export default function JobDetailPage() {
                         </button>
                       </div>
                     )}
+                    {isOwner && bid.status === "ACCEPTED" && (
+                      <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-emerald-100 flex-wrap">
+                        <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          Hired · 1-to-1 Workspace Active
+                        </span>
+                        <Link
+                          href="/dashboard/client?tab=messages#messages"
+                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+                        >
+                          <MessageSquare className="w-3 h-3" />
+                          Message Freelancer
+                        </Link>
+                      </div>
+                    )}
+
+                    {/* Freelancer actions for own bid */}
+                    {isFreelancer && bid.freelancerId === freelancerId && (
+                      <div className="mt-3 pt-3 border-t border-slate-100">
+                        {bid.status === "ACCEPTED" ? (
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              Proposal Accepted! 1-to-1 Workspace Chat Unlocked
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={`/dashboard/freelancer?tab=messages&threadId=${bid.id}#messages`}
+                                className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+                              >
+                                <MessageSquare className="w-3 h-3" />
+                                Chat with Client
+                              </Link>
+                              <Link
+                                href={`/messages?contractId=${bid.id}&partnerId=${job.clientId || ""}&partnerName=${encodeURIComponent(job.clientName || "Client")}&partnerRole=client&subject=${encodeURIComponent(job.title)}`}
+                                className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold transition-colors cursor-pointer flex items-center gap-1"
+                              >
+                                <span>Full Messenger</span>
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </Link>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-[11px] font-semibold text-amber-700 flex items-center gap-1.5 bg-amber-50/70 border border-amber-200/80 rounded-xl px-3 py-1.5">
+                            <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>Messaging locked until client accepts your proposal</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -499,13 +581,15 @@ export default function JobDetailPage() {
         </div>
       </main>
 
-      {bidModalOpen && freelancerId && (
-        <BidModal job={job} freelancerId={freelancerId}
+      {bidModalOpen && (
+        <BidModal job={job} freelancerId={freelancerId || ""}
           onClose={() => setBidModalOpen(false)}
           onSuccess={async () => {
             const refreshed = await fetchProposalsForJob(supabase, id);
             setProposals(refreshed);
-            setMyBid(refreshed.find(b => b.freelancerId === freelancerId) ?? null);
+            if (freelancerId) {
+              setMyBid(refreshed.find(b => b.freelancerId === freelancerId) ?? null);
+            }
           }}
         />
       )}

@@ -7,7 +7,25 @@ import {
 } from "@/lib/data/mappers";
 
 const JOB_SELECT =
-  "*, clients(display_name, company_name, location, rating, reviews_count, is_verified)";
+  "*, clients(display_name, company_name, location, rating, reviews_count, is_verified), proposals(count)";
+
+export async function fetchJobById(
+  supabase: SupabaseClient,
+  jobId: string
+): Promise<Job | null> {
+  const { data, error } = await supabase
+    .from("projects")
+    .select(JOB_SELECT)
+    .eq("id", jobId)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.error("fetchJobById failed:", error.message);
+    return null;
+  }
+
+  return mapJobRow(data as ProjectRow);
+}
 
 export async function fetchOpenJobs(
   supabase: SupabaseClient

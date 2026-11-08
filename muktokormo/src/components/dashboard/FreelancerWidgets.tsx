@@ -37,9 +37,11 @@ const STATUS_STYLES: Record<TrackedProposalStatus, { cls: string; label: string;
 export function ProposalTracker({
   proposals,
   lang,
+  onOpenChat,
 }: {
   proposals: TrackedProposal[];
   lang: "en" | "bn";
+  onOpenChat?: (proposalId: string) => void;
 }) {
   return (
     <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
@@ -94,15 +96,26 @@ export function ProposalTracker({
 
                       {p.status === "ACCEPTED" ? (
                         <div className="flex items-center gap-1.5">
+                          {onOpenChat ? (
+                            <button
+                              type="button"
+                              onClick={() => onOpenChat(p.id)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
+                            >
+                              <MessageSquare className="w-2.5 h-2.5" />
+                              <span>{lang === "en" ? "Chat" : "চ্যাট"}</span>
+                            </button>
+                          ) : (
+                            <Link
+                              href={`/dashboard/freelancer?tab=messages&threadId=${p.id}#messages`}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                            >
+                              <MessageSquare className="w-2.5 h-2.5" />
+                              <span>{lang === "en" ? "Chat" : "চ্যাট"}</span>
+                            </Link>
+                          )}
                           <Link
-                            href="/dashboard/freelancer#messages"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
-                          >
-                            <MessageSquare className="w-2.5 h-2.5" />
-                            <span>{lang === "en" ? "Chat" : "চ্যাট"}</span>
-                          </Link>
-                          <Link
-                            href="/contracts/ctr-8842"
+                            href="/contracts"
                             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-colors"
                           >
                             <span>Workspace</span>
