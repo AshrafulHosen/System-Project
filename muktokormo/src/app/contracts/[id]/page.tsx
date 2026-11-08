@@ -40,8 +40,6 @@ import {
   requestMilestoneRevision,
 } from "@/lib/data/contracts";
 import { WorkspaceContract, WorkspaceMilestone, MilestoneSubmission, ContractActivity } from "@/types";
-import { useWorkspaceSocket, WorkspaceUser, ChatMessage } from "@/lib/socket";
-import { Paperclip, Wifi, WifiOff } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -101,58 +99,6 @@ export default function ContractWorkspacePage({ params }: PageProps) {
     "The mobile navigation menu is slightly overlapping the search bar on iPhone screen widths. Please adjust the z-index and padding."
   );
 
-  // Quick message input
-    // Quick message input & Real-Time Socket.IO Workspace
-  const [quickMessage, setQuickMessage] = useState("");
-  
-  const currentSocketUser: WorkspaceUser = useMemo(
-    () => ({
-      id: activeRole === "client" ? contract.client.name.replace(/\s+/g, '-').toLowerCase() : contract.freelancer.name.replace(/\s+/g, '-').toLowerCase(),
-      name: activeRole === "client" ? contract.client.name : contract.freelancer.name,
-      role: activeRole,
-      avatar: activeRole === "client" ? contract.client.avatar : contract.freelancer.avatar,
-    }),
-    [activeRole, contract]
-  );
-
-  const initialContractMessages: ChatMessage[] = useMemo(
-    () => [
-      {
-        id: "cmsg-1",
-        sender: contract.client.name,
-        time: "Oct 2, 02:40 PM",
-        text: "Welcome to the project! Milestone 1 is funded in bKash Escrow safe. Let me know if you need any asset files.",
-        isClient: true,
-      },
-      {
-        id: "cmsg-2",
-        sender: contract.freelancer.name,
-        time: "Oct 2, 03:00 PM",
-        text: "Thanks! I am beginning with the Next.js App Router structure and responsive UI now.",
-        isClient: false,
-      },
-    ],
-    [contract]
-  );
-
-  const {
-    messages,
-    sendMessage: socketSendMessage,
-    sendTyping: socketSendTyping,
-    broadcastMilestoneEvent,
-    isConnected: socketConnected,
-    typingUsers,
-    onlineMembers,
-  } = useWorkspaceSocket({
-    roomId: `contract:${contract.id}`,
-    currentUser: currentSocketUser,
-    initialMessages: initialContractMessages,
-    onMilestoneUpdated: async () => {
-      const fresh = await fetchContractById(supabase, contract.id);
-      if (fresh) setContract(fresh);
-    },
-  });
-
   // Handle Freelancer submitting work
   const handleConfirmSubmitWork = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,7 +117,6 @@ export default function ContractWorkspacePage({ params }: PageProps) {
 
     if (updated) {
       setContract(updated);
-      broadcastMilestoneEvent("SUBMITTED", selectedMilestoneForSubmit);
     }
     setSelectedMilestoneForSubmit(null);
   };
@@ -188,7 +133,6 @@ export default function ContractWorkspacePage({ params }: PageProps) {
 
     if (updated) {
       setContract(updated);
-      broadcastMilestoneEvent("APPROVED", selectedMilestoneForApproval);
     }
     setSelectedMilestoneForApproval(null);
   };
@@ -207,17 +151,8 @@ export default function ContractWorkspacePage({ params }: PageProps) {
 
     if (updated) {
       setContract(updated);
-      broadcastMilestoneEvent("REVISION_REQUESTED", selectedMilestoneForRevision);
     }
     setSelectedMilestoneForRevision(null);
-  };
-
-  // Send message via Socket.IO
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!quickMessage.trim()) return;
-    socketSendMessage(quickMessage.trim());
-    setQuickMessage("");
   };
 
   return (
@@ -684,7 +619,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
                 <p className="text-[11px] text-emerald-800 leading-relaxed">
                   {lang === "en"
                     ? "Chat directly with typing indicators, presence tracking, and milestone escrow audit integration."
-                    : "লাইভ Socket.IO কানেকশন, টাইপিং ইন্ডিকেটর ও মাইলস্টোন সিঙ্ক সহ সরাসরি বার্তা আদান-প্রদান করুন।"}
+                    : "লাইভ TalkJS কানেকশন, টাইপিং ইন্ডিকেটর ও মাইলস্টোন সিঙ্ক সহ সরাসরি বার্তা আদান-প্রদান করুন।"}
                 </p>
               </div>
 
@@ -721,7 +656,7 @@ export default function ContractWorkspacePage({ params }: PageProps) {
             {/* Go to Messages Section CTA */}
             <div className="pt-4 border-t border-slate-100">
               <Link
-                href={`/messages?conversationId=conv-${contract.id}`}
+                href={`/messages?contractId=${contract.id}`}
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-transform active:scale-98"
               >
                 <MessageSquare className="w-4 h-4" />

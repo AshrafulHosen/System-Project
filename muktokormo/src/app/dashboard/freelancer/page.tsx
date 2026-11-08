@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import WorkspaceMessagesSection from "@/components/dashboard/WorkspaceMessagesSection";
+import WorkspaceSection from "@/components/dashboard/WorkspaceSection";
 import { SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
 import { ContractCard, LedgerList } from "@/components/dashboard/Widgets";
 import {
@@ -36,7 +37,6 @@ import {
 import {
   FREELANCER_NAV,
   FREELANCER_ONBOARDING_TASKS,
-  FREELANCER_CONTRACTS,
   FREELANCER_LEDGER,
 } from "@/data/dashboardData";
 import { formatBdt } from "@/lib/format";
@@ -53,7 +53,8 @@ import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import { createClient } from "@/lib/supabase/client";
 import { fetchOpenJobs } from "@/lib/data/jobs";
 import { fetchMyProposals, submitProposal } from "@/lib/data/proposals";
-import { Job, WalletEntry, TrackedProposal } from "@/types";
+import { fetchUserContracts } from "@/lib/data/contracts";
+import { Job, WalletEntry, TrackedProposal, WorkspaceContract } from "@/types";
 import { PLATFORM_FEE_PCT } from "@/lib/data/mappers";
 
 function FreelancerDashboardContent() {
@@ -64,22 +65,33 @@ function FreelancerDashboardContent() {
   const { userId, name, email, role, freelancerId, title, avatarUrl, loading: userLoading } = useCurrentUser();
   const [lang, setLang] = useState<"en" | "bn">("en");
   const tabParam = searchParams ? searchParams.get("tab") : null;
-  const [activeTab, setActiveTab] = useState<string>(tabParam || "overview");
+  const threadParam = searchParams ? (searchParams.get("threadId") || searchParams.get("proposalId") || searchParams.get("contractId")) : null;
+  const initialTab = tabParam === "contracts" ? "workspace" : (tabParam || (threadParam ? "messages" : "overview"));
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  const [selectedMessageThreadId, setSelectedMessageThreadId] = useState<string | null>(threadParam || null);
 
   useEffect(() => {
     if (tabParam) {
-      setActiveTab(tabParam);
+      setActiveTab(tabParam === "contracts" ? "workspace" : tabParam);
+    } else if (threadParam) {
+      setActiveTab("messages");
     } else if (typeof window !== "undefined") {
-      const hash = window.location.hash.replace("#", "");
-      if (hash && ["overview", "find-work", "proposals", "contracts", "messages", "wallet", "profile"].includes(hash)) {
+      const rawHash = window.location.hash.replace("#", "");
+      const hash = rawHash === "contracts" ? "workspace" : rawHash;
+      if (hash && ["overview", "find-work", "proposals", "workspace", "messages", "wallet", "profile"].includes(hash)) {
         setActiveTab(hash);
       }
     }
 
+    if (threadParam) {
+      setSelectedMessageThreadId(threadParam);
+    }
+
     const handleHashChange = () => {
       if (typeof window !== "undefined") {
-        const hash = window.location.hash.replace("#", "");
-        if (hash && ["overview", "find-work", "proposals", "contracts", "messages", "wallet", "profile"].includes(hash)) {
+        const rawHash = window.location.hash.replace("#", "");
+        const hash = rawHash === "contracts" ? "workspace" : rawHash;
+        if (hash && ["overview", "find-work", "proposals", "workspace", "messages", "wallet", "profile"].includes(hash)) {
           setActiveTab(hash);
         }
       }
@@ -87,12 +99,14 @@ function FreelancerDashboardContent() {
 
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
-  }, [tabParam]);
+  }, [tabParam, threadParam]);
   const [pickedSkills, setPickedSkills] = useState<string[]>([]);
   const [available, setAvailable] = useState<number>(87500);
   const [ledgerEntries, setLedgerEntries] = useState<WalletEntry[]>(FREELANCER_LEDGER);
   const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]);
   const [myProposals, setMyProposals] = useState<TrackedProposal[]>([]);
+  const [contracts, setContracts] = useState<WorkspaceContract[]>([]);
+  const [loadingContracts, setLoadingContracts] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -116,6 +130,29 @@ function FreelancerDashboardContent() {
       cancelled = true;
     };
   }, [supabase, freelancerId]);
+
+  useEffect(() => {
+    if (!freelancerId && !userId) return;
+    let cancelled = false;
+    (async () => {
+      setLoadingContracts(true);
+      try {
+        const live = await fetchUserContracts(supabase, {
+          role: "freelancer",
+          userId,
+          entityId: freelancerId,
+        });
+        if (!cancelled) setContracts(live || []);
+      } catch (err) {
+        console.error("Failed to load freelancer contracts:", err);
+      } finally {
+        if (!cancelled) setLoadingContracts(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, userId, freelancerId]);
 
   useEffect(() => {
     if (!userLoading) {
@@ -218,8 +255,9 @@ function FreelancerDashboardContent() {
   const [applyCoverNote, setApplyCoverNote] = useState<string>("I have extensive Next.js and API integration experience with bKash/Nagad gateways.");
   const [applySuccess, setApplySuccess] = useState(false);
 
-  const earned = FREELANCER_CONTRACTS.reduce((s, c) => s + c.releasedBdt, 0);
-  const inEscrow = FREELANCER_CONTRACTS.reduce((s, c) => s + c.escrowHeldBdt, 0);
+  const earned = contracts.reduce((s, c) => s + (c.releasedBdt || 0), 0);
+  const inEscrow = contracts.reduce((s, c) => s + (c.escrowHeldBdt || 0), 0);
+  const activeContractsCount = contracts.filter((c) => c.stage === "ACTIVE").length;
   const successRate = 100;
 
   const missingProfile = [
@@ -332,45 +370,46 @@ function FreelancerDashboardContent() {
             </button>
           </div>
         )}
-        {/* Welcome Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200">
-                {lang === "en" ? "Freelancer Command Center" : "ফ্রিল্যান্সার ড্যাশবোর্ড"}
-              </span>
-              <span className="text-slate-300">•</span>
-              <Link
-                href="/contracts"
-                className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1"
-              >
-                <span>{lang === "en" ? "Active Workspaces" : "চলতি কন্ট্রাক্ট"}</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
+        {/* Welcome Header (Only on Overview) */}
+        {activeTab === "overview" && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200">
+                  {lang === "en" ? "Freelancer Command Center" : "ফ্রিল্যান্সার ড্যাশবোর্ড"}
+                </span>
+                <span className="text-slate-300">•</span>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("workspace")}
+                  className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>{lang === "en" ? "Active Workspaces" : "চলতি ওয়ার্কস্পেস"}</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+                {lang === "en" ? (
+                  <>
+                    Welcome back, <span className="text-emerald-600">{firstName}</span>
+                  </>
+                ) : (
+                  <>
+                    স্বাগতম, <span className="text-emerald-600">{firstName}</span>
+                  </>
+                )}
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                {email || (lang === "en" ? "Freelancer Account" : "ফ্রিল্যান্সার অ্যাকাউন্ট")}
+                <span className="text-slate-300">•</span>
+                {lang === "en"
+                  ? "NID verified · 4.98 rating · Dhaka, Bangladesh"
+                  : "এনআইডি যাচাইকৃত · ৪.৯৮ রেটিং · ঢাকা, বাংলাদেশ"}
+              </p>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-              {lang === "en" ? (
-                <>
-                  Welcome back, <span className="text-emerald-600">{firstName}</span>
-                </>
-              ) : (
-                <>
-                  স্বাগতম, <span className="text-emerald-600">{firstName}</span>
-                </>
-              )}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1 flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              {email || (lang === "en" ? "Freelancer Account" : "ফ্রিল্যান্সার অ্যাকাউন্ট")}
-              <span className="text-slate-300">•</span>
-              {lang === "en"
-                ? "NID verified · 4.98 rating · Dhaka, Bangladesh"
-                : "এনআইডি যাচাইকৃত · ৪.৯৮ রেটিং · ঢাকা, বাংলাদেশ"}
-            </p>
           </div>
-
-
-        </div>
+        )}
 
 
 
@@ -399,7 +438,8 @@ function FreelancerDashboardContent() {
               icon={Handshake}
               label="Active contracts"
               labelBn="সক্রিয় চুক্তি"
-              value={String(FREELANCER_CONTRACTS.filter((c) => c.stage === "ACTIVE").length)}
+              value={String(activeContractsCount)}
+              delta={lang === "en" ? `${activeContractsCount} active` : `${activeContractsCount}টি সক্রিয়`}
               lang={lang}
               accent="violet"
             />
@@ -522,7 +562,7 @@ function FreelancerDashboardContent() {
                     ))}
                   </div>
                   <Link
-                    href="/contracts"
+                    href="/signup?step=profile"
                     className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 hover:underline"
                   >
                     {lang === "en" ? "Save to Freelancer Profile" : "প্রোফাইলে সেভ করুন"}
@@ -530,33 +570,6 @@ function FreelancerDashboardContent() {
                   </Link>
                 </div>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* Contracts Section */}
-        {(activeTab === "overview" || activeTab === "contracts") && (
-          <div id="contracts" className="space-y-4">
-            <SectionHeading
-              title="Active contracts & deliveries"
-              titleBn="সক্রিয় চুক্তি ও ডেলিভারি"
-              subtitle="Milestones currently locked in escrow custody"
-              subtitleBn="এসক্রোতে জমা থাকা চলমান কাজের মাইলস্টোন"
-              lang={lang}
-              action={
-                <Link
-                  href="/contracts"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all"
-                >
-                  <Handshake className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>{lang === "en" ? "All Contracts Hub" : "সকল কন্ট্রাক্ট"}</span>
-                </Link>
-              }
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
-              {FREELANCER_CONTRACTS.map((c) => (
-                <ContractCard key={c.id} contract={c} perspective="freelancer" lang={lang} />
-              ))}
             </div>
           </div>
         )}
@@ -572,6 +585,7 @@ function FreelancerDashboardContent() {
               lang={lang}
               action={
                 <button
+                  type="button"
                   onClick={() => setActiveTab("find-work")}
                   className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
                 >
@@ -580,7 +594,34 @@ function FreelancerDashboardContent() {
                 </button>
               }
             />
-            <ProposalTracker proposals={myProposals} lang={lang} />
+            <ProposalTracker
+              proposals={myProposals}
+              lang={lang}
+              onOpenChat={(id) => {
+                setSelectedMessageThreadId(id);
+                setActiveTab("messages");
+              }}
+            />
+          </div>
+        )}
+
+        {/* ----------------------------------------------------------------------------- */}
+        {/* FREELANCER WORKSPACE & MILESTONE DELIVERIES / ESCROW                          */}
+        {/* ----------------------------------------------------------------------------- */}
+        {activeTab === "workspace" && (
+          <div id="workspace" className="space-y-4">
+            <WorkspaceSection
+              role="freelancer"
+              lang={lang}
+              currentUserId={userId}
+              currentEntityId={freelancerId}
+              currentUserName={displayName}
+              onOpenChat={(contractId) => {
+                setSelectedMessageThreadId(contractId);
+                setActiveTab("messages");
+              }}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+            />
           </div>
         )}
 
@@ -590,8 +631,11 @@ function FreelancerDashboardContent() {
             <WorkspaceMessagesSection
               role="freelancer"
               lang={lang}
+              currentUserId={userId}
+              currentEntityId={freelancerId}
               currentUserName={displayName}
               currentUserAvatar={displayAvatar}
+              initialThreadId={selectedMessageThreadId || undefined}
             />
           </div>
         )}

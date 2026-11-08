@@ -22,6 +22,7 @@ import {
   X,
   Globe,
   Check,
+  Layers,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { NavItem } from "@/types";
@@ -37,6 +38,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Bookmark,
   Search,
   UserCircle,
+  Layers,
 };
 
 interface DashboardShellProps {

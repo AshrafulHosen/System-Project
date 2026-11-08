@@ -15,117 +15,169 @@ export interface TalkUserDef {
 export interface TalkConversationDef {
   id: string;
   subject: string;
-  contractId: string;
+  contractId?: string;
   client: TalkUserDef;
   freelancer: TalkUserDef;
-  budgetBdt: number;
-  escrowBdt: number;
-  milestoneTitle: string;
-  milestoneStatus: string;
-  bidStatus: "ACCEPTED" | "PENDING";
+  budgetBdt?: number;
+  escrowBdt?: number;
+  milestoneTitle?: string;
+  milestoneStatus?: string;
+  bidStatus?: "ACCEPTED" | "PENDING";
   deliveryDays?: number;
 }
 
-// Preset Users for demo and quick switching
-export const PRESET_CLIENT_AHAD: TalkUserDef = {
-  id: "client-ahad-apex",
-  name: "Ahad A (Apex Lifestyle)",
-  email: "ahad@apexlifestyle.bd",
-  role: "client",
-  photoUrl: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?auto=format&fit=crop&w=150&q=80",
-  welcomeMessage: "Hello! Welcome to MuktoKormo contract workspace.",
-  headerTitle: "Managing Director · Verified Client (Dhaka)",
-};
-
-export const PRESET_CLIENT_RAFIQUL: TalkUserDef = {
-  id: "client-rafiqul-fintech",
-  name: "Rafiqul Islam (FinTech Ltd)",
-  email: "rafiqul@fintechbd.com",
-  role: "client",
-  photoUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
-  welcomeMessage: "Looking forward to working together on the MFS gateway.",
-  headerTitle: "CTO, FinTech Solutions Ltd",
-};
-
-export const PRESET_FREELANCER_TANVIR: TalkUserDef = {
-  id: "freelancer-tanvir-rahman",
-  name: "Tanvir Rahman",
-  email: "tanvir.dev@muktokormo.bd",
-  role: "freelancer",
-  photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-  welcomeMessage: "Hi! I am ready to start working on the project deliverables.",
-  headerTitle: "Senior Full-Stack Next.js & MFS Engineer",
-};
-
-export const PRESET_FREELANCER_MAHMUDUL: TalkUserDef = {
-  id: "freelancer-mahmudul-hasan",
-  name: "Mahmudul Hasan",
-  email: "mahmudul@muktokormo.bd",
-  role: "freelancer",
-  photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
-  welcomeMessage: "Hello! Webhook architecture deliverables ready for inspection.",
-  headerTitle: "Full Stack Engineer & PostgreSQL Specialist",
-};
-
-export const PRESET_FREELANCER_FARHANA: TalkUserDef = {
-  id: "freelancer-farhana-yasmin",
-  name: "Farhana Yasmin",
-  email: "farhana.marketer@muktokormo.bd",
-  role: "freelancer",
-  photoUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80",
-  welcomeMessage: "Hi! Server-side CAPI tracking setup will begin once approved.",
-  headerTitle: "Senior Performance Marketer",
-};
-
-export const PRESET_CONVERSATIONS: TalkConversationDef[] = [
-  {
-    id: "conv-ctr-8842",
-    contractId: "ctr-8842",
-    subject: "Full-Stack Next.js E-Commerce Website with bKash/Nagad Payment",
-    client: PRESET_CLIENT_AHAD,
-    freelancer: PRESET_FREELANCER_TANVIR,
-    budgetBdt: 42000,
-    escrowBdt: 20000,
-    milestoneTitle: "Milestone 1: Storefront & Product Catalogue Responsive UI",
-    milestoneStatus: "IN_PROGRESS",
-    bidStatus: "ACCEPTED",
-    deliveryDays: 14,
-  },
-  {
-    id: "conv-ctr-9120",
-    contractId: "ctr-9120",
-    subject: "Mobile Banking MFS Gateway & SMS OTP Integration",
-    client: PRESET_CLIENT_RAFIQUL,
-    freelancer: PRESET_FREELANCER_MAHMUDUL,
-    budgetBdt: 35000,
-    escrowBdt: 17500,
-    milestoneTitle: "Milestone 1: Merchant Webhook Architecture",
-    milestoneStatus: "SUBMITTED",
-    bidStatus: "ACCEPTED",
-    deliveryDays: 12,
-  },
-  {
-    id: "conv-fav-1",
-    contractId: "ctr-7731",
-    subject: "Meta CAPI & Conversion Optimization Project",
-    client: PRESET_CLIENT_AHAD,
-    freelancer: PRESET_FREELANCER_FARHANA,
-    budgetBdt: 25000,
-    escrowBdt: 12500,
-    milestoneTitle: "Milestone 1: Server-Side Pixel Setup",
-    milestoneStatus: "PLANNING",
-    bidStatus: "ACCEPTED",
-    deliveryDays: 7,
-  },
-];
+export const DEFAULT_TALK_AVATAR =
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80";
 
 /**
- * Safely loads the TalkJS SDK client-side. Returns null during SSR.
+ * Generates a stable, collision-free TalkJS user ID.
+ * Prefers Supabase user/profile UUID if provided, falls back to role + sanitized name.
  */
+export function buildStableTalkUserId(params: {
+  userId?: string | null;
+  role: "client" | "freelancer" | "admin" | "default";
+  name?: string | null;
+}): string {
+  if (params.userId && params.userId.trim().length > 10) {
+    return `${params.role}_${params.userId.trim().replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+  }
+  const cleanName = (params.name || "user")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-");
+  return `${params.role}_${cleanName}`;
+}
+
+/**
+ * Normalizes any app user or profile into a valid TalkJS user object.
+ */
+export function formatTalkUser(params: {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+  role?: string | null;
+  photoUrl?: string | null;
+  welcomeMessage?: string;
+  headerTitle?: string;
+}): TalkUserDef {
+  const cleanId = params.id ? String(params.id).trim() : `user-${Date.now()}`;
+  const cleanName = params.name ? String(params.name).trim() : "MuktoKormo User";
+  const cleanRole =
+    params.role === "client" || params.role === "freelancer" || params.role === "admin"
+      ? params.role
+      : "default";
+  const emailFallback = `${cleanName.replace(/\s+/g, "").toLowerCase() || "user"}@muktokormo.bd`;
+
+  return {
+    id: cleanId,
+    name: cleanName,
+    email: params.email || emailFallback,
+    role: cleanRole,
+    photoUrl: params.photoUrl || DEFAULT_TALK_AVATAR,
+    welcomeMessage: params.welcomeMessage,
+    headerTitle: params.headerTitle,
+  };
+}
+
+/**
+ * Builds a deterministic, collision-free 1-to-1 conversation ID between two users,
+ * optionally scoped to a project contract.
+ */
+export function getOneOnOneConversationId(userAId: string, userBId: string, contextId?: string): string {
+  const sorted = [userAId, userBId].sort();
+  const pairKey = `${sorted[0]}__${sorted[1]}`.replace(/[^a-zA-Z0-9_-]/g, "_");
+  if (contextId) {
+    const cleanContext = contextId.replace(/[^a-zA-Z0-9_-]/g, "_");
+    return `one_on_one_c_${cleanContext}__${pairKey}`;
+  }
+  return `one_on_one_direct__${pairKey}`;
+}
+
+/**
+ * Singleton promise so the CDN script is injected exactly once, even across
+ * HMR re-evaluations and Turbopack module re-execution.
+ *
+ * The talkjs npm package works by:
+ *   1. Injecting a <script src="cdn.talkjs.com/talk.js"> tag
+ *   2. Setting window.Talk to a stub with a fake `ready` thenable
+ *   3. When the CDN script loads, it replaces window.Talk with the real SDK
+ *      and drains the queued callbacks
+ *
+ * Problem with Turbopack / Next.js HMR: every re-evaluation of the npm
+ * package module re-runs the IIFE, which OVERWRITES window.Talk with a NEW
+ * stub whose callback queue is empty. The CDN script has already loaded and
+ * resolved the OLD stub, so the new stub's `await Talk.ready` hangs forever,
+ * causing the ".mount has taken over 60 seconds" error.
+ *
+ * Fix: bypass the npm package's side-effecting loader entirely. Inject the
+ * CDN script tag ourselves (once), then wait for window.Talk to become the
+ * real SDK (it has a `Session` constructor when fully loaded).
+ */
+let _talkjsPromise: Promise<typeof TalkType | null> | null = null;
+
+function isRealTalkSDK(obj: any): obj is typeof TalkType {
+  return obj && typeof obj === "object" && typeof obj.Session === "function";
+}
+
 export async function getTalkJS(): Promise<typeof TalkType | null> {
   if (typeof window === "undefined") {
     return null;
   }
-  const talkModule = await import("talkjs");
-  return talkModule.default;
+
+  // If the real SDK is already on window.Talk (e.g. from a previous load),
+  // return it immediately — no need to inject anything.
+  if (isRealTalkSDK((window as any).Talk)) {
+    return (window as any).Talk as typeof TalkType;
+  }
+
+  // Deduplicate: only create one loading promise per page lifetime.
+  if (_talkjsPromise) {
+    return _talkjsPromise;
+  }
+
+  _talkjsPromise = new Promise<typeof TalkType | null>((resolve, reject) => {
+    // Check if we already have a script tag for TalkJS CDN
+    const existingScript = document.querySelector(
+      'script[src="https://cdn.talkjs.com/talk.js"]'
+    );
+
+    if (!existingScript) {
+      const script = document.createElement("script");
+      script.src = "https://cdn.talkjs.com/talk.js";
+      script.async = true;
+      script.onerror = () => {
+        _talkjsPromise = null;
+        reject(new Error("Failed to load TalkJS CDN script."));
+      };
+      document.head.appendChild(script);
+    }
+
+    // Poll for the real SDK on window.Talk. The CDN script replaces the
+    // stub with the full SDK object that has `Session`, `User`, etc.
+    let elapsed = 0;
+    const interval = 100; // ms
+    const maxWait = 30_000; // 30s timeout
+
+    const timer = setInterval(() => {
+      elapsed += interval;
+
+      if (isRealTalkSDK((window as any).Talk)) {
+        clearInterval(timer);
+        resolve((window as any).Talk as typeof TalkType);
+        return;
+      }
+
+      if (elapsed >= maxWait) {
+        clearInterval(timer);
+        _talkjsPromise = null;
+        reject(
+          new Error(
+            "TalkJS SDK did not load within 30 seconds. Check your network connection."
+          )
+        );
+      }
+    }, interval);
+  });
+
+  return _talkjsPromise;
 }

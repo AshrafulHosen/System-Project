@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import WorkspaceMessagesSection from "@/components/dashboard/WorkspaceMessagesSection";
+import WorkspaceSection from "@/components/dashboard/WorkspaceSection";
 import { SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
 import {
   ContractCard,
@@ -56,9 +57,16 @@ import {
   CLIENT_LEDGER,
 } from "@/data/dashboardData";
 import { formatBdt } from "@/lib/format";
-import { WalletEntry } from "@/types";
+import { WalletEntry, DraftJob, WorkspaceContract } from "@/types";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import { createClient } from "@/lib/supabase/client";
+import { fetchClientProjects } from "@/lib/data/jobs";
+import { createContractFromProposal, fetchUserContracts } from "@/lib/data/contracts";
+import {
+  fetchClientProposals,
+  ClientProposal,
+  updateProposalStatus,
+} from "@/lib/data/proposals";
 import {
   PayoutMethod,
   fetchLivePayoutMethods,
@@ -197,9 +205,11 @@ function ClientDashboardContent() {
   const [lang, setLang] = useState<"en" | "bn">("en");
   const toggleLang = () => setLang((prev) => (prev === "en" ? "bn" : "en"));
 
-  const { userId, name, email, companyName } = useCurrentUser();
+  const { userId, clientId, name, email, companyName, avatarUrl } = useCurrentUser();
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
+
+  const [selectedMessageThreadId, setSelectedMessageThreadId] = useState<string | null>(null);
 
   const isDemo = email === "apex@lifestyle.bd" || !email;
   const displayName = name || (isDemo ? "Ahad A" : "Client");
@@ -208,22 +218,25 @@ function ClientDashboardContent() {
   const displayMeta = lang === "en" ? `Client (${displayCompany})` : `ক্লায়েন্ট (${displayCompany})`;
 
   const tabParam = searchParams ? searchParams.get("tab") : null;
-  const [activeTab, setActiveTab] = useState<string>(tabParam || "overview");
+  const initialTab = tabParam === "contracts" ? "workspace" : (tabParam || "overview");
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
 
   useEffect(() => {
     if (tabParam) {
-      setActiveTab(tabParam);
+      setActiveTab(tabParam === "contracts" ? "workspace" : tabParam);
     } else if (typeof window !== "undefined") {
-      const hash = window.location.hash.replace("#", "");
-      if (hash && ["overview", "jobs", "proposals", "contracts", "messages", "payments", "disputes", "saved"].includes(hash)) {
+      const rawHash = window.location.hash.replace("#", "");
+      const hash = rawHash === "contracts" ? "workspace" : rawHash;
+      if (hash && ["overview", "jobs", "proposals", "workspace", "messages", "payments", "disputes", "saved"].includes(hash)) {
         setActiveTab(hash);
       }
     }
 
     const handleHashChange = () => {
       if (typeof window !== "undefined") {
-        const hash = window.location.hash.replace("#", "");
-        if (hash && ["overview", "jobs", "proposals", "contracts", "messages", "payments", "disputes", "saved"].includes(hash)) {
+        const rawHash = window.location.hash.replace("#", "");
+        const hash = rawHash === "contracts" ? "workspace" : rawHash;
+        if (hash && ["overview", "jobs", "proposals", "workspace", "messages", "payments", "disputes", "saved"].includes(hash)) {
           setActiveTab(hash);
         }
       }
@@ -272,12 +285,93 @@ function ClientDashboardContent() {
   const [depositStep, setDepositStep] = useState<"FORM" | "PROCESSING" | "SUCCESS">("FORM");
   const [trxResult, setTrxResult] = useState<string>("");
 
-  const contracts = isDemo ? CLIENT_CONTRACTS : [];
-  const draftJobs = isDemo ? CLIENT_DRAFT_JOBS : [];
+  const [contracts, setContracts] = useState<WorkspaceContract[]>([]);
+  const [draftJobs, setDraftJobs] = useState<DraftJob[]>(isDemo ? CLIENT_DRAFT_JOBS : []);
+  const [proposals, setProposals] = useState<ClientProposal[]>(isDemo ? (MOCK_PROPOSALS as unknown as ClientProposal[]) : []);
+  const [loadingJobs, setLoadingJobs] = useState(false);
+  const [loadingProposals, setLoadingProposals] = useState(false);
+  const [loadingContracts, setLoadingContracts] = useState(false);
+
   const activeContracts = contracts.filter((c) => c.stage === "ACTIVE");
-  const escrowHeld = contracts.reduce((sum, c) => sum + c.escrowHeldBdt, 0);
-  const totalSpent = contracts.reduce((sum, c) => sum + c.releasedBdt, 0);
-  const totalProposals = draftJobs.reduce((sum, d) => sum + d.proposalCount, 0) + (isDemo ? 3 : 0);
+  const escrowHeld = contracts.reduce((sum, c) => sum + (c.escrowHeldBdt || 0), 0);
+  const totalSpent = contracts.reduce((sum, c) => sum + (c.releasedBdt || 0), 0);
+  const totalProposals = proposals.length > 0
+    ? proposals.length
+    : (isDemo ? 3 : draftJobs.reduce((sum, d) => sum + (d.proposalCount || 0), 0));
+
+  // Fetch live client projects, proposals and contracts
+  useEffect(() => {
+    if (!clientId && !userId) {
+      if (isDemo) {
+        setDraftJobs(CLIENT_DRAFT_JOBS);
+        setProposals(MOCK_PROPOSALS as unknown as ClientProposal[]);
+        setContracts(CLIENT_CONTRACTS as unknown as WorkspaceContract[]);
+      }
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      setLoadingJobs(true);
+      setLoadingProposals(true);
+      setLoadingContracts(true);
+      try {
+        const [liveProjects, liveProposals, liveContracts] = await Promise.all([
+          clientId ? fetchClientProjects(supabase, clientId) : Promise.resolve([]),
+          clientId ? fetchClientProposals(supabase, clientId) : Promise.resolve([]),
+          fetchUserContracts(supabase, { role: "client", userId, entityId: clientId }),
+        ]);
+        if (!cancelled) {
+          if (liveProjects.length > 0 || !isDemo) {
+            setDraftJobs(liveProjects);
+          }
+          if (liveProposals.length > 0 || !isDemo) {
+            setProposals(liveProposals);
+            const acceptedIds = liveProposals
+              .filter((p) => p.status === "ACCEPTED")
+              .map((p) => p.id);
+            if (acceptedIds.length > 0) {
+              setAcceptedProposalIds((prev) => Array.from(new Set([...prev, ...acceptedIds])));
+            }
+          }
+          if (liveContracts) {
+            setContracts(liveContracts);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load live client jobs, proposals & contracts:", err);
+      } finally {
+        if (!cancelled) {
+          setLoadingJobs(false);
+          setLoadingProposals(false);
+          setLoadingContracts(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, clientId, userId, isDemo]);
+
+  const handleAcceptBid = async (proposalId: string) => {
+    setAcceptedProposalIds((prev) => Array.from(new Set([...prev, proposalId])));
+    setProposals((prev) =>
+      prev.map((p) => (p.id === proposalId ? { ...p, status: "ACCEPTED" } : p))
+    );
+    setSelectedMessageThreadId(proposalId);
+    if (!proposalId.startsWith("prop-")) {
+      try {
+        await updateProposalStatus(supabase, proposalId, "ACCEPTED");
+        const contract = await createContractFromProposal(supabase, proposalId);
+        if (contract) {
+          setSelectedMessageThreadId(contract.id);
+        }
+      } catch (err) {
+        console.error("Failed to update proposal status & create contract in DB:", err);
+      }
+    }
+  };
 
   // Fetch live payout methods
   useEffect(() => {
@@ -388,42 +482,43 @@ function ClientDashboardContent() {
       }}
     >
       <div className="max-w-6xl mx-auto space-y-8">
-        {/* Welcome Header */}
-        <div id="overview" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
-                {lang === "en" ? "Client Command Center" : "ক্লায়েন্ট কমান্ড সেন্টার"}
-              </span>
-              <span className="text-slate-300">•</span>
-              <Link
-                href="/contracts"
-                className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1"
-              >
-                <span>{lang === "en" ? "Contract Workspaces" : "কন্ট্রাক্ট ওয়ার্কস্পেস"}</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
+        {/* Welcome Header (Only on Overview) */}
+        {activeTab === "overview" && (
+          <div id="overview" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  {lang === "en" ? "Client Command Center" : "ক্লায়েন্ট কমান্ড সেন্টার"}
+                </span>
+                <span className="text-slate-300">•</span>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("workspace")}
+                  className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <span>{lang === "en" ? "Active Workspaces" : "ওয়ার্কস্পেস"}</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+                {lang === "en" ? (
+                  <>
+                    Welcome back, <span className="text-emerald-600">{displayFirstName}</span>
+                  </>
+                ) : (
+                  <>
+                    স্বাগতম, <span className="text-emerald-600">{displayFirstName}</span>
+                  </>
+                )}
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                {lang === "en"
+                  ? "Manage your active job postings, evaluate freelancer proposals, and fund secure milestone escrows."
+                  : "আপনার পোস্টকৃত কাজ পরিচালনা করুন, ফ্রিল্যান্সারদের আবেদন যাচাই করুন এবং নিরাপদ এসক্রোতে তহবিল রাখুন।"}
+              </p>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-              {lang === "en" ? (
-                <>
-                  Welcome back, <span className="text-emerald-600">{displayFirstName}</span>
-                </>
-              ) : (
-                <>
-                  স্বাগতম, <span className="text-emerald-600">{displayFirstName}</span>
-                </>
-              )}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              {lang === "en"
-                ? "Manage your active job postings, evaluate freelancer proposals, and fund secure milestone escrows."
-                : "আপনার পোস্টকৃত কাজ পরিচালনা করুন, ফ্রিল্যান্সারদের আবেদন যাচাই করুন এবং নিরাপদ এসক্রোতে তহবিল রাখুন।"}
-            </p>
           </div>
-
-
-        </div>
+        )}
 
         {/* Stats Grid */}
         {activeTab === "overview" && (
@@ -432,8 +527,8 @@ function ClientDashboardContent() {
               icon={Briefcase}
               label="Active job posts"
               labelBn="সক্রিয় কাজ"
-              value="3"
-              delta="+1 this week"
+              value={String(draftJobs.length > 0 ? draftJobs.filter(j => j.status === "LIVE").length : (isDemo ? 3 : 0))}
+              delta={lang === "en" ? `${draftJobs.length} total posts` : `মোট ${draftJobs.length}টি পোস্ট`}
               lang={lang}
               accent="emerald"
             />
@@ -442,7 +537,7 @@ function ClientDashboardContent() {
               label="Proposals received"
               labelBn="প্রাপ্ত আবেদন"
               value={String(totalProposals)}
-              delta="+4 today"
+              delta={lang === "en" ? `${totalProposals} received` : `${totalProposals}টি আবেদন`}
               lang={lang}
               accent="sky"
             />
@@ -570,7 +665,16 @@ function ClientDashboardContent() {
                 </Link>
               }
             />
-            <DraftJobsTable drafts={draftJobs} lang={lang} />
+            {loadingJobs ? (
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center">
+                <RefreshCw className="w-6 h-6 animate-spin text-emerald-600 mx-auto mb-2" />
+                <p className="text-xs font-bold text-slate-500">
+                  {lang === "en" ? "Loading your job posts..." : "কাজের পোস্ট লোড হচ্ছে..."}
+                </p>
+              </div>
+            ) : (
+              <DraftJobsTable drafts={draftJobs} lang={lang} />
+            )}
           </div>
         )}
 
@@ -584,169 +688,172 @@ function ClientDashboardContent() {
               subtitleBn="বিড তুলনা করুন, কাজের অভিজ্ঞতা যাচাই করুন এবং নিয়োগ দিন"
               lang={lang}
             />
-            <div className="grid grid-cols-1 gap-3.5">
-              {MOCK_PROPOSALS.map((prop) => (
-                <div
-                  key={prop.id}
-                  className="bg-white border border-slate-200/90 hover:border-emerald-300 rounded-2xl p-5 shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
-                >
-                  <div className="flex items-start gap-4 min-w-0">
-                    <img
-                      src={prop.freelancerAvatar}
-                      alt={prop.freelancerName}
-                      className="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-500/20 shrink-0"
-                    />
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="text-sm font-bold text-slate-900">
-                          {lang === "bn" && prop.freelancerNameBn ? prop.freelancerNameBn : prop.freelancerName}
-                        </h4>
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                          ★ {prop.rating} ({prop.reviews})
-                        </span>
-                        {acceptedProposalIds.includes(prop.id) ? (
-                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
-                            <span>{lang === "en" ? "Bid Accepted · Messaging Live" : "বিড গৃহীত · মেসেজিং সক্রিয়"}</span>
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                            <Lock className="w-2.5 h-2.5 text-amber-600" />
-                            <span>{lang === "en" ? "Bid Pending Review" : "বিড অপেক্ষমাণ"}</span>
-                          </span>
-                        )}
-                        {prop.isShortlisted && (
-                          <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
-                            {lang === "en" ? "Shortlisted" : "বাছাইকৃত"}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 font-medium">
-                        {lang === "bn" && prop.freelancerTitleBn ? prop.freelancerTitleBn : prop.freelancerTitle}
-                      </p>
-                      <p className="text-xs text-slate-600 line-clamp-2 max-w-xl italic">
-                        "{lang === "bn" && prop.coverNoteBn ? prop.coverNoteBn : prop.coverNote}"
-                      </p>
-                      <p className="text-[10px] text-slate-400">
-                        {lang === "en" ? "Applying for: " : "আবেদনকৃত কাজ: "}
-                        <span className="font-semibold text-slate-600">
-                          {lang === "bn" && prop.jobTitleBn ? prop.jobTitleBn : prop.jobTitle}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-row md:flex-col items-center md:items-end justify-between gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
-                    <div className="text-left md:text-right">
-                      <div className="text-base font-black text-slate-900">
-                        ৳{prop.bidBdt.toLocaleString()} BDT
-                      </div>
-                      <div className="text-[10px] text-slate-400">
-                        {lang === "en" ? `Delivery in ${prop.deliveryDays} days` : `${prop.deliveryDays} দিনে ডেলিভারি`}
-                      </div>
-                    </div>
-
-                    {acceptedProposalIds.includes(prop.id) ? (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setActiveTab("messages")}
-                          className="px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-                        >
-                          <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>{lang === "en" ? "Message Freelancer" : "মেসেজ পাঠান"}</span>
-                        </button>
-                        <Link
-                          href="/contracts/ctr-8842"
-                          className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5"
-                        >
-                          <ShieldCheck className="w-3.5 h-3.5" />
-                          <span>{lang === "en" ? "Workspace" : "ওয়ার্কস্পেস"}</span>
-                        </Link>
-                      </div>
-                    ) : (
-                      <div className="flex flex-col items-end gap-1">
-                        <button
-                          type="button"
-                          onClick={() => setAcceptedProposalIds((prev) => [...prev, prop.id])}
-                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-transform active:scale-95 flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>{lang === "en" ? "Accept Bid & Unlock Chat" : "বিড অনুমোদন ও চ্যাট আনলক"}</span>
-                        </button>
-                        <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                          <Lock className="w-2.5 h-2.5 text-slate-400" />
-                          <span>{lang === "en" ? "Messaging locked until accepted" : "অনুমোদনের পূর্বে মেসেজিং লকড"}</span>
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Contracts Section */}
-        {(activeTab === "overview" || activeTab === "contracts") && (
-          <div id="contracts" className="space-y-4">
-            <SectionHeading
-              title="Active contracts"
-              titleBn="সক্রিয় চুক্তি ও প্রজেক্ট"
-              subtitle="Milestone-funded work currently in progress"
-              subtitleBn="এসক্রোতে জমা থাকা চলমান কাজের মাইলস্টোন"
-              lang={lang}
-              action={
-                <Link
-                  href="/contracts"
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all"
-                >
-                  <Handshake className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>{lang === "en" ? "All Contracts Hub" : "সকল চুক্তি"}</span>
-                </Link>
-              }
-            />
-            {contracts.length === 0 ? (
+            {loadingProposals ? (
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center">
+                <RefreshCw className="w-6 h-6 animate-spin text-emerald-600 mx-auto mb-2" />
+                <p className="text-xs font-bold text-slate-500">
+                  {lang === "en" ? "Loading received proposals..." : "প্রাপ্ত আবেদন লোড হচ্ছে..."}
+                </p>
+              </div>
+            ) : proposals.length === 0 ? (
               <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
-                  <Handshake className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center mx-auto">
+                  <Send className="w-6 h-6" />
                 </div>
                 <h3 className="text-sm font-bold text-slate-900">
-                  {lang === "en" ? "No active contracts yet" : "কোনো সক্রিয় চুক্তি নেই"}
+                  {lang === "en" ? "No proposals received yet" : "এখনও কোনো আবেদন জমা পড়েনি"}
                 </h3>
                 <p className="text-xs text-slate-500 max-w-md mx-auto">
                   {lang === "en"
-                    ? "Post a job and hire vetted Bangladeshi freelancers with secure milestone escrow."
-                    : "সুরক্ষিত এসক্রো চুক্তির মাধ্যমে কাজ সম্পন্ন করতে ট্যালেন্ট নিয়োগ দিন।"}
+                    ? "When freelancers submit bids on your posted jobs, their proposals will appear here for you to review and hire."
+                    : "আপনার পোস্ট করা কাজে ফ্রিল্যান্সাররা আবেদন করলে তাদের বিড এখানে প্রদর্শিত হবে।"}
                 </p>
-                <Link
-                  href="/post-job"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>{lang === "en" ? "Post a New Job" : "নতুন কাজ পোস্ট করুন"}</span>
-                </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                {contracts.map((c) => (
-                  <ContractCard key={c.id} contract={c} perspective="client" lang={lang} />
-                ))}
+              <div className="grid grid-cols-1 gap-3.5">
+                {proposals.map((prop) => {
+                  const isAccepted = acceptedProposalIds.includes(prop.id) || prop.status === "ACCEPTED";
+                  return (
+                    <div
+                      key={prop.id}
+                      className="bg-white border border-slate-200/90 hover:border-emerald-300 rounded-2xl p-5 shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    >
+                      <div className="flex items-start gap-4 min-w-0">
+                        <img
+                          src={prop.freelancerAvatar}
+                          alt={prop.freelancerName}
+                          className="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-500/20 shrink-0"
+                        />
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="text-sm font-bold text-slate-900">
+                              {lang === "bn" && prop.freelancerNameBn ? prop.freelancerNameBn : prop.freelancerName}
+                            </h4>
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                              ★ {prop.rating} {prop.reviews > 0 ? `(${prop.reviews})` : ""}
+                            </span>
+                            {isAccepted ? (
+                              <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
+                                <span>{lang === "en" ? "Bid Accepted · Messaging Live" : "বিড গৃহীত · মেসেজিং সক্রিয়"}</span>
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                <Lock className="w-2.5 h-2.5 text-amber-600" />
+                                <span>{lang === "en" ? "Bid Pending Review" : "বিড অপেক্ষমাণ"}</span>
+                              </span>
+                            )}
+                            {prop.isShortlisted && (
+                              <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+                                {lang === "en" ? "Shortlisted" : "বাছাইকৃত"}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500 font-medium">
+                            {lang === "bn" && prop.freelancerTitleBn ? prop.freelancerTitleBn : prop.freelancerTitle}
+                          </p>
+                          <p className="text-xs text-slate-600 line-clamp-2 max-w-xl italic">
+                            "{lang === "bn" && prop.coverNoteBn ? prop.coverNoteBn : prop.coverNote}"
+                          </p>
+                          <p className="text-[10px] text-slate-400">
+                            {lang === "en" ? "Applying for: " : "আবেদনকৃত কাজ: "}
+                            <span className="font-semibold text-slate-600">
+                              {lang === "bn" && prop.jobTitleBn ? prop.jobTitleBn : prop.jobTitle}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-row md:flex-col items-center md:items-end justify-between gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100">
+                        <div className="text-left md:text-right">
+                          <div className="text-base font-black text-slate-900">
+                            ৳{Number(prop.bidBdt || 0).toLocaleString()} BDT
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            {lang === "en" ? `Delivery in ${prop.deliveryDays} days` : `${prop.deliveryDays} দিনে ডেলিভারি`}
+                          </div>
+                        </div>
+
+                        {isAccepted ? (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedMessageThreadId(prop.id);
+                                setActiveTab("messages");
+                              }}
+                              className="px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                            >
+                              <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>{lang === "en" ? "Message Freelancer" : "মেসেজ পাঠান"}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setActiveTab("workspace")}
+                              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              <span>{lang === "en" ? "Workspace" : "ওয়ার্কস্পেস"}</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-end gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleAcceptBid(prop.id)}
+                              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-transform active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>{lang === "en" ? "Accept Bid & Unlock Chat" : "বিড অনুমোদন ও চ্যাট আনলক"}</span>
+                            </button>
+                            <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                              <Lock className="w-2.5 h-2.5 text-slate-400" />
+                              <span>{lang === "en" ? "Messaging locked until accepted" : "অনুমোদনের পূর্বে মেসেজিং লকড"}</span>
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
         )}
 
         {/* ----------------------------------------------------------------------------- */}
-        {/* CLIENT REAL-TIME MESSAGES & COLLABORATION (SOCKET.IO)                         */}
+        {/* CLIENT WORKSPACE & MILESTONE DELIVERY / ESCROW                                */}
+        {/* ----------------------------------------------------------------------------- */}
+        {activeTab === "workspace" && (
+          <div id="workspace" className="space-y-4">
+            <WorkspaceSection
+              role="client"
+              lang={lang}
+              currentUserId={userId}
+              currentEntityId={clientId}
+              currentUserName={displayName}
+              onOpenChat={(contractId) => {
+                setSelectedMessageThreadId(contractId);
+                setActiveTab("messages");
+              }}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+            />
+          </div>
+        )}
+
+        {/* ----------------------------------------------------------------------------- */}
+        {/* CLIENT REAL-TIME MESSAGES & COLLABORATION (TALKJS 1-TO-1)                      */}
         {/* ----------------------------------------------------------------------------- */}
         {activeTab === "messages" && (
           <div id="messages" className="space-y-4">
             <WorkspaceMessagesSection
               role="client"
               lang={lang}
+              currentUserId={userId}
+              currentEntityId={clientId}
               currentUserName={displayName}
-              currentUserAvatar="https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=100&auto=format&fit=crop&q=80"
+              currentUserAvatar={avatarUrl || undefined}
+              initialThreadId={selectedMessageThreadId || undefined}
             />
           </div>
         )}
@@ -1247,10 +1354,10 @@ function ClientDashboardContent() {
               </div>
 
               <Link
-                href="/contracts"
+                href="/post-job"
                 className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
               >
-                {lang === "en" ? "Learn About Escrow Rules" : "এসক্রো নিয়মাবলী"}
+                {lang === "en" ? "Post a Protected Job" : "সুরক্ষিত কাজ পোস্ট করুন"}
               </Link>
             </div>
           </div>
@@ -1294,7 +1401,7 @@ function ClientDashboardContent() {
                   </div>
 
                   <Link
-                    href="/contracts/ctr-8842"
+                    href={`/post-job?invite=${t.id}`}
                     className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors shrink-0"
                   >
                     {lang === "en" ? "Direct Hire" : "সরাসরি নিয়োগ"}

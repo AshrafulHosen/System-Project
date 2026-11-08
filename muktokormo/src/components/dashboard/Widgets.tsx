@@ -13,6 +13,7 @@ import {
   FileText,
   ArrowRight,
   ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import { DashboardContract, ResourceCardData, DraftJob, WalletEntry } from "@/types";
 import { formatBdt, formatSignedBdt } from "@/lib/format";
@@ -172,7 +173,7 @@ export function ContractCard({
           <p className="text-[10px] text-slate-400 mt-0.5">{contract.nextMilestoneDue}</p>
         </div>
         <Link
-          href="/contracts/ctr-8842"
+          href={`/contracts/${contract.id}`}
           className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-all cursor-pointer border border-emerald-200/60"
         >
           <span>{lang === "en" ? "Workspace" : "ওয়ার্কস্পেস"}</span>
@@ -192,6 +193,31 @@ export function DraftJobsTable({
   drafts: DraftJob[];
   lang: "en" | "bn";
 }) {
+  if (drafts.length === 0) {
+    return (
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center space-y-3">
+        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+          <Briefcase className="w-6 h-6" />
+        </div>
+        <h3 className="text-sm font-bold text-slate-900">
+          {lang === "en" ? "No jobs posted yet" : "এখনও কোনো কাজের পোস্ট করা হয়নি"}
+        </h3>
+        <p className="text-xs text-slate-500 max-w-md mx-auto">
+          {lang === "en"
+            ? "Create your first job post to connect with vetted Bangladeshi developers and specialists."
+            : "দক্ষ বাংলাদেশি ফ্রিল্যান্সারদের সাথে যুক্ত হতে আপনার প্রথম কাজের পোস্ট তৈরি করুন।"}
+        </p>
+        <Link
+          href="/post-job"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>{lang === "en" ? "Post a Job Now" : "এখনই কাজ পোস্ট করুন"}</span>
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
       <div className="divide-y divide-slate-50">

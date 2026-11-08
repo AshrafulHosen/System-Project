@@ -28,95 +28,285 @@ function saveLocalStore(contracts: WorkspaceContract[]): void {
   }
 }
 
+export function mapRowToWorkspaceContract(row: any): WorkspaceContract {
+  const proposal = Array.isArray(row.proposals) ? row.proposals[0] : (row.proposals || row.proposal);
+  const project = Array.isArray(proposal?.projects) ? proposal?.projects[0] : (proposal?.projects || proposal?.project);
+  const client = Array.isArray(project?.clients) ? project?.clients[0] : (project?.clients || project?.client);
+  const freelancer = Array.isArray(proposal?.freelancers) ? proposal?.freelancers[0] : (proposal?.freelancers || proposal?.freelancer);
+  const milestonesRaw = Array.isArray(proposal?.proposal_milestones) ? proposal.proposal_milestones : [];
+
+  const milestones: WorkspaceMilestone[] = milestonesRaw.map((m: any, idx: number) => ({
+    id: m.id || `ms-${idx + 1}`,
+    order: m.sort_order || idx + 1,
+    title: m.title || `Milestone ${idx + 1}`,
+    description: m.description || `Deliverable phase for milestone ${idx + 1}`,
+    amountBdt: m.amount_bdt || Math.round((row.total_amount || 40000) / (milestonesRaw.length || 1)),
+    dueDate: m.delivery_days ? `${m.delivery_days} days` : row.end_date || "2026-11-01",
+    status: idx === 0 ? "IN_PROGRESS" : "LOCKED_IN_ESCROW",
+  }));
+
+  const totalBdt = Number(row.total_amount || proposal?.bid_amount || 40000);
+  const platformFeePct = 7;
+  const netEarningsBdt = Math.round(totalBdt * 0.93);
+
+  return {
+    id: row.id,
+    contractCode: `MK-CTR-${String(row.id).slice(0, 6).toUpperCase()}`,
+    jobId: project?.id || proposal?.project_id || "job-1",
+    proposalId: row.proposal_id || proposal?.id || undefined,
+    title: project?.title || "Contract Engagement",
+    titleBn: project?.title_bn || project?.title || "চুক্তি",
+    category: (project?.category || "Web & App Development") as any,
+    client: {
+      id: client?.id || project?.client_id || undefined,
+      userId: client?.user_id || undefined,
+      name: client?.display_name || client?.company_name || "Verified Client",
+      company: client?.company_name || "SME Enterprise BD",
+      location: client?.location || "Dhaka, Bangladesh",
+      avatar: client?.avatar_url || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
+      rating: client?.rating || 4.9,
+      isVerified: client?.is_verified ?? true,
+    },
+    freelancer: {
+      id: freelancer?.id || proposal?.freelancer_id || undefined,
+      userId: freelancer?.user_id || undefined,
+      name: freelancer?.display_name || "Freelancer Partner",
+      title: freelancer?.title || "Senior Software Engineer",
+      avatar: freelancer?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+      rating: freelancer?.rating || 4.95,
+      isNidVerified: freelancer?.is_nid_verified ?? true,
+      phone: "+8801712-345678",
+      payoutMethod: "BKASH",
+      payoutAccount: proposal?.payout_account || "+8801712-345678",
+    },
+    totalBdt,
+    platformFeePct,
+    netEarningsBdt,
+    escrowHeldBdt: Math.round(totalBdt * 0.5),
+    releasedBdt: 0,
+    remainingBdt: totalBdt,
+    startedAt: row.start_date || "Just now",
+    deadlineDate: row.end_date || "Nov 2, 2026",
+    stage: ((row.status || "active").toUpperCase()) as any,
+    milestones: milestones.length > 0 ? milestones : INITIAL_WORKSPACE_CONTRACTS[0].milestones,
+    activityLogs: [
+      {
+        id: `act-${Date.now()}`,
+        timestamp: "Just now",
+        actor: "System Escrow",
+        actorRole: "ESCROW_GATEWAY",
+        action: "Contract Initialized & Escrow Locked",
+        details: "Milestone funds secured in MuktoKormo BDT Escrow.",
+        badgeType: "ESCROW",
+        trxId: `TRX-${Math.floor(100000 + Math.random() * 900000)}`,
+      },
+    ],
+  };
+}
+
+export function mapProposalToContract(prop: any): WorkspaceContract {
+  const project = Array.isArray(prop?.projects) ? prop?.projects[0] : (prop?.projects || prop?.project);
+  const client = Array.isArray(project?.clients) ? project?.clients[0] : (project?.clients || project?.client);
+  const freelancer = Array.isArray(prop?.freelancers) ? prop?.freelancers[0] : (prop?.freelancers || prop?.freelancer);
+  const totalBdt = Number(prop.bid_amount || 40000);
+
+  return {
+    id: `ctr-${prop.id}`,
+    contractCode: `MK-CTR-${String(prop.id).slice(0, 6).toUpperCase()}`,
+    jobId: project?.id || prop.project_id || "job-1",
+    proposalId: prop.id,
+    title: project?.title || "Contract Engagement",
+    titleBn: project?.title_bn || project?.title || "চুক্তি",
+    category: (project?.category || "Web & App Development") as any,
+    client: {
+      id: client?.id || project?.client_id || undefined,
+      userId: client?.user_id || undefined,
+      name: client?.display_name || client?.company_name || "Verified Client",
+      company: client?.company_name || "SME Enterprise BD",
+      location: client?.location || "Dhaka, Bangladesh",
+      avatar: client?.avatar_url || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
+      rating: client?.rating || 4.9,
+      isVerified: client?.is_verified ?? true,
+    },
+    freelancer: {
+      id: freelancer?.id || prop.freelancer_id || undefined,
+      userId: freelancer?.user_id || undefined,
+      name: freelancer?.display_name || "Freelancer Partner",
+      title: freelancer?.title || "Specialist",
+      avatar: freelancer?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+      rating: freelancer?.rating || 4.95,
+      isNidVerified: freelancer?.is_nid_verified ?? true,
+      phone: "+8801712-345678",
+      payoutMethod: "BKASH",
+      payoutAccount: prop.payout_account || "",
+    },
+    totalBdt,
+    platformFeePct: 7,
+    netEarningsBdt: Math.round(totalBdt * 0.93),
+    escrowHeldBdt: Math.round(totalBdt * 0.5),
+    releasedBdt: 0,
+    remainingBdt: totalBdt,
+    startedAt: "Just now",
+    deadlineDate: "30 days",
+    stage: "ACTIVE",
+    milestones: INITIAL_WORKSPACE_CONTRACTS[0].milestones,
+    activityLogs: [],
+  };
+}
+
+export async function createContractFromProposal(
+  supabase: SupabaseClient,
+  proposalId: string
+): Promise<WorkspaceContract | null> {
+  try {
+    // 1. Check if contract row already exists
+    const { data: existing } = await supabase
+      .from("contracts")
+      .select("*, proposals(*, projects(*, clients(*)), freelancers(*), proposal_milestones(*))")
+      .eq("proposal_id", proposalId)
+      .maybeSingle();
+
+    if (existing) {
+      return mapRowToWorkspaceContract(existing);
+    }
+
+    // 2. Fetch proposal data
+    const { data: prop, error: propErr } = await supabase
+      .from("proposals")
+      .select("*, projects(*, clients(*)), freelancers(*), proposal_milestones(*)")
+      .eq("id", proposalId)
+      .single();
+
+    if (propErr || !prop) {
+      console.error("createContractFromProposal proposal lookup failed:", propErr?.message);
+      return null;
+    }
+
+    const deliveryDays = prop.delivery_days || 14;
+    const startDate = new Date();
+    const endDate = new Date(Date.now() + deliveryDays * 86400000);
+
+    // 3. Insert into contracts table (safe single select, then fetch joined row)
+    const { data: created, error: insertErr } = await supabase
+      .from("contracts")
+      .insert({
+        proposal_id: proposalId,
+        total_amount: Number(prop.bid_amount),
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+        status: "active",
+      })
+      .select()
+      .maybeSingle();
+
+    if (!insertErr && created) {
+      const { data: fullContract } = await supabase
+        .from("contracts")
+        .select("*, proposals(*, projects(*, clients(*)), freelancers(*), proposal_milestones(*))")
+        .eq("id", created.id)
+        .maybeSingle();
+      if (fullContract) {
+        return mapRowToWorkspaceContract(fullContract);
+      }
+      return mapRowToWorkspaceContract({ ...created, proposals: prop });
+    }
+
+    if (insertErr) {
+      console.warn("createContractFromProposal insert fallback:", insertErr.message);
+    }
+
+    return mapProposalToContract(prop);
+  } catch (err) {
+    console.error("createContractFromProposal failed:", err);
+    return null;
+  }
+}
+
 export async function fetchUserContracts(
   supabase: SupabaseClient,
-  opts?: { role?: "client" | "freelancer" | "admin"; entityId?: string | null }
+  opts?: {
+    role?: "client" | "freelancer" | "admin";
+    userId?: string | null;
+    entityId?: string | null;
+  }
 ): Promise<WorkspaceContract[]> {
   try {
-    const { data, error } = await supabase
+    // 1. Fetch contracts table
+    const { data: contractRows } = await supabase
       .from("contracts")
       .select("*, proposals(*, projects(*, clients(*)), freelancers(*), proposal_milestones(*))")
       .order("start_date", { ascending: false });
 
-    if (!error && data && data.length > 0) {
-      const mappedContracts: WorkspaceContract[] = data.map((row: any) => {
-        const proposal = row.proposals;
-        const project = proposal?.projects;
-        const client = project?.clients;
-        const freelancer = proposal?.freelancers;
-        const milestonesRaw = proposal?.proposal_milestones ?? [];
+    const liveContracts = (contractRows || []).map(mapRowToWorkspaceContract);
+    const existingProposalIds = new Set(liveContracts.map((c) => c.proposalId).filter(Boolean));
 
-        const milestones: WorkspaceMilestone[] = milestonesRaw.map((m: any, idx: number) => ({
-          id: m.id || `ms-${idx + 1}`,
-          order: m.sort_order || idx + 1,
-          title: m.title || `Milestone ${idx + 1}`,
-          description: m.description || `Deliverable phase for milestone ${idx + 1}`,
-          amountBdt: m.amount_bdt || Math.round(row.total_amount / (milestonesRaw.length || 1)),
-          dueDate: m.delivery_days ? `${m.delivery_days} days` : row.end_date || "2026-11-01",
-          status: idx === 0 ? "IN_PROGRESS" : "LOCKED_IN_ESCROW",
-        }));
+    // 2. Also fetch accepted proposals that may not have contracts yet
+    const { data: acceptedProps } = await supabase
+      .from("proposals")
+      .select("*, projects(*, clients(*)), freelancers(*), proposal_milestones(*)")
+      .in("status", ["accepted", "ACCEPTED"])
+      .order("created_at", { ascending: false });
 
-        const totalBdt = row.total_amount || 40000;
-        const platformFeePct = 7;
-        const netEarningsBdt = Math.round(totalBdt * 0.93);
+    const uncontractedProps = (acceptedProps || [])
+      .filter((p: any) => !existingProposalIds.has(p.id))
+      .map(mapProposalToContract);
 
-        return {
-          id: row.id,
-          contractCode: `MK-CTR-${row.id.slice(0, 6).toUpperCase()}`,
-          jobId: project?.id || "job-1",
-          title: project?.title || "Contract Engagement",
-          titleBn: project?.title_bn || project?.title || "চুক্তি",
-          category: (project?.category || "Web & App Development") as any,
-          client: {
-            name: client?.display_name || client?.company_name || "Verified Client",
-            company: client?.company_name || "SME Enterprise BD",
-            location: client?.location || "Dhaka, Bangladesh",
-            avatar: client?.avatar_url || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
-            rating: client?.rating || 4.9,
-            isVerified: client?.is_verified ?? true,
-          },
-          freelancer: {
-            name: freelancer?.display_name || "Tanvir Rahman",
-            title: freelancer?.title || "Senior Software Engineer",
-            avatar: freelancer?.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-            rating: freelancer?.rating || 4.95,
-            isNidVerified: freelancer?.is_nid_verified ?? true,
-            phone: "+8801712-345678",
-            payoutMethod: "BKASH",
-            payoutAccount: "+8801712-345678",
-          },
-          totalBdt,
-          platformFeePct,
-          netEarningsBdt,
-          escrowHeldBdt: Math.round(totalBdt * 0.5),
-          releasedBdt: 0,
-          remainingBdt: totalBdt,
-          startedAt: row.start_date || "Oct 2, 2026",
-          deadlineDate: row.end_date || "Nov 2, 2026",
-          stage: (row.status?.toUpperCase() || "ACTIVE") as any,
-          milestones: milestones.length > 0 ? milestones : INITIAL_WORKSPACE_CONTRACTS[0].milestones,
-          activityLogs: [
-            {
-              id: `act-${Date.now()}`,
-              timestamp: "Just now",
-              actor: "System Escrow",
-              actorRole: "ESCROW_GATEWAY",
-              action: "Contract Initialized & Escrow Locked",
-              details: "Milestone funds secured in MuktoKormo BDT Escrow.",
-              badgeType: "ESCROW",
-              trxId: `TRX-${Math.floor(100000 + Math.random() * 900000)}`,
-            },
-          ],
-        };
+    const allLive = [...liveContracts, ...uncontractedProps];
+
+    // Filter strictly by role & user if provided
+    let filtered = allLive;
+    if (opts?.userId || opts?.entityId || opts?.role) {
+      const matchClient = (c: WorkspaceContract) => {
+        const uId = opts.userId;
+        const eId = opts.entityId;
+        if (!uId && !eId) return false;
+        if (uId && (c.client.userId === uId || c.client.id === uId)) return true;
+        if (eId && (c.client.id === eId || c.client.userId === eId)) return true;
+        return false;
+      };
+
+      const matchFreelancer = (c: WorkspaceContract) => {
+        const uId = opts.userId;
+        const eId = opts.entityId;
+        if (!uId && !eId) return false;
+        if (uId && (c.freelancer.userId === uId || c.freelancer.id === uId)) return true;
+        if (eId && (c.freelancer.id === eId || c.freelancer.userId === eId)) return true;
+        return false;
+      };
+
+      if (opts.role === "client") {
+        filtered = allLive.filter(matchClient);
+      } else if (opts.role === "freelancer") {
+        filtered = allLive.filter(matchFreelancer);
+      } else {
+        filtered = allLive.filter((c) => matchClient(c) || matchFreelancer(c));
+      }
+
+      // Check if any matching contracts were saved in local session store for this exact user
+      const localMatches = getLocalStore().filter((c) => {
+        if (opts.role === "client") return matchClient(c);
+        if (opts.role === "freelancer") return matchFreelancer(c);
+        return matchClient(c) || matchFreelancer(c);
       });
 
-      return mappedContracts;
-    }
-  } catch (err) {
-    console.warn("fetchUserContracts database query fallback:", err);
-  }
+      const seenIds = new Set(filtered.map((c) => c.id));
+      for (const lc of localMatches) {
+        if (!seenIds.has(lc.id) && (!lc.proposalId || !seenIds.has(`ctr-${lc.proposalId}`))) {
+          filtered.push(lc);
+          seenIds.add(lc.id);
+        }
+      }
 
-  return getLocalStore();
+      // Return only the logged-in user's authentic contracts (empty array if none exist, never leak mock data)
+      return filtered;
+    }
+
+    // Only unauthenticated / guest demo viewers see local mock store
+    return getLocalStore();
+  } catch (err) {
+    console.warn("fetchUserContracts query fallback:", err);
+    return [];
+  }
 }
 
 export async function fetchContractById(
