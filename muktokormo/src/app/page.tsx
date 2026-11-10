@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import CategoryGrid from "@/components/CategoryGrid";
@@ -24,6 +25,7 @@ import {
   withdrawProposal,
 } from "@/lib/data/proposals";
 import { Job, ProposalSubmission, JobBid } from "@/types";
+import { ArrowRight, Briefcase, UserPlus, ShieldCheck } from "lucide-react";
 
 export default function Home() {
   const supabase = useMemo(() => createClient(), []);
@@ -31,10 +33,13 @@ export default function Home() {
 
   const [lang, setLang] = useState<"en" | "bn">("en");
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState<boolean>(true);
+  const [freelancersCount, setFreelancersCount] = useState<number>(0);
   const [bids, setBids] = useState<JobBid[]>([]);
   const [myBids, setMyBids] = useState<JobBid[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [talentSearchQuery, setTalentSearchQuery] = useState<string>("");
 
   // Modals & Drawers
   const [isPostJobOpen, setIsPostJobOpen] = useState(false);
@@ -48,9 +53,11 @@ export default function Home() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setIsLoadingJobs(true);
       const liveJobs = await fetchOpenJobs(supabase);
       if (cancelled) return;
       setJobs(liveJobs);
+      setIsLoadingJobs(false);
     })();
     return () => {
       cancelled = true;
@@ -98,7 +105,6 @@ export default function Home() {
     }
   };
 
-  // Bid submission from Freelancer
   const handleSubmitBid = async (submission: ProposalSubmission) => {
     let newBid: JobBid | null = null;
 
@@ -159,7 +165,6 @@ export default function Home() {
     );
   };
 
-  // Toggle Shortlist status on a bid
   const handleToggleShortlist = async (bidId: string) => {
     let nextStatus: JobBid["status"] = "SHORTLISTED";
     const updateBid = (b: JobBid) => {
@@ -174,7 +179,6 @@ export default function Home() {
     await updateProposalStatus(supabase, bidId, nextStatus);
   };
 
-  // Client accepts bid and launches Escrow lock
   const handleAcceptBidAndEscrow = (job: Job, bid: JobBid) => {
     const updateBid = (b: JobBid) =>
       b.id === bid.id ? { ...b, status: "ACCEPTED" as const } : b;
@@ -190,7 +194,6 @@ export default function Home() {
     setEscrowFreelancerName(bid.freelancerName);
   };
 
-  // Freelancer withdraws bid
   const handleWithdrawBid = (bidId: string) => {
     const bidToRemove = bids.find((b) => b.id === bidId);
     setBids((prev) => prev.filter((b) => b.id !== bidId));
@@ -227,6 +230,14 @@ export default function Home() {
     }
   };
 
+  const handleSearchTalent = (query: string) => {
+    setTalentSearchQuery(query);
+    const talentSection = document.getElementById("freelancers-section");
+    if (talentSection) {
+      talentSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const handleExploreJobs = () => {
     const jobSection = document.getElementById("jobs-section");
     if (jobSection) {
@@ -244,9 +255,12 @@ export default function Home() {
     setEscrowFreelancerName(undefined);
   };
 
+  const handleFreelancersLoaded = useCallback((count: number) => {
+    setFreelancersCount(count);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 flex flex-col selection:bg-emerald-500 selection:text-white">
-      
+    <div className="min-h-screen bg-white font-sans text-slate-900 flex flex-col selection:bg-emerald-600 selection:text-white">
       {/* Navigation Bar */}
       <Navbar
         onOpenPostJob={() => setIsPostJobOpen(true)}
@@ -265,7 +279,12 @@ export default function Home() {
           lang={lang}
           onOpenPostJob={() => setIsPostJobOpen(true)}
           onSelectSkill={handleSelectSkill}
+          onSearchTalent={handleSearchTalent}
           onExploreJobs={handleExploreJobs}
+          liveStats={{
+            openJobsCount: jobs.length,
+            freelancersCount,
+          }}
         />
 
         {/* Categories Explorer */}
@@ -273,11 +292,13 @@ export default function Home() {
           selectedCategory={selectedCategory}
           onSelectCategory={(cat) => setSelectedCategory(cat)}
           lang={lang}
+          jobs={jobs}
         />
 
         {/* Live Marketplace Job Feed */}
         <JobFeed
           jobs={jobs}
+          isLoading={isLoadingJobs}
           lang={lang}
           selectedCategory={selectedCategory}
           searchQuery={searchQuery}
@@ -295,8 +316,11 @@ export default function Home() {
 
         {/* Verified Freelancers Directory */}
         <FreelancerDirectory
+          key={talentSearchQuery}
           lang={lang}
           onHireDirect={handleHireDirect}
+          externalSearchQuery={talentSearchQuery}
+          onLoadedCount={handleFreelancersLoaded}
         />
 
         {/* Escrow Financial Safety Section */}
@@ -304,6 +328,53 @@ export default function Home() {
           lang={lang}
           onOpenEscrowTest={handleOpenEscrowDefault}
         />
+
+        {/* Final Conversion CTA Section */}
+        <section className="py-16 bg-slate-950 text-white border-t border-slate-900">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/60 border border-slate-800 p-8 sm:p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold mb-4">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>
+                    {lang === "en"
+                      ? "Built for Bangladesh's Digital Economy"
+                      : "বাংলাদেশের ডিজিটাল অর্থনীতির জন্য নির্মিত"}
+                  </span>
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
+                  {lang === "en"
+                    ? "Start your next project with full BDT escrow confidence."
+                    : "শতভাগ বিডিটি এসক্রো নিরাপত্তায় আপনার পরবর্তী প্রজেক্ট শুরু করুন।"}
+                </h2>
+                <p className="mt-3 text-sm text-slate-300 leading-relaxed">
+                  {lang === "en"
+                    ? "Whether you are hiring verified engineers and designers or offering your skills to Bangladeshi businesses, MuktoKormo keeps contracts, milestones, and payouts transparent."
+                    : "দক্ষ ফ্রিল্যান্সার নিয়োগ দিন অথবা আপনার দক্ষতা দিয়ে আয় শুরু করুন — সবকিছুই এক প্ল্যাটফর্মে।"}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0">
+                <button
+                  onClick={() => setIsPostJobOpen(true)}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all cursor-pointer shadow-lg shadow-emerald-950/50"
+                >
+                  <Briefcase className="w-4 h-4" />
+                  <span>{lang === "en" ? "Post a Project" : "কাজ পোস্ট করুন"}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-sm transition-all"
+                >
+                  <UserPlus className="w-4 h-4 text-emerald-400" />
+                  <span>{lang === "en" ? "Create Free Account" : "ফ্রি অ্যাকাউন্ট খুলুন"}</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* Footer */}
@@ -327,7 +398,7 @@ export default function Home() {
         lang={lang}
       />
 
-      {/* Job Bids Room Modal (Explore & Compare Bids for a Job) */}
+      {/* Job Bids Room Modal */}
       <JobBidsModal
         job={selectedJobForBids}
         bids={bids}
@@ -366,7 +437,6 @@ export default function Home() {
         freelancerName={escrowFreelancerName}
         lang={lang}
       />
-
     </div>
   );
 }

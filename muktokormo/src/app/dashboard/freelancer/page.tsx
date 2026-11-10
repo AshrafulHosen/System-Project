@@ -102,11 +102,46 @@ function FreelancerDashboardContent() {
   }, [tabParam, threadParam]);
   const [pickedSkills, setPickedSkills] = useState<string[]>([]);
   const [available, setAvailable] = useState<number>(87500);
+  const [isAvailableForWork, setIsAvailableForWork] = useState<boolean>(true);
+  const [updatingAvailability, setUpdatingAvailability] = useState<boolean>(false);
   const [ledgerEntries, setLedgerEntries] = useState<WalletEntry[]>(FREELANCER_LEDGER);
   const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]);
   const [myProposals, setMyProposals] = useState<TrackedProposal[]>([]);
   const [contracts, setContracts] = useState<WorkspaceContract[]>([]);
   const [loadingContracts, setLoadingContracts] = useState(false);
+
+  useEffect(() => {
+    if (!freelancerId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("freelancers")
+        .select("available")
+        .eq("id", freelancerId)
+        .maybeSingle();
+      if (!cancelled && data && typeof data.available === "boolean") {
+        setIsAvailableForWork(data.available);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, freelancerId]);
+
+  const handleToggleAvailability = async () => {
+    const nextVal = !isAvailableForWork;
+    setIsAvailableForWork(nextVal);
+    if (!freelancerId) return;
+    setUpdatingAvailability(true);
+    try {
+      await supabase
+        .from("freelancers")
+        .update({ available: nextVal })
+        .eq("id", freelancerId);
+    } finally {
+      setUpdatingAvailability(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -375,7 +410,7 @@ function FreelancerDashboardContent() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
                   {lang === "en" ? "Freelancer Command Center" : "ফ্রিল্যান্সার ড্যাশবোর্ড"}
                 </span>
                 <span className="text-slate-300">•</span>
@@ -399,7 +434,7 @@ function FreelancerDashboardContent() {
                   </>
                 )}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1 flex flex-wrap items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                 {email || (lang === "en" ? "Freelancer Account" : "ফ্রিল্যান্সার অ্যাকাউন্ট")}
                 <span className="text-slate-300">•</span>
@@ -407,6 +442,45 @@ function FreelancerDashboardContent() {
                   ? "NID verified · 4.98 rating · Dhaka, Bangladesh"
                   : "এনআইডি যাচাইকৃত · ৪.৯৮ রেটিং · ঢাকা, বাংলাদেশ"}
               </p>
+            </div>
+
+            {/* Live Availability Status Toggle */}
+            <div className="flex items-center gap-2.5 self-start sm:self-auto bg-white border border-slate-200/90 rounded-2xl px-3.5 py-2.5 shadow-2xs">
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  isAvailableForWork ? "bg-emerald-500 animate-pulse" : "bg-amber-400"
+                }`}
+              />
+              <div className="text-left">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                  {lang === "en" ? "Directory Status" : "ডিরেক্টরি স্ট্যাটাস"}
+                </span>
+                <span className="text-xs font-bold text-slate-800">
+                  {isAvailableForWork
+                    ? lang === "en"
+                      ? "Available for Work"
+                      : "কাজের জন্য উপলব্ধ"
+                    : lang === "en"
+                      ? "Busy / Hidden"
+                      : "ব্যস্ত / লুকানো"}
+                </span>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isAvailableForWork}
+                disabled={updatingAvailability}
+                onClick={handleToggleAvailability}
+                className={`ml-2 relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  isAvailableForWork ? "bg-emerald-600" : "bg-slate-200"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                    isAvailableForWork ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
             </div>
           </div>
         )}

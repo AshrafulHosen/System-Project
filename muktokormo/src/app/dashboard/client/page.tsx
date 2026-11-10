@@ -62,6 +62,7 @@ import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import { createClient } from "@/lib/supabase/client";
 import { fetchClientProjects } from "@/lib/data/jobs";
 import { createContractFromProposal, fetchUserContracts } from "@/lib/data/contracts";
+import { fetchSavedTalent, unsaveTalent } from "@/lib/data/freelancers";
 import {
   fetchClientProposals,
   ClientProposal,
@@ -288,6 +289,9 @@ function ClientDashboardContent() {
   const [contracts, setContracts] = useState<WorkspaceContract[]>([]);
   const [draftJobs, setDraftJobs] = useState<DraftJob[]>(isDemo ? CLIENT_DRAFT_JOBS : []);
   const [proposals, setProposals] = useState<ClientProposal[]>(isDemo ? (MOCK_PROPOSALS as unknown as ClientProposal[]) : []);
+  const [savedTalentList, setSavedTalentList] = useState<
+    { id: string; name: string; nameBn?: string; title: string; titleBn?: string; location: string; locationBn?: string; rating: number; rateBdt: number; avatar: string }[]
+  >(isDemo ? SAVED_TALENT : []);
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [loadingProposals, setLoadingProposals] = useState(false);
   const [loadingContracts, setLoadingContracts] = useState(false);
@@ -316,10 +320,11 @@ function ClientDashboardContent() {
       setLoadingProposals(true);
       setLoadingContracts(true);
       try {
-        const [liveProjects, liveProposals, liveContracts] = await Promise.all([
+        const [liveProjects, liveProposals, liveContracts, liveSaved] = await Promise.all([
           clientId ? fetchClientProjects(supabase, clientId) : Promise.resolve([]),
           clientId ? fetchClientProposals(supabase, clientId) : Promise.resolve([]),
           fetchUserContracts(supabase, { role: "client", userId, entityId: clientId }),
+          clientId ? fetchSavedTalent(supabase, clientId) : Promise.resolve([]),
         ]);
         if (!cancelled) {
           if (liveProjects.length > 0 || !isDemo) {
@@ -336,6 +341,19 @@ function ClientDashboardContent() {
           }
           if (liveContracts) {
             setContracts(liveContracts);
+          }
+          if (clientId) {
+            setSavedTalentList(
+              liveSaved.map((f) => ({
+                id: f.id,
+                name: f.name,
+                title: f.title,
+                location: f.location,
+                rating: f.rating,
+                rateBdt: f.hourlyRateBdt,
+                avatar: f.avatar,
+              }))
+            );
           }
         }
       } catch (err) {
@@ -1372,43 +1390,92 @@ function ClientDashboardContent() {
               subtitle="Pre-vetted Bangladeshi developers & designers for upcoming projects"
               subtitleBn="পরবর্তী প্রজেক্টের জন্য সংরক্ষিত বাংলাদেশি ডেভেলপার ও ডিজাইনার"
               lang={lang}
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {SAVED_TALENT.map((t) => (
-                <div
-                  key={t.id}
-                  className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex items-center justify-between gap-4 hover:border-emerald-300 transition-all"
+              action={
+                <Link
+                  href="/#freelancers-section"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={t.avatar}
-                      alt={t.name}
-                      className="w-11 h-11 rounded-full object-cover ring-2 ring-emerald-500/20 shrink-0"
-                    />
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900">
-                        {lang === "bn" && t.nameBn ? t.nameBn : t.name}
-                      </h4>
-                      <p className="text-[11px] text-slate-500">
-                        {lang === "bn" && t.titleBn ? t.titleBn : t.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
-                        <span className="text-emerald-600 font-bold">★ {t.rating}</span>
-                        <span>• ৳{t.rateBdt}/{lang === "en" ? "hr" : "ঘণ্টা"}</span>
-                        <span>• {lang === "bn" && t.locationBn ? t.locationBn : t.location}</span>
+                  <Users className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>{lang === "en" ? "Browse Talent" : "ট্যালেন্ট খুঁজুন"}</span>
+                </Link>
+              }
+            />
+            {savedTalentList.length === 0 ? (
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center space-y-3">
+                <div className="w-11 h-11 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center mx-auto border border-slate-200/70">
+                  <Bookmark className="w-5 h-5" />
+                </div>
+                <h3 className="text-sm font-bold text-slate-900">
+                  {lang === "en" ? "No saved freelancers yet" : "এখনও কোনো ফ্রিল্যান্সার সংরক্ষিত নেই"}
+                </h3>
+                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  {lang === "en"
+                    ? "Bookmark verified freelancers from the talent directory to quickly invite them to your future projects."
+                    : "ভবিষ্যতের প্রজেক্টে দ্রুত আমন্ত্রণ জানাতে ট্যালেন্ট ডিরেক্টরি থেকে পছন্দের ফ্রিল্যান্সার সংরক্ষণ করুন।"}
+                </p>
+                <Link
+                  href="/#freelancers-section"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs"
+                >
+                  <span>{lang === "en" ? "Explore Verified Talent" : "ভেরিফাইড ট্যালেন্ট দেখুন"}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {savedTalentList.map((t) => (
+                  <div
+                    key={t.id}
+                    className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex items-center justify-between gap-4 hover:border-emerald-300 transition-all"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={t.avatar}
+                        alt={t.name}
+                        className="w-11 h-11 rounded-full object-cover ring-2 ring-emerald-500/20 shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-slate-900 truncate">
+                          {lang === "bn" && t.nameBn ? t.nameBn : t.name}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 truncate">
+                          {lang === "bn" && t.titleBn ? t.titleBn : t.title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
+                          <span className="text-emerald-600 font-bold">★ {t.rating}</span>
+                          <span>• ৳{t.rateBdt.toLocaleString()}/{lang === "en" ? "hr" : "ঘণ্টা"}</span>
+                          <span className="truncate">• {lang === "bn" && t.locationBn ? t.locationBn : t.location}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <Link
-                    href={`/post-job?invite=${t.id}`}
-                    className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors shrink-0"
-                  >
-                    {lang === "en" ? "Direct Hire" : "সরাসরি নিয়োগ"}
-                  </Link>
-                </div>
-              ))}
-            </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {clientId && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const ok = await unsaveTalent(supabase, clientId, t.id);
+                            if (ok) {
+                              setSavedTalentList((prev) => prev.filter((item) => item.id !== t.id));
+                            }
+                          }}
+                          title={lang === "en" ? "Remove from saved" : "সরান"}
+                          className="p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <Link
+                        href={`/post-job?invite=${t.id}`}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors"
+                      >
+                        {lang === "en" ? "Direct Hire" : "সরাসরি নিয়োগ"}
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

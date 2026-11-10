@@ -3,6 +3,20 @@
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
+
+  /* Muktokormo 2026 SaaS Design Tokens */
+  --mk-brand: #059669;
+  --mk-brand-hover: #047857;
+  --mk-brand-soft: #ecfdf5;
+  --mk-brand-border: #a7f3d0;
+  --mk-ink: #0f172a;
+  --mk-ink-muted: #475569;
+  --mk-surface: #ffffff;
+  --mk-surface-subtle: #f8fafc;
+  --mk-border: rgba(226, 232, 240, 0.85);
+  --mk-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --mk-shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
+  --mk-shadow-elevated: 0 12px 28px -6px rgba(15, 23, 42, 0.08), 0 4px 10px -4px rgba(15, 23, 42, 0.04);
 }
 
 @theme inline {
@@ -12,8 +26,8 @@
 }
 
 body {
-  background: #ffffff;
-  color: #0f172a;
+  background: var(--background);
+  color: var(--foreground);
   font-family: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   letter-spacing: -0.015em;
   -webkit-font-smoothing: antialiased;
@@ -22,6 +36,44 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.025em;
+}
+
+/* Purposeful SaaS Surface & Micro-interaction Utilities */
+.mk-surface-card {
+  background-color: var(--mk-surface);
+  border: 1px solid var(--mk-border);
+  border-radius: 1rem;
+  box-shadow: var(--mk-shadow-card);
+  transition: border-color 160ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.mk-surface-card-hover:hover {
+  border-color: rgba(148, 163, 184, 0.55);
+  box-shadow: var(--mk-shadow-elevated);
+}
+
+.mk-focus-ring:focus-visible {
+  outline: 2px solid var(--mk-brand);
+  outline-offset: 2px;
+}
+
+/* Custom subtle scrollbars for sidebars and chat lists */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.55);
 }
 
 /* TalkJS Container & Responsive Iframe Fixes */

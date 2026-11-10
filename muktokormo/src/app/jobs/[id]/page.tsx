@@ -303,7 +303,9 @@ export default function JobDetailPage() {
           <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="min-w-0 flex-1">
-                <span className="text-[10px] font-bold text-slateald-400 uppercase tracking-wide text-slate-400">{job.category}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/70">
+                  {job.category}
+                </span>
                 <h1 className="text-xl font-black text-slate-900 leading-snug mt-1">{job.title}</h1>
                 {job.titleBn && <p className="text-sm text-slate-500 mt-0.5">{job.titleBn}</p>}
               </div>

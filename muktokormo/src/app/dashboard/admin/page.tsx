@@ -78,6 +78,8 @@ export default function AdminDashboardPage() {
   const [projects, setProjects] = useState<AdminProjectRow[]>([]);
   const [proposals, setProposals] = useState<AdminProposalRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0);
+  const [moderatingProjectId, setModeratingProjectId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
   const isAdmin = role === "admin";
@@ -92,12 +94,13 @@ export default function AdminDashboardPage() {
     if (!isAdmin) return;
     let cancelled = false;
     (async () => {
+      setLoading(true);
       const [overviewData, managedUsers, recentProjects, recentProposals] =
         await Promise.all([
           fetchAdminOverview(supabase),
           fetchManagedUsers(supabase),
-          fetchAdminRecentProjects(supabase, 6),
-          fetchAdminRecentProposals(supabase, 6),
+          fetchAdminRecentProjects(supabase, 10),
+          fetchAdminRecentProposals(supabase, 10),
         ]);
       if (cancelled) return;
       setOverview(overviewData);
@@ -109,7 +112,39 @@ export default function AdminDashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [supabase, isAdmin]);
+  }, [supabase, isAdmin, refreshTick]);
+
+  const handleToggleProjectStatus = async (projectId: string, currentStatus: string) => {
+    if (moderatingProjectId) return;
+    const nextDbStatus = currentStatus === "OPEN" ? "closed" : "open";
+    setModeratingProjectId(projectId);
+    try {
+      const { error } = await supabase
+        .from("projects")
+        .update({ status: nextDbStatus })
+        .eq("id", projectId);
+      if (!error) {
+        setProjects((prev) =>
+          prev.map((p) =>
+            p.id === projectId ? { ...p, status: nextDbStatus.toUpperCase() } : p
+          )
+        );
+        setOverview((prev) =>
+          prev
+            ? {
+                ...prev,
+                openProjects:
+                  nextDbStatus === "open"
+                    ? prev.openProjects + 1
+                    : Math.max(0, prev.openProjects - 1),
+              }
+            : prev
+        );
+      }
+    } finally {
+      setModeratingProjectId(null);
+    }
+  };
 
   const displayName = name.trim() || (lang === "en" ? "Administrator" : "অ্যাডমিন");
   const firstName = displayName.split(" ")[0];
@@ -178,16 +213,11 @@ export default function AdminDashboardPage() {
           </div>
 
           <button
-            onClick={() => {
-              setLoading(true);
-              setOverview(null);
-              setUsers([]);
-              setProjects([]);
-              setProposals([]);
-            }}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-all shadow-xs cursor-pointer self-start sm:self-auto"
+            onClick={() => setRefreshTick((t) => t + 1)}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-all shadow-xs cursor-pointer self-start sm:self-auto disabled:opacity-50"
           >
-            <RefreshCw className="w-3.5 h-3.5 text-emerald-600" />
+            <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${loading ? "animate-spin" : ""}`} />
             <span>{lang === "en" ? "Refresh data" : "ডেটা রিফ্রেশ"}</span>
           </button>
         </div>
@@ -266,9 +296,9 @@ export default function AdminDashboardPage() {
               </div>
             )}
 
-            {/* Role distribution */}
+            {/* Role distribution + Visual Coverage Bar */}
             {activeTab === "overview" && (
-              <div>
+              <div className="space-y-4">
                 <SectionHeading
                   title="User role distribution"
                   titleBn="ইউজারের ভূমিকা বণ্টন"
@@ -276,6 +306,38 @@ export default function AdminDashboardPage() {
                   subtitleBn="প্ল্যাটফর্মে প্রোফাইল কভারেজ"
                   lang={lang}
                 />
+
+                {overview.totalUsers > 0 && (
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs space-y-2.5">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
+                      <span>{lang === "en" ? "Marketplace Composition" : "মার্কেটপ্লেস গঠন"}</span>
+                      <span>{overview.totalUsers} {lang === "en" ? "registered accounts" : "নিবন্ধিত অ্যাকাউন্ট"}</span>
+                    </div>
+                    <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden flex">
+                      <div
+                        style={{ width: `${Math.round((overview.clients / overview.totalUsers) * 100)}%` }}
+                        className="bg-sky-500 h-full transition-all"
+                        title={`Clients: ${overview.clients}`}
+                      />
+                      <div
+                        style={{ width: `${Math.round((overview.freelancers / overview.totalUsers) * 100)}%` }}
+                        className="bg-emerald-600 h-full transition-all"
+                        title={`Freelancers: ${overview.freelancers}`}
+                      />
+                      <div
+                        style={{ width: `${Math.round((overview.admins / overview.totalUsers) * 100)}%` }}
+                        className="bg-slate-900 h-full transition-all"
+                        title={`Admins: ${overview.admins}`}
+                      />
+                      <div
+                        style={{ width: `${Math.round((overview.profilesMissing / overview.totalUsers) * 100)}%` }}
+                        className="bg-amber-400 h-full transition-all"
+                        title={`Incomplete Profiles: ${overview.profilesMissing}`}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
                   {[
                     { label: "Clients", labelBn: "ক্লায়েন্ট", value: overview.clients, cls: "bg-sky-50 text-sky-700 border-sky-200" },
@@ -410,7 +472,7 @@ export default function AdminDashboardPage() {
 
             <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[680px]">
+                <table className="w-full min-w-[740px]">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50/50">
                       {[
@@ -420,6 +482,7 @@ export default function AdminDashboardPage() {
                         { en: "Proposals", bn: "আবেদন" },
                         { en: "Status", bn: "অবস্থা" },
                         { en: "Posted", bn: "পোস্ট" },
+                        { en: "Moderation", bn: "মডারেশন" },
                       ].map((h) => (
                         <th
                           key={h.en}
@@ -431,10 +494,22 @@ export default function AdminDashboardPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
+                    {projects.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="px-5 py-10 text-center text-xs text-slate-400">
+                          {lang === "en" ? "No job posts found yet." : "এখনও কোনো কাজ পোস্ট করা হয়নি।"}
+                        </td>
+                      </tr>
+                    )}
                     {projects.map((row) => (
                       <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-4 sm:px-5 py-3.5">
-                          <p className="text-xs font-bold text-slate-900 leading-snug truncate max-w-[240px]">{row.title}</p>
+                          <Link
+                            href={`/jobs/${row.id}`}
+                            className="text-xs font-bold text-slate-900 hover:text-emerald-700 leading-snug truncate max-w-[240px] block"
+                          >
+                            {row.title}
+                          </Link>
                           <p className="text-[10px] text-slate-400 mt-0.5">{row.id.slice(0, 8)}</p>
                         </td>
                         <td className="px-4 sm:px-5 py-3.5 text-[11px] text-slate-600">{row.clientName}</td>
@@ -448,6 +523,28 @@ export default function AdminDashboardPage() {
                           </span>
                         </td>
                         <td className="px-4 sm:px-5 py-3.5 text-[11px] text-slate-500 whitespace-nowrap">{row.postedLabel}</td>
+                        <td className="px-4 sm:px-5 py-3.5 whitespace-nowrap">
+                          {(row.status === "OPEN" || row.status === "CLOSED") && (
+                            <button
+                              type="button"
+                              disabled={moderatingProjectId === row.id}
+                              onClick={() => handleToggleProjectStatus(row.id, row.status)}
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer disabled:opacity-50 ${
+                                row.status === "OPEN"
+                                  ? "bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200"
+                                  : "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200"
+                              }`}
+                            >
+                              {row.status === "OPEN"
+                                ? lang === "en"
+                                  ? "Close Post"
+                                  : "বন্ধ করুন"
+                                : lang === "en"
+                                  ? "Reopen Post"
+                                  : "চালু করুন"}
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

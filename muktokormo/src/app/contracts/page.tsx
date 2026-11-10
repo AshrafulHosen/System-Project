@@ -14,14 +14,13 @@ import {
   Layers,
 } from "lucide-react";
 import Logo from "@/components/Logo";
-import { INITIAL_WORKSPACE_CONTRACTS } from "@/data/mockContracts";
 import { createClient } from "@/lib/supabase/client";
 import { fetchUserContracts } from "@/lib/data/contracts";
 import { WorkspaceContract } from "@/types";
 
 export default function ContractsHubPage() {
   const router = useRouter();
-  const { email, loading: userLoading } = useCurrentUser();
+  const { userId, role, clientId, freelancerId, email, loading: userLoading } = useCurrentUser();
 
   useEffect(() => {
     if (!userLoading && !email) {
@@ -29,16 +28,23 @@ export default function ContractsHubPage() {
     }
   }, [userLoading, email, router]);
   const supabase = useMemo(() => createClient(), []);
-  const [contracts, setContracts] = useState<WorkspaceContract[]>(INITIAL_WORKSPACE_CONTRACTS);
+  const [contracts, setContracts] = useState<WorkspaceContract[]>([]);
   const [contractsLoading, setContractsLoading] = useState(true);
 
   useEffect(() => {
+    if (userLoading || !userId) return;
     let cancelled = false;
     (async () => {
       try {
-        const live = await fetchUserContracts(supabase);
-        if (!cancelled && live && live.length > 0) {
-          setContracts(live);
+        const resolvedRole = role === "client" ? "client" : "freelancer";
+        const entityId = resolvedRole === "client" ? clientId : freelancerId;
+        const live = await fetchUserContracts(supabase, {
+          role: resolvedRole,
+          userId,
+          entityId,
+        });
+        if (!cancelled) {
+          setContracts(live || []);
         }
       } catch (e) {
         console.error("Failed to fetch live contracts:", e);
@@ -49,7 +55,7 @@ export default function ContractsHubPage() {
     return () => {
       cancelled = true;
     };
-  }, [supabase]);
+  }, [supabase, userLoading, userId, role, clientId, freelancerId]);
   const [filter, setFilter] = useState<"ALL" | "ACTIVE" | "COMPLETED">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [lang, setLang] = useState<"en" | "bn">("en");
@@ -227,7 +233,12 @@ export default function ContractsHubPage() {
 
         {/* Contract Cards Grid */}
         <div className="space-y-4">
-          {filteredContracts.length === 0 ? (
+          {contractsLoading ? (
+            <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-3">
+              <div className="w-8 h-8 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin mx-auto" />
+              <p className="text-xs font-bold text-slate-500">Loading your contract workspaces...</p>
+            </div>
+          ) : filteredContracts.length === 0 ? (
             <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-3">
               <Layers className="w-12 h-12 text-slate-300 mx-auto" />
               <h3 className="text-base font-bold text-slate-700">No contracts matched your search</h3>
