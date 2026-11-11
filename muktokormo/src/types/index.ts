@@ -1,3 +1,10 @@
+import type {
+  ContractPaymentStatus,
+  ContractWorkStatus,
+  EscrowLedgerRecord,
+  PaymentRecord,
+} from "./payment";
+
 export type JobCategory = 
   | "Web & App Development"
   | "UI/UX & Graphic Design"
@@ -196,13 +203,27 @@ export interface WorkspaceContract {
   };
   totalBdt: number;
   platformFeePct: number;
+  platformFeeAmount?: number;
   netEarningsBdt: number;
   escrowHeldBdt: number;
+  fundedBdt?: number;
   releasedBdt: number;
+  refundedBdt?: number;
   remainingBdt: number;
+  paymentStatus?: ContractPaymentStatus;
+  workStatus?: ContractWorkStatus;
+  fundedAt?: string | null;
+  releasedAt?: string | null;
+  refundedAt?: string | null;
+  submissionNotes?: string | null;
+  submissionDemoUrl?: string | null;
+  submissionFiles?: string[];
+  revisionFeedback?: string | null;
+  escrowLedger?: EscrowLedgerRecord[];
+  latestPayment?: PaymentRecord | null;
   startedAt: string;
   deadlineDate: string;
-  stage: "ACTIVE" | "COMPLETED" | "DISPUTED";
+  stage: "ACTIVE" | "COMPLETED" | "DISPUTED" | "TERMINATED";
   milestones: WorkspaceMilestone[];
   activityLogs: ContractActivity[];
 }

@@ -24,6 +24,8 @@ import {
   updateProposalStatus,
   withdrawProposal,
 } from "@/lib/data/proposals";
+import { createContractFromProposal } from "@/lib/data/contracts";
+import { isUuid } from "@/lib/payments/constants";
 import { Job, ProposalSubmission, JobBid } from "@/types";
 import { ArrowRight, Briefcase, UserPlus, ShieldCheck } from "lucide-react";
 
@@ -47,6 +49,7 @@ export default function Home() {
   const [selectedJobForBids, setSelectedJobForBids] = useState<Job | null>(null);
   const [isMyBidsOpen, setIsMyBidsOpen] = useState(false);
   const [escrowJob, setEscrowJob] = useState<Job | null>(null);
+  const [escrowContractId, setEscrowContractId] = useState<string | undefined>(undefined);
   const [escrowCustomAmount, setEscrowCustomAmount] = useState<number | undefined>(undefined);
   const [escrowFreelancerName, setEscrowFreelancerName] = useState<string | undefined>(undefined);
 
@@ -179,19 +182,28 @@ export default function Home() {
     await updateProposalStatus(supabase, bidId, nextStatus);
   };
 
-  const handleAcceptBidAndEscrow = (job: Job, bid: JobBid) => {
+  const handleAcceptBidAndEscrow = async (job: Job, bid: JobBid) => {
     const updateBid = (b: JobBid) =>
       b.id === bid.id ? { ...b, status: "ACCEPTED" as const } : b;
 
     setBids((prev) => prev.map(updateBid));
     setMyBids((prev) => prev.map(updateBid));
 
-    void updateProposalStatus(supabase, bid.id, "ACCEPTED");
-
     setSelectedJobForBids(null);
     setEscrowJob(job);
+    setEscrowContractId(isUuid(bid.id) ? `ctr-${bid.id}` : undefined);
     setEscrowCustomAmount(bid.bidAmountBdt);
     setEscrowFreelancerName(bid.freelancerName);
+
+    if (isUuid(bid.id)) {
+      const updated = await updateProposalStatus(supabase, bid.id, "ACCEPTED");
+      if (updated) {
+        const contract = await createContractFromProposal(supabase, bid.id);
+        if (contract?.id) {
+          setEscrowContractId(contract.id);
+        }
+      }
+    }
   };
 
   const handleWithdrawBid = (bidId: string) => {
@@ -251,6 +263,7 @@ export default function Home() {
 
   const handleOpenEscrowDefault = () => {
     setEscrowJob(jobs[0] || null);
+    setEscrowContractId(undefined);
     setEscrowCustomAmount(undefined);
     setEscrowFreelancerName(undefined);
   };
@@ -427,9 +440,11 @@ export default function Home() {
       {/* Escrow Milestone & Payment Modal */}
       <EscrowModal
         job={escrowJob}
+        contractId={escrowContractId}
         isOpen={!!escrowJob}
         onClose={() => {
           setEscrowJob(null);
+          setEscrowContractId(undefined);
           setEscrowCustomAmount(undefined);
           setEscrowFreelancerName(undefined);
         }}

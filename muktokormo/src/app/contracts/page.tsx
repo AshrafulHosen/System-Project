@@ -16,7 +16,8 @@ import {
 import Logo from "@/components/Logo";
 import { createClient } from "@/lib/supabase/client";
 import { fetchUserContracts } from "@/lib/data/contracts";
-import { WorkspaceContract } from "@/types";
+import { getPaymentStatusMeta, getWorkStatusMeta } from "@/lib/payments/escrow";
+import type { WorkspaceContract } from "@/types";
 
 export default function ContractsHubPage() {
   const router = useRouter();
@@ -137,8 +138,8 @@ export default function ContractsHubPage() {
             </h1>
             <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
               {lang === "en"
-                ? "Manage deliverables, submit code & designs, review revisions, and safely disburse payments in Bangladeshi Taka (BDT) via bKash & Nagad."
-                : "ডেলিভারি জমা দিন, রিভিশন রিভিউ করুন এবং বিকাশ ও নগদের মাধ্যমে সুরক্ষিতভাবে পেমেন্ট রিলিজ পরিচালনা করুন।"}
+                ? "Manage deliverables, submit code & designs, review revisions, fund contracts via SSLCOMMERZ Sandbox in BDT, and track simulated escrow settlements."
+                : "ডেলিভারি জমা দিন, রিভিশন রিভিউ করুন এবং SSLCOMMERZ স্যান্ডবক্সের মাধ্যমে সিমুলেটেড এসক্রো পরিচালনা করুন।"}
             </p>
           </div>
 
@@ -269,15 +270,46 @@ export default function ContractsHubPage() {
                           {contract.category}
                         </span>
 
+                        {contract.paymentStatus && (() => {
+                          const pMeta = getPaymentStatusMeta(contract.paymentStatus);
+                          const wMeta = getWorkStatusMeta(contract.workStatus);
+                          const badgeMap: Record<string, string> = {
+                            emerald: "bg-emerald-50 text-emerald-800 border-emerald-200",
+                            sky: "bg-sky-50 text-sky-800 border-sky-200",
+                            amber: "bg-amber-50 text-amber-800 border-amber-200",
+                            rose: "bg-rose-50 text-rose-800 border-rose-200",
+                            indigo: "bg-indigo-50 text-indigo-800 border-indigo-200",
+                            slate: "bg-slate-100 text-slate-700 border-slate-200",
+                          };
+                          return (
+                            <>
+                              <span
+                                className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                                  badgeMap[pMeta.tone] ?? badgeMap.slate
+                                }`}
+                              >
+                                {lang === "en" ? pMeta.label : pMeta.labelBn}
+                              </span>
+                              <span
+                                className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                                  badgeMap[wMeta.tone] ?? badgeMap.slate
+                                }`}
+                              >
+                                {lang === "en" ? wMeta.label : wMeta.labelBn}
+                              </span>
+                            </>
+                          );
+                        })()}
+
                         {contract.stage === "ACTIVE" ? (
                           <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
-                            {lang === "en" ? "Active Milestone in Progress" : "চলতি মাইলস্টোন"}
+                            {lang === "en" ? "Active Contract" : "চলতি কন্ট্রাক্ট"}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-800 bg-purple-100 px-2.5 py-0.5 rounded-full">
                             <CheckCircle2 className="w-3.5 h-3.5 text-purple-600" />
-                            {lang === "en" ? "Fully Completed & Paid" : "সম্পূর্ণ পরিশোধিত"}
+                            {lang === "en" ? "Fully Completed & Settled" : "সম্পূর্ণ পরিশোধিত"}
                           </span>
                         )}
                       </div>
@@ -289,6 +321,7 @@ export default function ContractsHubPage() {
                       {/* Client & Freelancer Pill Row */}
                       <div className="flex flex-wrap items-center gap-5 pt-1 text-xs text-slate-600">
                         <div className="flex items-center gap-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={contract.client.avatar}
                             alt={contract.client.name}
@@ -302,6 +335,7 @@ export default function ContractsHubPage() {
                         </div>
 
                         <div className="flex items-center gap-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={contract.freelancer.avatar}
                             alt={contract.freelancer.name}
@@ -331,8 +365,12 @@ export default function ContractsHubPage() {
                           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                           <span>
                             {contract.escrowHeldBdt > 0
-                              ? `৳${contract.escrowHeldBdt.toLocaleString()} in Escrow Custody`
-                              : "All Funds Released"}
+                              ? `৳${contract.escrowHeldBdt.toLocaleString()} Simulated Escrow Custody`
+                              : contract.paymentStatus === "RELEASED" || contract.releasedBdt > 0
+                                ? "Internal Escrow Released"
+                                : contract.paymentStatus === "REFUNDED"
+                                  ? "Refunded on Ledger"
+                                  : "Awaiting SSLCOMMERZ Sandbox Funding"}
                           </span>
                         </div>
                       </div>

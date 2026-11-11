@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { isUuid } from "@/lib/payments/constants";
 import { Job, JobBid } from "@/types";
 import { 
   X, 
@@ -141,7 +142,11 @@ export default function MyBidsDrawer({
                     <div className="flex items-center gap-1.5">
                       {bid.status === "ACCEPTED" && (
                         <Link
-                          href="/contracts/ctr-8842"
+                          href={
+                            isUuid(bid.id)
+                              ? `/contracts/ctr-${bid.id}`
+                              : "/contracts/ctr-8842"
+                          }
                           onClick={onClose}
                           className="px-2.5 py-1 text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg cursor-pointer transition-colors shadow-2xs flex items-center gap-1"
                         >

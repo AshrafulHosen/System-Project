@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import type TalkType from "talkjs";
 import {
   getTalkJS,
   TALKJS_APP_ID,
@@ -35,8 +36,8 @@ export default function TalkJSChat({
   const [error, setError] = useState<string | null>(null);
 
   // Track the mounted UI and session so cleanup can properly destroy them
-  const uiRef = useRef<any>(null);
-  const sessionRef = useRef<any>(null);
+  const uiRef = useRef<TalkType.Inbox | TalkType.Chatbox | null>(null);
+  const sessionRef = useRef<TalkType.Session | null>(null);
 
   const cleanup = useCallback(() => {
     // Destroy the UI (inbox/chatbox) first, then the session
@@ -103,7 +104,7 @@ export default function TalkJSChat({
         sessionRef.current = session;
 
         // 3. Create or select 1-on-1 conversation
-        let targetConversation: any = null;
+        let targetConversation: TalkType.ConversationBuilder | null = null;
 
         if (otherUser && otherUser.id) {
           const other = new Talk.User({
@@ -146,22 +147,24 @@ export default function TalkJSChat({
         }
 
         // 4. Mount UI (Inbox or Chatbox)
-        let ui: any;
+        let ui: TalkType.Inbox | TalkType.Chatbox;
         if (mode === "inbox") {
-          ui = session.createInbox({
+          const inbox = session.createInbox({
             showFeedHeader: true,
           });
           if (targetConversation) {
-            ui.select(targetConversation);
+            inbox.select(targetConversation);
           }
+          ui = inbox;
         } else {
           // Hide duplicate internal TalkJS header in Chatbox mode since custom header is already present
-          ui = session.createChatbox({
+          const chatbox = session.createChatbox({
             showChatHeader: false,
           });
           if (targetConversation) {
-            ui.select(targetConversation);
+            chatbox.select(targetConversation);
           }
+          ui = chatbox;
         }
 
         uiRef.current = ui;
@@ -176,10 +179,14 @@ export default function TalkJSChat({
         if (!isCancelled) {
           setLoading(false);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("TalkJS mount error:", err);
         if (!isCancelled) {
-          setError(err?.message || "Failed to connect to TalkJS real-time messaging service.");
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to connect to TalkJS real-time messaging service."
+          );
           setLoading(false);
         }
       }

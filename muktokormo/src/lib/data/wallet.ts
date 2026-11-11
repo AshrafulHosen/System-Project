@@ -105,6 +105,48 @@ export function setPrimaryStoredPayoutMethod(id: string): PayoutMethod[] {
 // SUPABASE LIVE DATABASE OPERATIONS
 // -----------------------------------------------------------------------------
 
+interface RawPayoutMethodRow {
+  id: string;
+  type: string;
+  account_type?: string | null;
+  account_number: string;
+  account_holder: string;
+  bank_name?: string | null;
+  branch_name?: string | null;
+  routing_number?: string | null;
+  is_primary?: boolean | null;
+  status?: string | null;
+  created_at?: string | null;
+}
+
+interface PayoutMethodInsertRow {
+  id: string;
+  type: PayoutMethod["type"];
+  account_type: NonNullable<PayoutMethod["accountType"]>;
+  account_number: string;
+  account_holder: string;
+  bank_name: string | null;
+  branch_name: string | null;
+  routing_number: string | null;
+  is_primary: boolean;
+  status: PayoutMethod["status"];
+  user_id?: string;
+}
+
+function normalizePayoutMethodType(raw: string): PayoutMethod["type"] {
+  if (raw === "NAGAD" || raw === "ROCKET" || raw === "BANK") return raw;
+  return "BKASH";
+}
+
+function normalizeAccountType(raw?: string | null): PayoutMethod["accountType"] {
+  if (raw === "Personal" || raw === "Merchant") return raw;
+  return undefined;
+}
+
+function normalizePayoutStatus(raw?: string | null): PayoutMethod["status"] {
+  return raw === "PENDING" ? "PENDING" : "VERIFIED";
+}
+
 export async function fetchLivePayoutMethods(
   supabase: SupabaseClient,
   userId?: string | null
@@ -118,18 +160,18 @@ export async function fetchLivePayoutMethods(
 
     const { data, error } = await query;
     if (!error && data && data.length > 0) {
-      const mapped: PayoutMethod[] = data.map((row: any) => ({
+      const mapped: PayoutMethod[] = (data as RawPayoutMethodRow[]).map((row) => ({
         id: row.id,
-        type: row.type as any,
-        accountType: row.account_type as any,
+        type: normalizePayoutMethodType(row.type),
+        accountType: normalizeAccountType(row.account_type),
         accountNumber: row.account_number,
         accountHolder: row.account_holder,
         bankName: row.bank_name || undefined,
         branchName: row.branch_name || undefined,
         routingNumber: row.routing_number || undefined,
         isPrimary: Boolean(row.is_primary),
-        status: (row.status as any) || "VERIFIED",
-        createdAt: row.created_at,
+        status: normalizePayoutStatus(row.status),
+        createdAt: row.created_at || undefined,
       }));
 
       // Sync to local storage
@@ -155,7 +197,7 @@ export async function saveLivePayoutMethod(
 
   // 2. Perform live Supabase insert
   try {
-    const insertRow: any = {
+    const insertRow: PayoutMethodInsertRow = {
       id: newMethod.id,
       type: newMethod.type,
       account_type: newMethod.accountType || "Personal",

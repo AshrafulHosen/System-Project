@@ -132,7 +132,7 @@ function BidModal({
                   <span className="font-bold text-rose-600">-{formatBdt(fee)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-emerald-700 pt-1 border-t border-slate-200">
-                  <span>You'll receive:</span>
+                  <span>You&apos;ll receive:</span>
                   <span>{formatBdt(net)}</span>
                 </div>
               </div>
@@ -211,8 +211,8 @@ export default function JobDetailPage() {
 
   const handleUpdateStatus = async (proposalId: string, status: JobBid["status"]) => {
     setUpdatingId(proposalId);
-    await updateProposalStatus(supabase, proposalId, status);
-    if (status === "ACCEPTED") {
+    const updated = await updateProposalStatus(supabase, proposalId, status);
+    if (updated && status === "ACCEPTED") {
       try {
         await createContractFromProposal(supabase, proposalId);
       } catch (err) {
@@ -401,11 +401,11 @@ export default function JobDetailPage() {
                           </p>
                           {/* Show cover letter only to client */}
                           {isOwner && (
-                            <p className="text-xs text-slate-600 mt-2 line-clamp-2 italic">"{bid.coverLetter}"</p>
+                            <p className="text-xs text-slate-600 mt-2 line-clamp-2 italic">&quot;{bid.coverLetter}&quot;</p>
                           )}
                           {/* Show own cover to freelancer */}
                           {isFreelancer && bid.freelancerId === freelancerId && (
-                            <p className="text-xs text-slate-600 mt-2 line-clamp-2 italic">"{bid.coverLetter}"</p>
+                            <p className="text-xs text-slate-600 mt-2 line-clamp-2 italic">&quot;{bid.coverLetter}&quot;</p>
                           )}
                         </div>
                       </div>

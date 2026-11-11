@@ -564,7 +564,7 @@ export default function WorkspacesOverviewPage() {
                         <h4 className="text-xs font-bold text-emerald-950">Option A: Approve & Release Escrow</h4>
                       </div>
                       <p className="text-[11px] text-emerald-800">
-                        Funds (৳20,000) are released from escrow directly into the freelancer's wallet. Freelancer can cash out via bKash/Nagad immediately.
+                        Funds (৳20,000) are released from escrow directly into the freelancer&apos;s wallet. Freelancer can cash out via bKash/Nagad immediately.
                       </p>
                       <button
                         type="button"
@@ -582,7 +582,7 @@ export default function WorkspacesOverviewPage() {
                         <h4 className="text-xs font-bold text-amber-950">Option B: Request Revision</h4>
                       </div>
                       <p className="text-[11px] text-amber-800">
-                        Need tweaks? Specify adjustments in detail. The milestone updates to 'Revision Requested', and funds remain locked in escrow.
+                        Need tweaks? Specify adjustments in detail. The milestone updates to &apos;Revision Requested&apos;, and funds remain locked in escrow.
                       </p>
                       <button
                         type="button"

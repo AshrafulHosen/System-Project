@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Users,
   ShieldCheck,
@@ -15,11 +15,25 @@ import {
   CheckCircle2,
   UserCircle,
   Info,
+  Wallet,
+  RotateCcw,
+  AlertTriangle,
+  Percent,
+  Clock,
+  Filter,
+  Loader2,
+  X,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { SectionHeading, StatCard } from "@/components/dashboard/Primitives";
+import PaymentHistoryTable from "@/components/payments/PaymentHistoryTable";
+import PaymentDetailModal from "@/components/payments/PaymentDetailModal";
 import { ADMIN_NAV } from "@/data/dashboardData";
 import { formatBdt } from "@/lib/format";
+import {
+  ESCROW_SIMULATION_DISCLAIMER,
+  ESCROW_SIMULATION_DISCLAIMER_BN,
+} from "@/lib/payments/escrow";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -31,6 +45,11 @@ import {
   type AdminProposalRow,
 } from "@/lib/data/admin";
 import { AdminOverview, ManagedUser, ManagedUserType } from "@/types";
+import type {
+  AdminPaymentDashboardPayload,
+  AdminRefundRequestItem,
+  PaymentDashboardItem,
+} from "@/types/payment";
 
 const USER_TYPE_STYLES: Record<
   ManagedUserType,
@@ -67,12 +86,14 @@ const PROPOSAL_STATUS_STYLES: Record<string, string> = {
   REJECTED: "bg-red-50 text-red-600 border-red-200",
 };
 
-export default function AdminDashboardPage() {
+function AdminDashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
   const { name, email, role, loading: userLoading } = useCurrentUser();
   const [lang, setLang] = useState<"en" | "bn">("en");
-  const [activeTab, setActiveTab] = useState<string>("overview");
+  const tabParam = searchParams ? searchParams.get("tab") : null;
+  const [activeTab, setActiveTab] = useState<string>(tabParam || "overview");
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [users, setUsers] = useState<ManagedUser[]>([]);
   const [projects, setProjects] = useState<AdminProjectRow[]>([]);
@@ -81,6 +102,34 @@ export default function AdminDashboardPage() {
   const [refreshTick, setRefreshTick] = useState(0);
   const [moderatingProjectId, setModeratingProjectId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+
+  // Admin Payments & Escrow State
+  const [paymentDashboard, setPaymentDashboard] =
+    useState<AdminPaymentDashboardPayload | null>(null);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [paymentsError, setPaymentsError] = useState<string | null>(null);
+  const [txQuery, setTxQuery] = useState("");
+  const [txStatus, setTxStatus] = useState("ALL");
+  const [txFrom, setTxFrom] = useState("");
+  const [txTo, setTxTo] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState({
+    q: "",
+    status: "ALL",
+    from: "",
+    to: "",
+  });
+  const [selectedPayment, setSelectedPayment] =
+    useState<PaymentDashboardItem | null>(null);
+  const [activeRefundModal, setActiveRefundModal] = useState<{
+    refund: AdminRefundRequestItem;
+    mode: "APPROVE_SIMULATED" | "APPROVE_GATEWAY" | "REJECT";
+  } | null>(null);
+  const [refundAdminNotes, setRefundAdminNotes] = useState("");
+  const [moderatingRefundId, setModeratingRefundId] = useState<string | null>(null);
+  const [refundActionNotice, setRefundActionNotice] = useState<{
+    tone: "emerald" | "rose" | "amber";
+    text: string;
+  } | null>(null);
 
   const isAdmin = role === "admin";
 
@@ -93,26 +142,182 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (!isAdmin) return;
     let cancelled = false;
-    (async () => {
-      setLoading(true);
-      const [overviewData, managedUsers, recentProjects, recentProposals] =
-        await Promise.all([
-          fetchAdminOverview(supabase),
-          fetchManagedUsers(supabase),
-          fetchAdminRecentProjects(supabase, 10),
-          fetchAdminRecentProposals(supabase, 10),
-        ]);
-      if (cancelled) return;
-      setOverview(overviewData);
-      setUsers(managedUsers);
-      setProjects(recentProjects);
-      setProposals(recentProposals);
-      setLoading(false);
-    })();
+    Promise.all([
+      fetchAdminOverview(supabase),
+      fetchManagedUsers(supabase),
+      fetchAdminRecentProjects(supabase, 10),
+      fetchAdminRecentProposals(supabase, 10),
+    ])
+      .then(([overviewData, managedUsers, recentProjects, recentProposals]) => {
+        if (cancelled) return;
+        setOverview(overviewData);
+        setUsers(managedUsers);
+        setProjects(recentProjects);
+        setProposals(recentProposals);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => {
       cancelled = true;
     };
   }, [supabase, isAdmin, refreshTick]);
+
+  const fetchAdminPayments = useCallback(
+    async (params: {
+      q: string;
+      status: string;
+      from: string;
+      to: string;
+    }): Promise<AdminPaymentDashboardPayload> => {
+      const qs = new URLSearchParams();
+      if (params.q.trim()) qs.set("q", params.q.trim());
+      if (params.status && params.status !== "ALL")
+        qs.set("status", params.status);
+      if (params.from) qs.set("from", params.from);
+      if (params.to) qs.set("to", params.to);
+
+      const response = await fetch(`/api/admin/payments?${qs.toString()}`, {
+        cache: "no-store",
+      });
+      const data = (await response.json()) as
+        | AdminPaymentDashboardPayload
+        | { ok?: false; error?: string };
+
+      if (!response.ok || !data || !("ok" in data) || !data.ok) {
+        throw new Error(
+          (data as { error?: string })?.error ||
+            "Failed to load platform payment telemetry."
+        );
+      }
+      return data;
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    fetchAdminPayments(appliedFilters)
+      .then((payload) => {
+        if (cancelled) return;
+        setPaymentDashboard(payload);
+        setPaymentsError(null);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setPaymentsError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load admin payment records."
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setPaymentsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAdmin, refreshTick, appliedFilters, fetchAdminPayments]);
+
+  const handleApplyPaymentFilters = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPaymentsLoading(true);
+    setAppliedFilters({
+      q: txQuery,
+      status: txStatus,
+      from: txFrom,
+      to: txTo,
+    });
+  };
+
+  const handleResetPaymentFilters = () => {
+    setTxQuery("");
+    setTxStatus("ALL");
+    setTxFrom("");
+    setTxTo("");
+    setPaymentsLoading(true);
+    setAppliedFilters({ q: "", status: "ALL", from: "", to: "" });
+  };
+
+  const handleAdminRefundAction = async (params: {
+    refundId: string;
+    action: "APPROVE" | "REJECT" | "CHECK_GATEWAY_STATUS";
+    refundMode?: "SIMULATED_INTERNAL" | "SSLCOMMERZ_SANDBOX_API";
+    adminNotes?: string;
+  }) => {
+    setRefundActionNotice(null);
+    setModeratingRefundId(params.refundId);
+    try {
+      const response = await fetch(`/api/admin/refunds/${params.refundId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: params.action,
+          ...(params.refundMode ? { refundMode: params.refundMode } : {}),
+          ...(params.adminNotes?.trim() ? { adminNotes: params.adminNotes.trim() } : {}),
+        }),
+      });
+      const data = (await response.json()) as {
+        ok?: boolean;
+        status?: string;
+        refundMode?: string;
+        gatewayStatus?: string;
+        refundRefId?: string;
+        error?: string;
+        message?: string;
+      };
+
+      if (!response.ok || !data.ok) {
+        setRefundActionNotice({
+          tone: "rose",
+          text: data.error || "Unable to complete admin refund action.",
+        });
+        setRefreshTick((t) => t + 1);
+        return;
+      }
+
+      setActiveRefundModal(null);
+      setRefundAdminNotes("");
+
+      if (data.status === "GATEWAY_INITIATED") {
+        setRefundActionNotice({
+          tone: "amber",
+          text:
+            data.message ||
+            `SSLCOMMERZ Sandbox refund initiated (Ref: ${data.refundRefId ?? "pending"}). Click "Check Gateway Status" to verify final settlement.`,
+        });
+      } else if (data.status === "REJECTED") {
+        setRefundActionNotice({
+          tone: "amber",
+          text: "Refund request rejected. Original contract payment restored to FUNDED.",
+        });
+      } else if (data.status === "FAILED") {
+        setRefundActionNotice({
+          tone: "rose",
+          text: "SSLCOMMERZ Sandbox cancelled the gateway refund. Contract payment restored to FUNDED.",
+        });
+      } else {
+        setRefundActionNotice({
+          tone: "emerald",
+          text:
+            data.refundMode === "SSLCOMMERZ_SANDBOX_API"
+              ? `SSLCOMMERZ Sandbox gateway refund confirmed (${data.refundRefId ?? "REFUNDED"}) and REFUND ledger entry recorded.`
+              : "Simulated internal escrow refund approved and REFUND ledger entry recorded.",
+        });
+      }
+
+      setPaymentsLoading(true);
+      setRefreshTick((t) => t + 1);
+    } catch {
+      setRefundActionNotice({
+        tone: "rose",
+        text: "Network error contacting /api/admin/refunds endpoint.",
+      });
+    } finally {
+      setModeratingRefundId(null);
+    }
+  };
 
   const handleToggleProjectStatus = async (projectId: string, currentStatus: string) => {
     if (moderatingProjectId) return;
@@ -226,6 +431,7 @@ export default function AdminDashboardPage() {
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
           {[
             { id: "overview", label: "Overview", labelBn: "সংক্ষিপ্ত বিবরণ" },
+            { id: "payments", label: "Payments & Escrow", labelBn: "পেমেন্ট ও এসক্রো" },
             { id: "users", label: "User Management", labelBn: "ইউজার ব্যবস্থাপনা" },
             { id: "jobs", label: "Job Moderation", labelBn: "কাজের মডারেশন" },
             { id: "proposals", label: "Proposals", labelBn: "আবেদন" },
@@ -612,6 +818,466 @@ export default function AdminDashboardPage() {
           </div>
         )}
 
+        {/* Payments, Escrow & Refund Management Section */}
+        {(activeTab === "overview" || activeTab === "payments") && (
+          <div id="payments" className="space-y-5">
+            <SectionHeading
+              title="Payments, Escrow & Commission Telemetry"
+              titleBn="পেমেন্ট, এসক্রো ও প্ল্যাটফর্ম কমিশন"
+              subtitle="Live SSLCOMMERZ Sandbox settlement volume, simulated escrow custody, and platform commission"
+              subtitleBn="SSLCOMMERZ স্যান্ডবক্স লেনদেন, সিমুলেটেড এসক্রো ও প্ল্যাটফর্ম কমিশন"
+              lang={lang}
+            />
+
+            {/* Academic Simulation Disclosure */}
+            <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900">
+              <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                {lang === "en"
+                  ? ESCROW_SIMULATION_DISCLAIMER
+                  : ESCROW_SIMULATION_DISCLAIMER_BN}
+              </p>
+            </div>
+
+            {paymentsError && (
+              <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{paymentsError}</span>
+              </div>
+            )}
+
+            {/* Admin Payment Metrics Grid (All derived strictly from Supabase) */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <StatCard
+                icon={Wallet}
+                label="Total Payment Volume"
+                labelBn="মোট পেমেন্ট ভলিউম"
+                value={formatBdt(paymentDashboard?.summary.totalPaymentVolumeBdt ?? 0)}
+                delta={
+                  lang === "en"
+                    ? `${paymentDashboard?.summary.fundedPaymentsCount ?? 0} funded · ${paymentDashboard?.summary.releasedPaymentsCount ?? 0} released`
+                    : `${paymentDashboard?.summary.fundedPaymentsCount ?? 0} ফান্ডেড · ${paymentDashboard?.summary.releasedPaymentsCount ?? 0} রিলিজড`
+                }
+                lang={lang}
+                accent="emerald"
+              />
+              <StatCard
+                icon={ShieldCheck}
+                label="Total Funded Escrow"
+                labelBn="মোট ফান্ডেড এসক্রো"
+                value={formatBdt(paymentDashboard?.summary.fundedPaymentsAmountBdt ?? 0)}
+                delta={
+                  lang === "en"
+                    ? `${paymentDashboard?.summary.fundedPaymentsCount ?? 0} funded payments`
+                    : `${paymentDashboard?.summary.fundedPaymentsCount ?? 0}টি ফান্ডেড পেমেন্ট`
+                }
+                lang={lang}
+                accent="sky"
+              />
+              <StatCard
+                icon={CheckCircle2}
+                label="Total Released Payments"
+                labelBn="মোট রিলিজড পেমেন্ট"
+                value={formatBdt(paymentDashboard?.summary.releasedPaymentsAmountBdt ?? 0)}
+                delta={
+                  lang === "en"
+                    ? `${paymentDashboard?.summary.releasedPaymentsCount ?? 0} completed releases`
+                    : `${paymentDashboard?.summary.releasedPaymentsCount ?? 0}টি সম্পন্ন রিলিজ`
+                }
+                lang={lang}
+                accent="violet"
+              />
+              <StatCard
+                icon={Percent}
+                label="Platform Commission (10%)"
+                labelBn="প্ল্যাটফর্ম কমিশন (১০%)"
+                value={formatBdt(
+                  paymentDashboard?.summary.platformCommissionEarnedBdt ?? 0
+                )}
+                delta={
+                  lang === "en"
+                    ? `Pending escrow fee: ${formatBdt(paymentDashboard?.summary.projectedCommissionBdt ?? 0)}`
+                    : `অপেক্ষমাণ কমিশন: ${formatBdt(paymentDashboard?.summary.projectedCommissionBdt ?? 0)}`
+                }
+                lang={lang}
+                accent="amber"
+              />
+            </div>
+
+            {/* Operational Queue Counters */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-amber-700">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{lang === "en" ? "Pending Payments" : "অপেক্ষমান পেমেন্ট"}</span>
+                </div>
+                <p className="text-xl font-black text-slate-900 mt-1">
+                  {paymentDashboard?.summary.pendingPaymentsCount ?? 0}
+                </p>
+              </div>
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-rose-700">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>{lang === "en" ? "Failed / Cancelled" : "ব্যর্থ / বাতিল"}</span>
+                </div>
+                <p className="text-xl font-black text-slate-900 mt-1">
+                  {(paymentDashboard?.summary.failedPaymentsCount ?? 0) +
+                    (paymentDashboard?.summary.cancelledPaymentsCount ?? 0)}
+                  <span className="text-[11px] font-semibold text-slate-400 ml-1.5">
+                    ({paymentDashboard?.summary.failedPaymentsCount ?? 0} failed)
+                  </span>
+                </p>
+              </div>
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-indigo-700">
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>{lang === "en" ? "Refund Requests" : "রিফান্ড অনুরোধ"}</span>
+                </div>
+                <p className="text-xl font-black text-slate-900 mt-1">
+                  {paymentDashboard?.summary.refundRequestsCount ?? 0}
+                  <span className="text-[11px] font-semibold text-indigo-600 ml-1.5">
+                    ({paymentDashboard?.summary.pendingRefundRequestsCount ?? 0} pending)
+                  </span>
+                </p>
+              </div>
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>{lang === "en" ? "Refunded Total" : "মোট রিফান্ড"}</span>
+                </div>
+                <p className="text-xl font-black text-slate-900 mt-1">
+                  {formatBdt(paymentDashboard?.summary.refundedAmountBdt ?? 0)}
+                </p>
+              </div>
+            </div>
+
+            {/* Search & Filter Toolbar */}
+            <form
+              onSubmit={handleApplyPaymentFilters}
+              className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end"
+            >
+              <div className="lg:col-span-4">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                  {lang === "en"
+                    ? "Search Transaction ID / Contract / Party"
+                    : "ট্রানজেকশন আইডি বা চুক্তি খুঁজুন"}
+                </label>
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="search"
+                    value={txQuery}
+                    onChange={(e) => setTxQuery(e.target.value)}
+                    placeholder="e.g. MK-... or val_id or contract code"
+                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="lg:col-span-2">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                  {lang === "en" ? "Payment Status" : "স্ট্যাটাস"}
+                </label>
+                <select
+                  value={txStatus}
+                  onChange={(e) => {
+                    const nextStatus = e.target.value;
+                    setTxStatus(nextStatus);
+                    setPaymentsLoading(true);
+                    setAppliedFilters((prev) => ({ ...prev, status: nextStatus }));
+                  }}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                >
+                  <option value="ALL">All Statuses</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="FUNDED">Funded</option>
+                  <option value="RELEASED">Released</option>
+                  <option value="FAILED">Failed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                  <option value="REFUND_REQUESTED">Refund Requested</option>
+                  <option value="REFUNDED">Refunded</option>
+                </select>
+              </div>
+
+              <div className="lg:col-span-2">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                  {lang === "en" ? "From Date" : "শুরুর তারিখ"}
+                </label>
+                <input
+                  type="date"
+                  value={txFrom}
+                  onChange={(e) => {
+                    const nextFrom = e.target.value;
+                    setTxFrom(nextFrom);
+                    setPaymentsLoading(true);
+                    setAppliedFilters((prev) => ({ ...prev, from: nextFrom }));
+                  }}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                />
+              </div>
+
+              <div className="lg:col-span-2">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                  {lang === "en" ? "To Date" : "শেষ তারিখ"}
+                </label>
+                <input
+                  type="date"
+                  value={txTo}
+                  onChange={(e) => {
+                    const nextTo = e.target.value;
+                    setTxTo(nextTo);
+                    setPaymentsLoading(true);
+                    setAppliedFilters((prev) => ({ ...prev, to: nextTo }));
+                  }}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                />
+              </div>
+
+              <div className="lg:col-span-2 flex items-center gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors cursor-pointer"
+                >
+                  <Filter className="w-3.5 h-3.5" />
+                  <span>{lang === "en" ? "Apply" : "ফিল্টার"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetPaymentFilters}
+                  className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  {lang === "en" ? "Reset" : "রিসেট"}
+                </button>
+              </div>
+            </form>
+
+            {/* Transaction History Table */}
+            <PaymentHistoryTable
+              payments={paymentDashboard?.payments ?? []}
+              viewerRole="admin"
+              lang={lang}
+              loading={paymentsLoading}
+              onViewDetails={(payment) => setSelectedPayment(payment)}
+              emptyTitle={
+                lang === "en"
+                  ? "No transactions match these filters"
+                  : "এই ফিল্টারে কোনো লেনদেন পাওয়া যায়নি"
+              }
+              emptySubtitle={
+                lang === "en"
+                  ? "Adjust your Transaction ID query, status filter, or date range to inspect platform payments."
+                  : "ট্রানজেকশন আইডি, স্ট্যাটাস বা তারিখ পরিবর্তন করে পুনরায় দেখুন।"
+              }
+            />
+
+            {/* Refund Requests Queue & Admin Moderation Controls */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                  <RotateCcw className="w-4 h-4 text-indigo-600" />
+                  <span>
+                    {lang === "en"
+                      ? `Refund Request Queue (${paymentDashboard?.refundRequests.length ?? 0})`
+                      : `রিফান্ড অনুরোধ তালিকা (${paymentDashboard?.refundRequests.length ?? 0})`}
+                  </span>
+                </h3>
+                <span className="text-[11px] font-semibold text-slate-500">
+                  {paymentDashboard?.summary.pendingRefundRequestsCount ?? 0}{" "}
+                  {lang === "en" ? "pending review" : "পর্যালোচনার অপেক্ষায়"}
+                </span>
+              </div>
+
+              {refundActionNotice && (
+                <div
+                  className={`p-3.5 rounded-2xl border text-xs font-semibold flex items-start justify-between gap-2 ${
+                    refundActionNotice.tone === "emerald"
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                      : refundActionNotice.tone === "amber"
+                        ? "bg-amber-50 border-amber-200 text-amber-900"
+                        : "bg-rose-50 border-rose-200 text-rose-700"
+                  }`}
+                >
+                  <span>{refundActionNotice.text}</span>
+                  <button
+                    type="button"
+                    onClick={() => setRefundActionNotice(null)}
+                    className="p-0.5 opacity-70 hover:opacity-100 cursor-pointer shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {!paymentDashboard || paymentDashboard.refundRequests.length === 0 ? (
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 text-center text-xs text-slate-500">
+                  {lang === "en"
+                    ? "No client refund requests recorded yet."
+                    : "এখনো কোনো রিফান্ড অনুরোধ জমা পড়েনি।"}
+                </div>
+              ) : (
+                <div className="bg-white border border-slate-200/90 rounded-2xl divide-y divide-slate-100 overflow-hidden shadow-xs">
+                  {paymentDashboard.refundRequests.map((rf) => {
+                    const isBusy = moderatingRefundId === rf.id;
+                    const statusStyle =
+                      rf.status === "COMPLETED"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : rf.status === "REJECTED" || rf.status === "FAILED"
+                          ? "bg-rose-50 text-rose-700 border-rose-200"
+                          : rf.status === "GATEWAY_INITIATED"
+                            ? "bg-sky-50 text-sky-700 border-sky-200"
+                            : "bg-amber-50 text-amber-800 border-amber-200";
+                    return (
+                      <div
+                        key={rf.id}
+                        className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors"
+                      >
+                        <div className="space-y-1 min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-mono text-xs font-bold text-slate-900">
+                              {rf.transaction_id}
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${statusStyle}`}
+                            >
+                              {rf.status}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                              {rf.refund_mode}
+                            </span>
+                            {rf.gateway_status && (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-100 text-slate-600">
+                                GW: {rf.gateway_status}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs font-bold text-slate-800 truncate">
+                            {rf.contract_title} ({rf.contract_code})
+                          </p>
+                          <p className="text-[11px] text-slate-500 leading-relaxed">
+                            {rf.client_name} → {rf.freelancer_name} · Reason: {rf.reason}
+                          </p>
+                          {rf.gateway_refund_ref_id && (
+                            <p className="text-[10px] font-mono text-indigo-700">
+                              Refund Ref: {rf.gateway_refund_ref_id}
+                            </p>
+                          )}
+                          {rf.admin_notes && (
+                            <p className="text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/70 inline-block">
+                              Note: {rf.admin_notes}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end justify-between gap-2.5 shrink-0">
+                          <div className="flex items-center gap-3">
+                            <p className="text-sm font-black text-slate-900">
+                              {formatBdt(rf.amount)}
+                            </p>
+                            <Link
+                              href={`/contracts/${rf.contract_id}`}
+                              className="text-[11px] font-bold text-emerald-700 hover:underline"
+                            >
+                              {lang === "en" ? "Open Contract" : "চুক্তি দেখুন"}
+                            </Link>
+                          </div>
+
+                          {rf.status === "PENDING" && (
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                onClick={() => {
+                                  setRefundAdminNotes(rf.admin_notes ?? "");
+                                  setActiveRefundModal({
+                                    refund: rf,
+                                    mode: "APPROVE_SIMULATED",
+                                  });
+                                }}
+                                className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                {lang === "en" ? "Simulated Refund" : "সিমুলেটেড রিফান্ড"}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                onClick={() => {
+                                  setRefundAdminNotes(rf.admin_notes ?? "");
+                                  setActiveRefundModal({
+                                    refund: rf,
+                                    mode: "APPROVE_GATEWAY",
+                                  });
+                                }}
+                                className="px-2.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                {lang === "en" ? "SSLCOMMERZ API" : "স্যান্ডবক্স এপিআই"}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                onClick={() => {
+                                  setRefundAdminNotes(rf.admin_notes ?? "");
+                                  setActiveRefundModal({
+                                    refund: rf,
+                                    mode: "REJECT",
+                                  });
+                                }}
+                                className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                {lang === "en" ? "Reject" : "বাতিল"}
+                              </button>
+                            </div>
+                          )}
+
+                          {rf.status === "GATEWAY_INITIATED" && (
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                onClick={() =>
+                                  void handleAdminRefundAction({
+                                    refundId: rf.id,
+                                    action: "CHECK_GATEWAY_STATUS",
+                                  })
+                                }
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                {isBusy ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <RefreshCw className="w-3 h-3" />
+                                )}
+                                <span>
+                                  {lang === "en"
+                                    ? "Check Gateway Status"
+                                    : "গেটওয়ে স্ট্যাটাস দেখুন"}
+                                </span>
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isBusy}
+                                onClick={() => {
+                                  setRefundAdminNotes(rf.admin_notes ?? "");
+                                  setActiveRefundModal({
+                                    refund: rf,
+                                    mode: "REJECT",
+                                  });
+                                }}
+                                className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                              >
+                                {lang === "en" ? "Reject" : "বাতিল"}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Contracts & Escrow Tab */}
         {(activeTab === "overview" || activeTab === "contracts") && (
           <div id="contracts" className="space-y-4">
@@ -636,10 +1302,13 @@ export default function AdminDashboardPage() {
                 <div className="flex items-center gap-2 mb-2">
                   <Gavel className="w-4 h-4 text-amber-600" />
                   <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                    {lang === "en" ? "Open disputes" : "চলমান বিরোধ"}
+                    {lang === "en" ? "Open disputes / Pending refunds" : "বিরোধ ও অপেক্ষমাণ রিফান্ড"}
                   </p>
                 </div>
-                <p className="text-2xl font-black text-slate-900">0</p>
+                <p className="text-2xl font-black text-slate-900">
+                  {(paymentDashboard?.summary.openDisputesCount ?? 0) +
+                    (paymentDashboard?.summary.pendingRefundRequestsCount ?? 0)}
+                </p>
               </div>
               <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 text-white shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
@@ -650,8 +1319,8 @@ export default function AdminDashboardPage() {
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
                   {lang === "en"
-                    ? "Every contract is milestone funded via MFS escrow."
-                    : "প্রতিটি চুক্তি এমএফএস এসক্রোতে মাইলস্টোন ভিত্তিক।"}
+                    ? "Contracts settle via SSLCOMMERZ Sandbox verification and internal simulated escrow ledger entries."
+                    : "চুক্তিসমূহ SSLCOMMERZ স্যান্ডবক্স যাচাই ও অভ্যন্তরীণ সিমুলেটেড এসক্রো লেজারের মাধ্যমে পরিচালিত।"}
                 </p>
               </div>
             </div>
@@ -675,22 +1344,33 @@ export default function AdminDashboardPage() {
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-slate-900">
-                    {lang === "en" ? "Queue is clear" : "তালিকা খালি"}
+                    {(paymentDashboard?.summary.openDisputesCount ?? 0) === 0
+                      ? lang === "en"
+                        ? "Zero Active Contract Disputes"
+                        : "কোনো চুক্তি বিরোধ নেই"
+                      : lang === "en"
+                        ? `${paymentDashboard?.summary.openDisputesCount} Disputed Contract(s)`
+                        : `${paymentDashboard?.summary.openDisputesCount}টি বিরোধপূর্ণ চুক্তি`}
                   </h4>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    {lang === "en"
-                      ? "No disputes pending arbitration right now."
-                      : "এই মুহূর্তে কোনো বিরোধ মধ্যস্থতার অপেক্ষায় নেই।"}
+                    {(paymentDashboard?.summary.pendingRefundRequestsCount ?? 0) > 0
+                      ? lang === "en"
+                        ? `${paymentDashboard?.summary.pendingRefundRequestsCount} pending refund request(s) awaiting admin decision.`
+                        : `${paymentDashboard?.summary.pendingRefundRequestsCount}টি রিফান্ড অনুরোধ অ্যাডমিন সিদ্ধান্তের অপেক্ষায়।`
+                      : lang === "en"
+                        ? "No disputes pending arbitration right now."
+                        : "এই মুহূর্তে কোনো বিরোধ মধ্যস্থতার অপেক্ষায় নেই।"}
                   </p>
                 </div>
               </div>
 
-              <Link
-                href="/contracts"
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
+              <button
+                type="button"
+                onClick={() => setActiveTab("payments")}
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
               >
-                {lang === "en" ? "Review Escrow Rules" : "এসক্রো নিয়মাবলী দেখুন"}
-              </Link>
+                {lang === "en" ? "Open Payments & Refunds" : "পেমেন্ট ও রিফান্ড দেখুন"}
+              </button>
             </div>
           </div>
         )}
@@ -711,6 +1391,155 @@ export default function AdminDashboardPage() {
           </p>
         </div>
       </div>
+
+      <PaymentDetailModal
+        payment={selectedPayment}
+        viewerRole="admin"
+        lang={lang}
+        onClose={() => setSelectedPayment(null)}
+      />
+
+      {/* Admin Refund Decision Modal */}
+      {activeRefundModal && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-sm font-black text-slate-900">
+                  {activeRefundModal.mode === "APPROVE_SIMULATED"
+                    ? lang === "en"
+                      ? "Approve Simulated Internal Refund"
+                      : "সিমুলেটেড অভ্যন্তরীণ রিফান্ড অনুমোদন"
+                    : activeRefundModal.mode === "APPROVE_GATEWAY"
+                      ? lang === "en"
+                        ? "Initiate SSLCOMMERZ Sandbox Refund"
+                        : "SSLCOMMERZ স্যান্ডবক্স রিফান্ড শুরু করুন"
+                      : lang === "en"
+                        ? "Reject Refund Request"
+                        : "রিফান্ড অনুরোধ বাতিল করুন"}
+                </h3>
+                <p className="text-[11px] font-mono text-slate-500 mt-0.5">
+                  {activeRefundModal.refund.transaction_id} ·{" "}
+                  {formatBdt(activeRefundModal.refund.amount)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveRefundModal(null)}
+                className="p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs space-y-1">
+              <p className="font-bold text-slate-900">
+                {activeRefundModal.refund.contract_title} (
+                {activeRefundModal.refund.contract_code})
+              </p>
+              <p className="text-slate-600 text-[11px]">
+                Client reason: {activeRefundModal.refund.reason}
+              </p>
+            </div>
+
+            <div
+              className={`p-3 rounded-2xl border text-[11px] leading-relaxed ${
+                activeRefundModal.mode === "APPROVE_SIMULATED"
+                  ? "bg-emerald-50/80 border-emerald-200 text-emerald-900"
+                  : activeRefundModal.mode === "APPROVE_GATEWAY"
+                    ? "bg-sky-50/80 border-sky-200 text-sky-900"
+                    : "bg-rose-50/80 border-rose-200 text-rose-900"
+              }`}
+            >
+              {activeRefundModal.mode === "APPROVE_SIMULATED"
+                ? "Simulated Internal Refund records an internal REFUND ledger entry (is_simulated = true), marks payment/contract REFUNDED, and performs NO real external bank transfer."
+                : activeRefundModal.mode === "APPROVE_GATEWAY"
+                  ? "Calls SSLCOMMERZ Sandbox merchantTransIDvalidationAPI.php using stored bank_tran_id. Status remains GATEWAY_INITIATED until SSLCOMMERZ explicitly confirms 'refunded'."
+                  : "Rejects the refund request and restores the contract payment status back to FUNDED."}
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                {lang === "en" ? "Admin Notes (Optional)" : "অ্যাডমিন নোট (ঐচ্ছিক)"}
+              </label>
+              <textarea
+                rows={3}
+                maxLength={1000}
+                value={refundAdminNotes}
+                onChange={(e) => setRefundAdminNotes(e.target.value)}
+                placeholder="Add moderation notes recorded for audit & client notification..."
+                className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setActiveRefundModal(null)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+              >
+                {lang === "en" ? "Cancel" : "বাতিল"}
+              </button>
+              <button
+                type="button"
+                disabled={Boolean(moderatingRefundId)}
+                onClick={() =>
+                  void handleAdminRefundAction({
+                    refundId: activeRefundModal.refund.id,
+                    action:
+                      activeRefundModal.mode === "REJECT" ? "REJECT" : "APPROVE",
+                    ...(activeRefundModal.mode !== "REJECT"
+                      ? {
+                          refundMode:
+                            activeRefundModal.mode === "APPROVE_GATEWAY"
+                              ? "SSLCOMMERZ_SANDBOX_API"
+                              : "SIMULATED_INTERNAL",
+                        }
+                      : {}),
+                    adminNotes: refundAdminNotes,
+                  })
+                }
+                className={`inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-white text-xs font-black cursor-pointer disabled:opacity-60 ${
+                  activeRefundModal.mode === "REJECT"
+                    ? "bg-rose-600 hover:bg-rose-700"
+                    : activeRefundModal.mode === "APPROVE_GATEWAY"
+                      ? "bg-sky-600 hover:bg-sky-700"
+                      : "bg-emerald-600 hover:bg-emerald-700"
+                }`}
+              >
+                {moderatingRefundId === activeRefundModal.refund.id && (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                )}
+                <span>
+                  {activeRefundModal.mode === "APPROVE_SIMULATED"
+                    ? "Confirm Simulated Refund"
+                    : activeRefundModal.mode === "APPROVE_GATEWAY"
+                      ? "Call SSLCOMMERZ Refund API"
+                      : "Confirm Reject"}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardShell>
+  );
+}
+
+export default function AdminDashboardPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-400">
+          Loading Admin Console...
+        </div>
+      }
+    >
+      <AdminDashboardContent />
+    </React.Suspense>
   );
 }
