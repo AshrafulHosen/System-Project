@@ -37,7 +37,7 @@ import {
   buildStableTalkUserId,
   DEFAULT_TALK_AVATAR,
 } from "@/lib/talkjs";
-import type { WorkspaceContract } from "@/types";
+import type { WorkspaceContract, WorkspaceMilestone } from "@/types";
 
 // Dynamically load TalkJSChat on client side (SSR false)
 const TalkJSChat = dynamic(() => import("@/components/chat/TalkJSChat"), {
@@ -68,7 +68,7 @@ export interface ConversationThread {
   deliveryDays?: number;
   bidStatus: "ACCEPTED" | "PENDING";
   createdAt?: string;
-  milestones?: any[];
+  milestones?: WorkspaceMilestone[];
   partnerLocation?: string;
 }
 

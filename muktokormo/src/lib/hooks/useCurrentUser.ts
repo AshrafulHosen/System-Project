@@ -127,14 +127,18 @@ export default function useCurrentUser() {
   useEffect(() => {
     let cancelled = false;
 
-    refreshUser();
+    void Promise.resolve().then(() => {
+      if (!cancelled) {
+        return refreshUser();
+      }
+    });
 
     // Listen to Supabase auth state change events (login, logout, token refresh)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
       if (!cancelled) {
-        refreshUser();
+        void refreshUser();
       }
     });
 

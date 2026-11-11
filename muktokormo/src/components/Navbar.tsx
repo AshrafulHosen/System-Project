@@ -18,7 +18,6 @@ import {
   LayoutDashboard,
   Sparkles,
   Handshake,
-  MessageSquare,
 } from "lucide-react";
 import Logo from "./Logo";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
@@ -573,7 +572,7 @@ export default function Navbar({
                   <div className="absolute top-full left-0 w-80 pt-2 animate-in fade-in zoom-in-95 duration-150">
                     <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-3 space-y-1">
                       <Link
-                        href="/#escrow-section"
+                        href="/escrow"
                         onClick={() => setActiveDropdown(null)}
                         className="block p-3 rounded-xl hover:bg-slate-50 transition-colors group"
                       >
@@ -591,7 +590,7 @@ export default function Navbar({
                       </Link>
 
                       <Link
-                        href="/contracts"
+                        href="/workspaces"
                         onClick={() => setActiveDropdown(null)}
                         className="block p-3 rounded-xl hover:bg-slate-50 transition-colors group"
                       >
@@ -629,17 +628,6 @@ export default function Navbar({
                 className="w-full pl-8 pr-3 py-1.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-emerald-600 rounded-full text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 text-slate-800"
               />
             </div>
-
-            {/* Real-Time Messages (TalkJS) */}
-            <Link
-              href="/messages"
-              title={lang === "en" ? "Real-Time Messages (TalkJS)" : "রিয়েল-টাইম বার্তা (TalkJS)"}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold text-slate-700 hover:text-emerald-700 hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-slate-200"
-            >
-              <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="hidden lg:inline">{lang === "en" ? "Messages" : "বার্তা"}</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            </Link>
 
             {/* Language Toggle with subtle pill & Globe icon */}
             <button
@@ -767,22 +755,28 @@ export default function Navbar({
             </Link>
             
             <Link
+              href="/escrow"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 py-1 text-slate-700 hover:text-emerald-600"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{lang === "en" ? "100% BDT Escrow Protection" : "১০০% নিরাপদ বিডিটি এসক্রো"}</span>
+            </Link>
+            <Link
+              href="/workspaces"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 py-1 text-slate-700 hover:text-emerald-600"
+            >
+              <Handshake className="w-3.5 h-3.5 text-emerald-600" />
+              <span>{lang === "en" ? "Contract Delivery Workspaces" : "কন্ট্রাক্ট ডেলিভারি ওয়ার্কস্পেস"}</span>
+            </Link>
+            
+            <Link
               href="/dashboard"
               onClick={() => setMobileMenuOpen(false)}
               className="block py-1 text-emerald-700 font-bold"
             >
               {lang === "en" ? "Dedicated Dashboards" : "ড্যাশবোর্ড পোর্টাল"}
-            </Link>
-            <Link
-              href="/messages"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-between py-1 text-emerald-700 font-bold"
-            >
-              <span className="flex items-center gap-2">
-                <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
-                <span>{lang === "en" ? "Real-Time Messages (TalkJS)" : "লাইভ মেসেজ (TalkJS)"}</span>
-              </span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             </Link>
             {onOpenMyBids && (
               <button

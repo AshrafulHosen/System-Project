@@ -34,6 +34,7 @@ export const FREELANCER_NAV: NavItem[] = [
 
 export const ADMIN_NAV: NavItem[] = [
   { id: "overview", label: "Overview", labelBn: "সংক্ষিপ্ত বিবরণ", icon: "LayoutDashboard", href: "#overview" },
+  { id: "payments", label: "Payments & Escrow", labelBn: "পেমেন্ট ও এসক্রো", icon: "Wallet", href: "#payments" },
   { id: "jobs", label: "Job Moderation", labelBn: "কাজের মডারেশন", icon: "Briefcase", href: "#jobs" },
   { id: "proposals", label: "Proposals", labelBn: "আবেদন", icon: "Send", href: "#proposals" },
   { id: "contracts", label: "Contracts", labelBn: "চুক্তি", icon: "Handshake", href: "#contracts" },

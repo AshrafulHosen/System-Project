@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -21,11 +21,14 @@ import {
   Menu,
   X,
   Globe,
-  Check,
+  RefreshCw,
+  CheckCheck,
   Layers,
+  ExternalLink,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { NavItem } from "@/types";
+import type { NotificationRecord } from "@/types/payment";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   LayoutDashboard,
@@ -57,6 +60,53 @@ interface DashboardShellProps {
   onToggleLang?: () => void;
 }
 
+function formatNotificationDate(iso: string): string {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return new Intl.DateTimeFormat("en-BD", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(parsed);
+}
+
+const DEMO_FALLBACK_NOTIFICATIONS = {
+  client: [
+    {
+      id: "demo-c1",
+      title: "Preview Mode Alert",
+      titleBn: "প্রিভিউ মোড সতর্কতা",
+      text: "Sign in as a client to view live SSLCOMMERZ payment, delivery, and refund notifications.",
+      textBn: "লাইভ পেমেন্ট ও রিফান্ড বিজ্ঞপ্তি দেখতে ক্লায়েন্ট হিসেবে সাইন ইন করুন।",
+      time: "Preview",
+      unread: true,
+    },
+  ],
+  admin: [
+    {
+      id: "demo-a1",
+      title: "Preview Mode Alert",
+      titleBn: "প্রিভিউ মোড সতর্কতা",
+      text: "Sign in as an administrator to view live refund request and escrow notifications.",
+      textBn: "লাইভ রিফান্ড ও এসক্রো বিজ্ঞপ্তি দেখতে অ্যাডমিন হিসেবে সাইন ইন করুন।",
+      time: "Preview",
+      unread: true,
+    },
+  ],
+  freelancer: [
+    {
+      id: "demo-f1",
+      title: "Preview Mode Alert",
+      titleBn: "প্রিভিউ মোড সতর্কতা",
+      text: "Sign in as a freelancer to receive real-time contract funding, release, and refund alerts.",
+      textBn: "কন্ট্রাক্ট ফান্ডিং, রিলিজ ও রিফান্ড বিজ্ঞপ্তি পেতে ফ্রিল্যান্সার হিসেবে সাইন ইন করুন।",
+      time: "Preview",
+      unread: true,
+    },
+  ],
+};
+
 export default function DashboardShell({
   role,
   nav,
@@ -73,7 +123,7 @@ export default function DashboardShell({
   onToggleLang,
 }: DashboardShellProps) {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [internalLang, setInternalLang] = useState<"en" | "bn">("en");
   const lang = controlledLang ?? internalLang;
   const handleToggleLang = onToggleLang ?? (() => setInternalLang((prev) => (prev === "en" ? "bn" : "en")));
@@ -91,26 +141,142 @@ export default function DashboardShell({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
-  const notifications =
-    role === "client"
-      ? [
-          { id: "n1", text: "Mahmudul Hasan submitted Month 3 SEO report", textBn: "মাহমুদুল হাসান তৃতীয় মাসের এসইও রিপোর্ট জমা দিয়েছেন", time: "2h", unread: true },
-          { id: "n2", text: "9 new proposals on SEO Retainer job", textBn: "এসইও রিটেইনার কাজে ৯টি নতুন আবেদন", time: "5h", unread: true },
-          { id: "n3", text: "Escrow of ৳10,000 released successfully", textBn: "৳১০,০০০ এসক্রো সফলভাবে মুক্ত হয়েছে", time: "3d", unread: false },
-        ]
-      : role === "admin"
-        ? [
-            { id: "a1", text: "3 new freelancer profiles awaiting NID review", textBn: "৩টি নতুন ফ্রিল্যান্সার প্রোফাইল এনআইডি যাচাইয়ের অপেক্ষায়", time: "1h", unread: true },
-            { id: "a2", text: "Dispute opened on contract #CTR-8842", textBn: "চুক্তি #CTR-8842-এ বিরোধ খোলা হয়েছে", time: "3h", unread: true },
-            { id: "a3", text: "৳24,500 in platform fees processed today", textBn: "আজ ৳২৪,৫০০ প্ল্যাটফর্ম ফি প্রসেস হয়েছে", time: "6h", unread: false },
-          ]
-        : [
-          { id: "f1", text: "Your proposal was accepted - Flutter Parcel App", textBn: "আপনার আবেদন গৃহীত হয়েছে - ফ্লাটার পার্সেল অ্যাপ", time: "1h", unread: true },
-          { id: "f2", text: "New message from Nafisur Rahman", textBn: "নাফিসুর রহমান থেকে নতুন বার্তা", time: "4h", unread: true },
-          { id: "f3", text: "bKash withdrawal of ৳35,000 is processing", textBn: "বিকাশে ৳৩৫,০০০ উত্তোলন প্রক্রিয়াধীন", time: "1d", unread: false },
-        ];
+  const [isLiveNotifications, setIsLiveNotifications] = useState<boolean>(false);
+  const [liveNotifications, setLiveNotifications] = useState<NotificationRecord[]>([]);
+  const [liveUnreadCount, setLiveUnreadCount] = useState<number>(0);
+  const [loadingNotifications, setLoadingNotifications] = useState<boolean>(false);
+  const [markingAllRead, setMarkingAllRead] = useState<boolean>(false);
 
-  const unreadCount = notifications.filter((n) => n.unread).length;
+  const fetchNotificationsFromApi = useCallback(async () => {
+    setLoadingNotifications(true);
+    try {
+      const response = await fetch("/api/notifications?limit=25", {
+        cache: "no-store",
+      });
+      if (response.status === 401) {
+        setIsLiveNotifications(false);
+        return;
+      }
+      if (!response.ok) {
+        return;
+      }
+      const data = (await response.json()) as {
+        ok?: boolean;
+        notifications?: NotificationRecord[];
+        unreadCount?: number;
+      };
+      if (data.ok) {
+        setIsLiveNotifications(true);
+        setLiveNotifications(data.notifications ?? []);
+        setLiveUnreadCount(Number(data.unreadCount ?? 0));
+      }
+    } catch {
+      // Silently preserve existing state on transient network error
+    } finally {
+      setLoadingNotifications(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let activeFlag = true;
+    (async () => {
+      try {
+        const response = await fetch("/api/notifications?limit=25", {
+          cache: "no-store",
+        });
+        if (!activeFlag) return;
+        if (response.status === 401) {
+          setIsLiveNotifications(false);
+          return;
+        }
+        if (!response.ok) return;
+        const data = (await response.json()) as {
+          ok?: boolean;
+          notifications?: NotificationRecord[];
+          unreadCount?: number;
+        };
+        if (!activeFlag) return;
+        if (data.ok) {
+          setIsLiveNotifications(true);
+          setLiveNotifications(data.notifications ?? []);
+          setLiveUnreadCount(Number(data.unreadCount ?? 0));
+        }
+      } catch {
+        // Ignore transient network errors on initial background poll
+      }
+    })();
+
+    return () => {
+      activeFlag = false;
+    };
+  }, []);
+
+  const handleNotificationToggle = () => {
+    const nextOpen = !notificationsOpen;
+    setNotificationsOpen(nextOpen);
+    if (nextOpen) {
+      void fetchNotificationsFromApi();
+    }
+  };
+
+  const handleMarkNotificationRead = async (notification: NotificationRecord) => {
+    if (!notification.is_read) {
+      setLiveNotifications((prev) =>
+        prev.map((item) =>
+          item.id === notification.id
+            ? { ...item, is_read: true, read_at: new Date().toISOString() }
+            : item
+        )
+      );
+      setLiveUnreadCount((prev) => Math.max(0, prev - 1));
+      try {
+        const res = await fetch("/api/notifications", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ notificationIds: [notification.id] }),
+        });
+        if (res.ok) {
+          const data = (await res.json()) as { unreadCount?: number };
+          if (typeof data.unreadCount === "number") {
+            setLiveUnreadCount(data.unreadCount);
+          }
+        }
+      } catch {
+        // Keep optimistic state
+      }
+    }
+
+    if (notification.contract_id) {
+      setNotificationsOpen(false);
+      router.push(`/contracts/${notification.contract_id}`);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    if (!isLiveNotifications || liveUnreadCount === 0) return;
+    setMarkingAllRead(true);
+    try {
+      const response = await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAllRead: true }),
+      });
+      if (response.ok) {
+        const nowIso = new Date().toISOString();
+        setLiveNotifications((prev) =>
+          prev.map((item) => ({ ...item, is_read: true, read_at: item.read_at ?? nowIso }))
+        );
+        setLiveUnreadCount(0);
+      }
+    } finally {
+      setMarkingAllRead(false);
+    }
+  };
+
+  const previewNotifications = DEMO_FALLBACK_NOTIFICATIONS[role];
+  const unreadCount = isLiveNotifications
+    ? liveUnreadCount
+    : previewNotifications.filter((n) => n.unread).length;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
@@ -193,47 +359,132 @@ export default function DashboardShell({
             {/* Notifications */}
             <div className="relative">
               <button
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                type="button"
+                onClick={handleNotificationToggle}
                 className="relative p-2 rounded-full text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 aria-label="Notifications"
               >
                 <Bell className="w-[18px] h-[18px]" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] font-black flex items-center justify-center">
-                    {unreadCount}
+                  <span className="absolute top-0.5 right-0.5 min-w-4 h-4 px-1 rounded-full bg-emerald-500 text-white text-[9px] font-black flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
               </button>
 
               {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden z-50">
-                  <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-slate-900">
-                      {lang === "en" ? "Notifications" : "বিজ্ঞপ্তি"}
-                    </h4>
-                    <span className="text-[10px] font-bold text-emerald-600">
-                      {unreadCount} {lang === "en" ? "unread" : "নতুন"}
-                    </span>
-                  </div>
-                  <div className="max-h-80 overflow-y-auto">
-                    {notifications.map((n) => (
-                      <div
-                        key={n.id}
-                        className="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition-colors flex gap-2.5"
-                      >
-                        <span
-                          className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
-                            n.unread ? "bg-emerald-500" : "bg-slate-200"
-                          }`}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs text-slate-700 leading-relaxed">
-                            {lang === "en" ? n.text : n.textBn}
-                          </p>
-                          <span className="text-[10px] text-slate-400">{n.time}</span>
-                        </div>
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden z-50">
+                  <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-bold text-slate-900">
+                        {lang === "en" ? "Notifications" : "বিজ্ঞপ্তি"}
+                      </h4>
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                        {unreadCount} {lang === "en" ? "unread" : "নতুন"}
+                      </span>
+                    </div>
+
+                    {isLiveNotifications && (
+                      <div className="flex items-center gap-1.5">
+                        {liveUnreadCount > 0 && (
+                          <button
+                            type="button"
+                            disabled={markingAllRead}
+                            onClick={handleMarkAllRead}
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            <CheckCheck className="w-3 h-3 text-emerald-600" />
+                            <span>{lang === "en" ? "Mark all read" : "সব পঠিত"}</span>
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          disabled={loadingNotifications}
+                          onClick={() => void fetchNotificationsFromApi()}
+                          aria-label="Refresh notifications"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          <RefreshCw className={`w-3 h-3 ${loadingNotifications ? "animate-spin" : ""}`} />
+                        </button>
                       </div>
-                    ))}
+                    )}
+                  </div>
+
+                  <div className="max-h-80 overflow-y-auto divide-y divide-slate-50">
+                    {isLiveNotifications ? (
+                      liveNotifications.length === 0 ? (
+                        <div className="px-4 py-8 text-center space-y-1.5">
+                          <Bell className="w-5 h-5 text-slate-300 mx-auto" />
+                          <p className="text-xs font-bold text-slate-700">
+                            {lang === "en" ? "No notifications yet" : "এখনো কোনো বিজ্ঞপ্তি নেই"}
+                          </p>
+                          <p className="text-[11px] text-slate-400">
+                            {lang === "en"
+                              ? "Payment, submission, approval release, and refund alerts appear here."
+                              : "পেমেন্ট, কাজ জমা, রিলিজ ও রিফান্ড বিজ্ঞপ্তি এখানে দেখাবে।"}
+                          </p>
+                        </div>
+                      ) : (
+                        liveNotifications.map((n) => {
+                          const titleText = lang === "bn" && n.title_bn ? n.title_bn : n.title;
+                          const bodyText = lang === "bn" && n.message_bn ? n.message_bn : n.message;
+                          return (
+                            <button
+                              key={n.id}
+                              type="button"
+                              onClick={() => void handleMarkNotificationRead(n)}
+                              className={`w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors flex gap-2.5 cursor-pointer ${
+                                !n.is_read ? "bg-emerald-50/35" : ""
+                              }`}
+                            >
+                              <span
+                                className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
+                                  !n.is_read ? "bg-emerald-500" : "bg-slate-200"
+                                }`}
+                              />
+                              <div className="min-w-0 flex-1 space-y-0.5">
+                                <div className="flex items-center justify-between gap-2">
+                                  <p className="text-xs font-bold text-slate-900 truncate">
+                                    {titleText}
+                                  </p>
+                                  {n.contract_id && (
+                                    <ExternalLink className="w-3 h-3 text-slate-400 shrink-0" />
+                                  )}
+                                </div>
+                                <p className="text-[11px] text-slate-600 leading-relaxed line-clamp-2">
+                                  {bodyText}
+                                </p>
+                                <span className="text-[10px] text-slate-400 block">
+                                  {formatNotificationDate(n.created_at)}
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })
+                      )
+                    ) : (
+                      previewNotifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className="px-4 py-3 hover:bg-slate-50 transition-colors flex gap-2.5"
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
+                              n.unread ? "bg-emerald-500" : "bg-slate-200"
+                            }`}
+                          />
+                          <div className="min-w-0 flex-1 space-y-0.5">
+                            <p className="text-xs font-bold text-slate-800">
+                              {lang === "en" ? n.title : n.titleBn}
+                            </p>
+                            <p className="text-[11px] text-slate-600 leading-relaxed">
+                              {lang === "en" ? n.text : n.textBn}
+                            </p>
+                            <span className="text-[10px] text-slate-400">{n.time}</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               )}

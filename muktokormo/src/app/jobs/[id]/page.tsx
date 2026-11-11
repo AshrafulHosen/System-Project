@@ -132,7 +132,7 @@ function BidModal({
                   <span className="font-bold text-rose-600">-{formatBdt(fee)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-emerald-700 pt-1 border-t border-slate-200">
-                  <span>You'll receive:</span>
+                  <span>You&apos;ll receive:</span>
                   <span>{formatBdt(net)}</span>
                 </div>
               </div>
@@ -211,8 +211,8 @@ export default function JobDetailPage() {
 
   const handleUpdateStatus = async (proposalId: string, status: JobBid["status"]) => {
     setUpdatingId(proposalId);
-    await updateProposalStatus(supabase, proposalId, status);
-    if (status === "ACCEPTED") {
+    const updated = await updateProposalStatus(supabase, proposalId, status);
+    if (updated && status === "ACCEPTED") {
       try {
         await createContractFromProposal(supabase, proposalId);
       } catch (err) {
@@ -303,7 +303,9 @@ export default function JobDetailPage() {
           <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="min-w-0 flex-1">
-                <span className="text-[10px] font-bold text-slateald-400 uppercase tracking-wide text-slate-400">{job.category}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wide text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200/70">
+                  {job.category}
+                </span>
                 <h1 className="text-xl font-black text-slate-900 leading-snug mt-1">{job.title}</h1>
                 {job.titleBn && <p className="text-sm text-slate-500 mt-0.5">{job.titleBn}</p>}
               </div>
@@ -399,11 +401,11 @@ export default function JobDetailPage() {
                           </p>
                           {/* Show cover letter only to client */}
                           {isOwner && (
-                            <p className="text-xs text-slate-600 mt-2 line-clamp-2 italic">"{bid.coverLetter}"</p>
+                            <p className="text-xs text-slate-600 mt-2 line-clamp-2 italic">&quot;{bid.coverLetter}&quot;</p>
                           )}
                           {/* Show own cover to freelancer */}
                           {isFreelancer && bid.freelancerId === freelancerId && (
-                            <p className="text-xs text-slate-600 mt-2 line-clamp-2 italic">"{bid.coverLetter}"</p>
+                            <p className="text-xs text-slate-600 mt-2 line-clamp-2 italic">&quot;{bid.coverLetter}&quot;</p>
                           )}
                         </div>
                       </div>

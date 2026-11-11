@@ -1,27 +1,24 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import {
   Layers,
-  ShieldCheck,
   CheckCircle2,
   Clock,
   ExternalLink,
   MessageSquare,
-  AlertCircle,
   ChevronRight,
   Upload,
   Sparkles,
   CheckCheck,
-  Briefcase,
   X,
-  Send,
   RotateCcw,
-  Plus,
   Lock,
   Search,
-  Filter,
+  CreditCard,
+  Play,
+  AlertCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -30,8 +27,19 @@ import {
   approveMilestone,
   requestMilestoneRevision,
 } from "@/lib/data/contracts";
+import { calculateContractFeeBreakdown, isUuid } from "@/lib/payments/constants";
+import { getPaymentStatusMeta, getWorkStatusMeta } from "@/lib/payments/escrow";
 import { formatBdt } from "@/lib/format";
 import type { WorkspaceContract, WorkspaceMilestone } from "@/types";
+
+const BADGE_CLASSES: Record<string, string> = {
+  emerald: "bg-emerald-50 text-emerald-800 border-emerald-200",
+  sky: "bg-sky-50 text-sky-800 border-sky-200",
+  amber: "bg-amber-50 text-amber-800 border-amber-200",
+  rose: "bg-rose-50 text-rose-800 border-rose-200",
+  indigo: "bg-indigo-50 text-indigo-800 border-indigo-200",
+  slate: "bg-slate-100 text-slate-700 border-slate-200",
+};
 
 interface WorkspaceSectionProps {
   role: "client" | "freelancer";
@@ -48,17 +56,18 @@ export default function WorkspaceSection({
   lang = "en",
   currentUserId,
   currentEntityId,
-  currentUserName,
+  currentUserName: _currentUserName,
   onOpenChat,
   onNavigateTab,
 }: WorkspaceSectionProps) {
+  void _currentUserName;
   const supabase = useMemo(() => createClient(), []);
   const [contracts, setContracts] = useState<WorkspaceContract[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchFilter, setSearchFilter] = useState("");
   const [stageFilter, setStageFilter] = useState<"ALL" | "ACTIVE" | "COMPLETED">("ALL");
 
-  // Modals for Milestone Actions
+  // Modals for Milestone / Contract Actions
   const [submitModal, setSubmitModal] = useState<{
     contractId: string;
     milestone: WorkspaceMilestone;
@@ -81,10 +90,13 @@ export default function WorkspaceSection({
   const [newFileTag, setNewFileTag] = useState("");
   const [revisionFeedback, setRevisionFeedback] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const [initiatingContractId, setInitiatingContractId] = useState<string | null>(null);
+  const [startingContractId, setStartingContractId] = useState<string | null>(null);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Fetch real contracts from database strictly for the logged-in user
-  const loadContracts = async () => {
+  const loadContracts = useCallback(async () => {
     setLoading(true);
     try {
       const live = await fetchUserContracts(supabase, {
@@ -99,46 +111,142 @@ export default function WorkspaceSection({
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase, role, currentUserId, currentEntityId]);
 
   useEffect(() => {
-    loadContracts();
+    let active = true;
+    fetchUserContracts(supabase, {
+      role,
+      userId: currentUserId,
+      entityId: currentEntityId,
+    })
+      .then((live) => {
+        if (active) setContracts(live || []);
+      })
+      .catch((err) => {
+        console.error("Failed to load user workspace contracts:", err);
+        if (active) setContracts([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [supabase, role, currentUserId, currentEntityId]);
+
+  // Client initiates SSLCOMMERZ Sandbox payment session
+  const handleFundContract = async (contract: WorkspaceContract) => {
+    setActionError(null);
+    setInitiatingContractId(contract.id);
+    try {
+      const res = await fetch("/api/payments/initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contractId: contract.id }),
+      });
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        gatewayPageUrl?: string;
+      };
+      if (!res.ok || !data.ok || !data.gatewayPageUrl) {
+        setActionError(
+          data.error || "Unable to launch SSLCOMMERZ Sandbox payment session."
+        );
+        return;
+      }
+      window.location.assign(data.gatewayPageUrl);
+    } catch {
+      setActionError("Network error while starting SSLCOMMERZ Sandbox checkout.");
+    } finally {
+      setInitiatingContractId(null);
+    }
+  };
+
+  // Freelancer marks funded contract as IN_PROGRESS
+  const handleStartWork = async (contract: WorkspaceContract) => {
+    setActionError(null);
+    setStartingContractId(contract.id);
+    try {
+      const res = await fetch(`/api/contracts/${contract.id}/start-work`, {
+        method: "POST",
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        setActionError(data.error || "Unable to mark contract work in progress.");
+        return;
+      }
+      await loadContracts();
+      setSuccessToast(
+        lang === "en"
+          ? "Work started! Status updated to In Progress."
+          : "কাজ শুরু হয়েছে! স্ট্যাটাস চলমান হিসেবে আপডেট করা হয়েছে।"
+      );
+      setTimeout(() => setSuccessToast(null), 4000);
+    } catch {
+      setActionError("Network error starting work on contract.");
+    } finally {
+      setStartingContractId(null);
+    }
+  };
 
   // Handle Freelancer Work Submission
   const handleConfirmSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!submitModal) return;
-    if (!submitNotes.trim()) {
-      alert("Please provide deliverable notes or completion summary.");
+    const notesTrimmed = submitNotes.trim();
+    if (notesTrimmed.length < 5) {
+      setActionError(
+        "Please provide deliverable notes or completion summary (at least 5 characters)."
+      );
       return;
     }
 
+    setActionError(null);
     setActionLoading(true);
     try {
-      const updated = await submitMilestoneDeliverable(
-        supabase,
-        submitModal.contractId,
-        submitModal.milestone.id,
-        {
-          notes: submitNotes.trim(),
-          demoUrl: submitDemoUrl.trim() || undefined,
-          attachments: submitFiles,
+      if (isUuid(submitModal.contractId)) {
+        const res = await fetch(`/api/contracts/${submitModal.contractId}/submit-work`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            notes: notesTrimmed,
+            demoUrl: submitDemoUrl.trim() || undefined,
+            files: submitFiles,
+          }),
+        });
+        const data = (await res.json()) as { ok?: boolean; error?: string };
+        if (!res.ok || !data.ok) {
+          setActionError(data.error || "Failed to submit completed work.");
+          return;
         }
-      );
-
-      if (updated) {
-        setContracts((prev) =>
-          prev.map((c) => (c.id === updated.id ? updated : c))
-        );
-      } else {
         await loadContracts();
+      } else {
+        const updated = await submitMilestoneDeliverable(
+          supabase,
+          submitModal.contractId,
+          submitModal.milestone.id,
+          {
+            notes: notesTrimmed,
+            demoUrl: submitDemoUrl.trim() || undefined,
+            attachments: submitFiles,
+          }
+        );
+
+        if (updated) {
+          setContracts((prev) =>
+            prev.map((c) => (c.id === updated.id ? updated : c))
+          );
+        } else {
+          await loadContracts();
+        }
       }
 
       setSuccessToast(
         lang === "en"
-          ? "Milestone deliverable submitted successfully! Client has been notified."
-          : "মাইলস্টোন ডেলিভারি সফলভাবে জমা দেওয়া হয়েছে!"
+          ? "Completed work submitted! Client has been notified for review."
+          : "কাজ সফলভাবে জমা দেওয়া হয়েছে! ক্লায়েন্টকে জানানো হয়েছে।"
       );
       setSubmitModal(null);
       setSubmitNotes("");
@@ -147,17 +255,55 @@ export default function WorkspaceSection({
       setTimeout(() => setSuccessToast(null), 4000);
     } catch (err) {
       console.error("Failed to submit deliverable:", err);
+      setActionError("Unexpected network error submitting deliverable.");
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Handle Client Approving Milestone and Releasing Escrow
+  // Handle Client Approving Work & Recording Internal Ledger Release
   const handleConfirmApprove = async () => {
     if (!approveModal) return;
 
+    setActionError(null);
     setActionLoading(true);
     try {
+      if (isUuid(approveModal.contractId)) {
+        const res = await fetch(
+          `/api/contracts/${approveModal.contractId}/approve-release`,
+          { method: "POST" }
+        );
+        const data = (await res.json()) as {
+          ok?: boolean;
+          error?: string;
+          grossAmount?: number;
+          platformFeePct?: number;
+          platformFee?: number;
+          freelancerNet?: number;
+        };
+
+        if (!res.ok || !data.ok) {
+          setActionError(
+            data.error || "Unable to approve work and record internal escrow release."
+          );
+          setApproveModal(null);
+          return;
+        }
+
+        await loadContracts();
+        setApproveModal(null);
+        const grossText = formatBdt(data.grossAmount ?? approveModal.milestone.amountBdt);
+        const feeText = formatBdt(data.platformFee ?? 0);
+        const netText = formatBdt(data.freelancerNet ?? 0);
+        setSuccessToast(
+          lang === "en"
+            ? `Work approved! Internal release recorded — Gross: ${grossText}, Platform Fee (${data.platformFeePct ?? 10}%): ${feeText}, Freelancer Simulated Earnings: +${netText}.`
+            : `কাজ অনুমোদিত ও অভ্যন্তরীণ লেজার রিলিজ সম্পন্ন! মোট ${grossText}, ফি ${feeText}, ফ্রিল্যান্সার আয় ${netText}।`
+        );
+        setTimeout(() => setSuccessToast(null), 6000);
+        return;
+      }
+
       const updated = await approveMilestone(
         supabase,
         approveModal.contractId,
@@ -181,6 +327,8 @@ export default function WorkspaceSection({
       setTimeout(() => setSuccessToast(null), 4000);
     } catch (err) {
       console.error("Failed to approve milestone:", err);
+      setActionError("Network error recording approval release.");
+      setApproveModal(null);
     } finally {
       setActionLoading(false);
     }
@@ -190,26 +338,47 @@ export default function WorkspaceSection({
   const handleConfirmRevision = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reviseModal) return;
-    if (!revisionFeedback.trim()) {
-      alert("Please provide specific feedback for revision.");
+    const feedbackTrimmed = revisionFeedback.trim();
+    if (feedbackTrimmed.length < 5) {
+      setActionError(
+        "Please provide specific revision feedback (at least 5 characters)."
+      );
       return;
     }
 
+    setActionError(null);
     setActionLoading(true);
     try {
-      const updated = await requestMilestoneRevision(
-        supabase,
-        reviseModal.contractId,
-        reviseModal.milestone.id,
-        revisionFeedback.trim()
-      );
-
-      if (updated) {
-        setContracts((prev) =>
-          prev.map((c) => (c.id === updated.id ? updated : c))
+      if (isUuid(reviseModal.contractId)) {
+        const res = await fetch(
+          `/api/contracts/${reviseModal.contractId}/request-revision`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ feedback: feedbackTrimmed }),
+          }
         );
-      } else {
+        const data = (await res.json()) as { ok?: boolean; error?: string };
+        if (!res.ok || !data.ok) {
+          setActionError(data.error || "Failed to send revision request.");
+          return;
+        }
         await loadContracts();
+      } else {
+        const updated = await requestMilestoneRevision(
+          supabase,
+          reviseModal.contractId,
+          reviseModal.milestone.id,
+          feedbackTrimmed
+        );
+
+        if (updated) {
+          setContracts((prev) =>
+            prev.map((c) => (c.id === updated.id ? updated : c))
+          );
+        } else {
+          await loadContracts();
+        }
       }
 
       setSuccessToast(
@@ -222,6 +391,7 @@ export default function WorkspaceSection({
       setTimeout(() => setSuccessToast(null), 4000);
     } catch (err) {
       console.error("Failed to request revision:", err);
+      setActionError("Unexpected error sending revision request.");
     } finally {
       setActionLoading(false);
     }
@@ -247,7 +417,7 @@ export default function WorkspaceSection({
 
   return (
     <div className="space-y-6">
-      {/* Toast Notification */}
+      {/* Toast & Error Notifications */}
       {successToast && (
         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between gap-3 shadow-sm animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center gap-2.5">
@@ -258,6 +428,22 @@ export default function WorkspaceSection({
             type="button"
             onClick={() => setSuccessToast(null)}
             className="text-slate-400 hover:text-slate-700 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+            <span>{actionError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActionError(null)}
+            className="text-rose-400 hover:text-rose-700 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -403,6 +589,27 @@ export default function WorkspaceSection({
           {filteredContracts.map((contract) => {
             const isClient = role === "client";
             const partner = isClient ? contract.freelancer : contract.client;
+            const isRealContract = isUuid(contract.id);
+            const paymentStatus = String(
+              contract.paymentStatus ?? "UNPAID"
+            ).toUpperCase();
+            const workStatus = String(
+              contract.workStatus ?? "NOT_STARTED"
+            ).toUpperCase();
+            const paymentMeta = getPaymentStatusMeta(paymentStatus);
+            const workMeta = getWorkStatusMeta(workStatus);
+            const canFundContract =
+              isClient &&
+              isRealContract &&
+              contract.stage === "ACTIVE" &&
+              ["UNPAID", "FAILED", "CANCELLED"].includes(paymentStatus);
+            const canStartWork =
+              !isClient &&
+              isRealContract &&
+              contract.stage === "ACTIVE" &&
+              paymentStatus === "FUNDED" &&
+              ["FUNDED", "NOT_STARTED"].includes(workStatus);
+
             const completedCount = contract.milestones.filter(
               (m) => m.status === "APPROVED_RELEASED" || m.status === "APPROVED_AND_RELEASED"
             ).length;
@@ -417,13 +624,31 @@ export default function WorkspaceSection({
                 {/* Contract Summary Header */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-100">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="font-mono text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                         {contract.contractCode}
                       </span>
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200">
                         {contract.stage}
                       </span>
+                      {isRealContract && (
+                        <>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                              BADGE_CLASSES[paymentMeta.tone] ?? BADGE_CLASSES.slate
+                            }`}
+                          >
+                            {lang === "en" ? paymentMeta.label : paymentMeta.labelBn}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                              BADGE_CLASSES[workMeta.tone] ?? BADGE_CLASSES.slate
+                            }`}
+                          >
+                            {lang === "en" ? workMeta.label : workMeta.labelBn}
+                          </span>
+                        </>
+                      )}
                       <span className="text-slate-300">•</span>
                       <span className="text-xs text-slate-500 font-medium">
                         {contract.category}
@@ -436,6 +661,7 @@ export default function WorkspaceSection({
 
                     {/* Counterparty info */}
                     <div className="flex items-center gap-2 text-xs text-slate-600 pt-1">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={partner.avatar}
                         alt={partner.name}
@@ -447,13 +673,57 @@ export default function WorkspaceSection({
                       </span>
                       <span className="text-slate-300">•</span>
                       <span className="text-slate-500">
-                        {isClient ? (partner as any).title : (partner as any).company}
+                        {isClient ? contract.freelancer.title : contract.client.company}
                       </span>
                     </div>
                   </div>
 
                   {/* Actions & Links */}
                   <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                    {canFundContract && (
+                      <button
+                        type="button"
+                        disabled={initiatingContractId === contract.id}
+                        onClick={() => void handleFundContract(contract)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-60"
+                      >
+                        <CreditCard className="w-3.5 h-3.5" />
+                        <span>
+                          {initiatingContractId === contract.id
+                            ? lang === "en"
+                              ? "Redirecting..."
+                              : "চালু হচ্ছে..."
+                            : paymentStatus === "FAILED" || paymentStatus === "CANCELLED"
+                              ? lang === "en"
+                                ? "Retry Fund Contract"
+                                : "পুনরায় ফান্ড করুন"
+                              : lang === "en"
+                                ? "Fund Contract"
+                                : "কন্ট্রাক্ট ফান্ড করুন"}
+                        </span>
+                      </button>
+                    )}
+
+                    {canStartWork && (
+                      <button
+                        type="button"
+                        disabled={startingContractId === contract.id}
+                        onClick={() => void handleStartWork(contract)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-60"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                        <span>
+                          {startingContractId === contract.id
+                            ? lang === "en"
+                              ? "Starting..."
+                              : "শুরু হচ্ছে..."
+                            : lang === "en"
+                              ? "Start Working"
+                              : "কাজ শুরু করুন"}
+                        </span>
+                      </button>
+                    )}
+
                     {onOpenChat && (
                       <button
                         type="button"
@@ -474,6 +744,18 @@ export default function WorkspaceSection({
                     </Link>
                   </div>
                 </div>
+
+                {isRealContract && workStatus === "REVISION_REQUESTED" && contract.revisionFeedback && (
+                  <div className="p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200 text-xs text-rose-900 flex items-start gap-2.5">
+                    <RotateCcw className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold">
+                        {lang === "en" ? "Client Requested Revisions:" : "ক্লায়েন্টের রিভিশন ফিডব্যাক:"}
+                      </p>
+                      <p className="text-rose-800 mt-0.5">{contract.revisionFeedback}</p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Financial Escrow Progress Overview */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50/70 p-4 rounded-2xl border border-slate-100">
@@ -593,7 +875,7 @@ export default function WorkspaceSection({
                                   {lang === "en" ? "Submitted Deliverable Notes:" : "জমা দেওয়া কাজের বিবরণ:"}
                                 </p>
                                 <p className="text-[11px] text-slate-600 italic">
-                                  "{milestone.deliverableNotes || milestone.submission?.notes}"
+                                  &ldquo;{milestone.deliverableNotes || milestone.submission?.notes}&rdquo;
                                 </p>
                                 {(milestone.liveUrl || milestone.submission?.demoUrl) && (
                                   <a
@@ -620,12 +902,27 @@ export default function WorkspaceSection({
                             {!isClient && (isInProgress || isRevision) && (
                               <button
                                 type="button"
-                                onClick={() =>
+                                onClick={() => {
+                                  setSubmitNotes(
+                                    contract.submissionNotes ??
+                                      milestone.deliverableNotes ??
+                                      ""
+                                  );
+                                  setSubmitDemoUrl(
+                                    contract.submissionDemoUrl ??
+                                      milestone.liveUrl ??
+                                      ""
+                                  );
+                                  setSubmitFiles(
+                                    contract.submissionFiles ??
+                                      milestone.fileNames ??
+                                      []
+                                  );
                                   setSubmitModal({
                                     contractId: contract.id,
                                     milestone,
-                                  })
-                                }
+                                  });
+                                }}
                                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#14a800] hover:bg-[#108a00] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
                               >
                                 <Upload className="w-3.5 h-3.5" />
@@ -647,7 +944,7 @@ export default function WorkspaceSection({
                                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#14a800] hover:bg-[#108a00] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
                                 >
                                   <CheckCircle2 className="w-3.5 h-3.5" />
-                                  <span>{lang === "en" ? "Release Escrow" : "এসক্রো ছাড় করুন"}</span>
+                                  <span>{lang === "en" ? "Approve Work" : "অনুমোদন করুন"}</span>
                                 </button>
                                 <button
                                   type="button"
@@ -805,55 +1102,102 @@ export default function WorkspaceSection({
       )}
 
       {/* ─────────────────────────────────────────────────────────────────── */}
-      {/* MODAL 2: Client Approve Milestone & Release Escrow Modal            */}
+      {/* MODAL 2: Client Approve Work & Record Internal Release Modal        */}
       {/* ─────────────────────────────────────────────────────────────────── */}
-      {approveModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#14a800] flex items-center justify-center mx-auto shadow-xs">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
+      {approveModal && (() => {
+        const activeContract = contracts.find(
+          (c) => c.id === approveModal.contractId
+        );
+        const isLiveContract = isUuid(approveModal.contractId);
+        const feePct = activeContract?.platformFeePct || 10;
+        const grossAmount = isLiveContract && activeContract
+          ? activeContract.totalBdt
+          : approveModal.milestone.amountBdt;
+        const breakdown = calculateContractFeeBreakdown(grossAmount, feePct);
 
-            <div className="text-center space-y-1">
-              <h3 className="text-base font-bold text-slate-900">
-                {lang === "en" ? "Approve Deliverable & Release Escrow?" : "কাজ অনুমোদন ও এসক্রো ছাড় করবেন?"}
-              </h3>
-              <p className="text-xs text-slate-500">
-                {lang === "en"
-                  ? `This will release ৳${approveModal.milestone.amountBdt.toLocaleString()} BDT from escrow custody directly to the freelancer's wallet.`
-                  : `এটি এসক্রো থেকে ৳${approveModal.milestone.amountBdt.toLocaleString()} টাকা ফ্রিল্যান্সারের ওয়ালেটে স্থানান্তর করবে।`}
-              </p>
-            </div>
+        return (
+          <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#14a800] flex items-center justify-center mx-auto shadow-xs">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
 
-            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-1">
-              <p className="font-bold text-slate-800">{approveModal.milestone.title}</p>
-              {(approveModal.milestone.deliverableNotes || approveModal.milestone.submission?.notes) && (
-                <p className="text-slate-500 italic">
-                  "{approveModal.milestone.deliverableNotes || approveModal.milestone.submission?.notes}"
+              <div className="text-center space-y-1">
+                <h3 className="text-base font-bold text-slate-900">
+                  {lang === "en"
+                    ? "Approve Deliverable & Record Release?"
+                    : "কাজ অনুমোদন ও লেজার রিলিজ করবেন?"}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {isLiveContract
+                    ? lang === "en"
+                      ? "Records an internal RELEASE ledger entry and updates the freelancer's simulated earnings. No bank transfer happens in sandbox mode."
+                      : "অভ্যন্তরীণ লেজারে RELEASE এন্ট্রি যুক্ত হবে এবং ফ্রিল্যান্সারের সিমুলেটেড আয় আপডেট হবে।"
+                    : lang === "en"
+                      ? `This will record a simulated ledger release of ৳${approveModal.milestone.amountBdt.toLocaleString()} BDT.`
+                      : `এটি সিমুলেটেড লেজারে ৳${approveModal.milestone.amountBdt.toLocaleString()} টাকা রিলিজ হিসেবে সংরক্ষণ করবে।`}
                 </p>
-              )}
-            </div>
+              </div>
 
-            <div className="flex items-center gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={() => setApproveModal(null)}
-                className="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={actionLoading}
-                onClick={handleConfirmApprove}
-                className="flex-1 py-2.5 rounded-xl bg-[#14a800] hover:bg-[#108a00] text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                {actionLoading ? "Processing..." : "Confirm & Release"}
-              </button>
+              {isLiveContract && (
+                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Contract Amount:</span>
+                    <span className="font-bold text-slate-900">
+                      {formatBdt(breakdown.grossAmount)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">
+                      Platform Commission ({breakdown.platformFeePct}%):
+                    </span>
+                    <span className="font-bold text-rose-600">
+                      -{formatBdt(breakdown.platformFeeAmount)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-1.5 border-t border-slate-200 font-black">
+                    <span className="text-slate-900">Freelancer Simulated Credit:</span>
+                    <span className="text-emerald-700">
+                      {formatBdt(breakdown.freelancerPayableAmount)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs space-y-1">
+                <p className="font-bold text-slate-800">{approveModal.milestone.title}</p>
+                {(approveModal.milestone.deliverableNotes || approveModal.milestone.submission?.notes) && (
+                  <p className="text-slate-500 italic">
+                    &ldquo;{approveModal.milestone.deliverableNotes || approveModal.milestone.submission?.notes}&rdquo;
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setApproveModal(null)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={actionLoading}
+                  onClick={handleConfirmApprove}
+                  className="flex-1 py-2.5 rounded-xl bg-[#14a800] hover:bg-[#108a00] text-white text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {actionLoading
+                    ? "Processing..."
+                    : isLiveContract
+                      ? "Approve & Record Release"
+                      : "Confirm & Release"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ─────────────────────────────────────────────────────────────────── */}
       {/* MODAL 3: Client Request Changes / Revision Modal                   */}

@@ -115,8 +115,15 @@ export function getOneOnOneConversationId(userAId: string, userBId: string, cont
  */
 let _talkjsPromise: Promise<typeof TalkType | null> | null = null;
 
-function isRealTalkSDK(obj: any): obj is typeof TalkType {
-  return obj && typeof obj === "object" && typeof obj.Session === "function";
+type TalkWindow = Window & { Talk?: unknown };
+
+function isRealTalkSDK(obj: unknown): obj is typeof TalkType {
+  return Boolean(
+    obj &&
+      typeof obj === "object" &&
+      "Session" in obj &&
+      typeof (obj as { Session?: unknown }).Session === "function"
+  );
 }
 
 export async function getTalkJS(): Promise<typeof TalkType | null> {
@@ -126,8 +133,9 @@ export async function getTalkJS(): Promise<typeof TalkType | null> {
 
   // If the real SDK is already on window.Talk (e.g. from a previous load),
   // return it immediately — no need to inject anything.
-  if (isRealTalkSDK((window as any).Talk)) {
-    return (window as any).Talk as typeof TalkType;
+  const win = window as TalkWindow;
+  if (isRealTalkSDK(win.Talk)) {
+    return win.Talk;
   }
 
   // Deduplicate: only create one loading promise per page lifetime.
@@ -161,9 +169,10 @@ export async function getTalkJS(): Promise<typeof TalkType | null> {
     const timer = setInterval(() => {
       elapsed += interval;
 
-      if (isRealTalkSDK((window as any).Talk)) {
+      const currentWin = window as TalkWindow;
+      if (isRealTalkSDK(currentWin.Talk)) {
         clearInterval(timer);
-        resolve((window as any).Talk as typeof TalkType);
+        resolve(currentWin.Talk);
         return;
       }
 

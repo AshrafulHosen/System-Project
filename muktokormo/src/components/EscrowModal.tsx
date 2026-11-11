@@ -7,6 +7,7 @@ import { X, ShieldCheck, Lock, CheckCircle2, ArrowRight, RefreshCw, Smartphone, 
 
 interface EscrowModalProps {
   job: Job | null;
+  contractId?: string;
   isOpen: boolean;
   onClose: () => void;
   lang: "en" | "bn";
@@ -18,6 +19,7 @@ type EscrowState = "READY_TO_FUND" | "PROCESSING" | "ESCROW_LOCKED" | "WORK_SUBM
 
 export default function EscrowModal({
   job,
+  contractId,
   isOpen,
   onClose,
   lang,
@@ -27,6 +29,10 @@ export default function EscrowModal({
   const [escrowState, setEscrowState] = useState<EscrowState>("READY_TO_FUND");
 
   if (!isOpen || !job) return null;
+
+  const targetContractHref = contractId
+    ? `/contracts/${contractId}`
+    : "/contracts/ctr-8842";
 
   const milestoneAmount = customAmount || job.budgetBdt;
   const platformFee = Math.round(milestoneAmount * 0.07);
@@ -206,7 +212,7 @@ export default function EscrowModal({
               </p>
               <div className="space-y-2 pt-1">
                 <Link
-                  href="/contracts/ctr-8842"
+                  href={targetContractHref}
                   onClick={onClose}
                   className="w-full py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md shadow-emerald-600/20"
                 >
@@ -241,7 +247,7 @@ export default function EscrowModal({
                   Approve Work & Release ৳{milestoneAmount.toLocaleString()}
                 </button>
                 <Link
-                  href="/contracts/ctr-8842"
+                  href={targetContractHref}
                   onClick={onClose}
                   className="w-full py-2 rounded-full bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-xs flex items-center justify-center gap-1.5 transition-all"
                 >
@@ -263,7 +269,7 @@ export default function EscrowModal({
               </p>
               <div className="flex items-center justify-center gap-2 pt-1">
                 <Link
-                  href="/contracts/ctr-8842"
+                  href={targetContractHref}
                   onClick={onClose}
                   className="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs inline-flex items-center gap-1.5"
                 >

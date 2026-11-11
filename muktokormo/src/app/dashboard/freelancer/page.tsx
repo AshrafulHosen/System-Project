@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState, Suspense } from "react";
+import React, { useCallback, useEffect, useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -10,7 +10,6 @@ import {
   Search,
   TrendingUp,
   ArrowRight,
-  Star,
   ShieldCheck,
   Clock,
   Plus,
@@ -23,21 +22,26 @@ import {
   Check,
   RefreshCw,
   ChevronRight,
+  Info,
+  Lock,
+  ExternalLink,
+  AlertCircle,
+  RotateCcw,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import WorkspaceMessagesSection from "@/components/dashboard/WorkspaceMessagesSection";
 import WorkspaceSection from "@/components/dashboard/WorkspaceSection";
 import { SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
-import { ContractCard, LedgerList } from "@/components/dashboard/Widgets";
 import {
   ProposalTracker,
   ProfileStrength,
   RecommendedSkills,
 } from "@/components/dashboard/FreelancerWidgets";
+import PaymentHistoryTable from "@/components/payments/PaymentHistoryTable";
+import PaymentDetailModal from "@/components/payments/PaymentDetailModal";
 import {
   FREELANCER_NAV,
   FREELANCER_ONBOARDING_TASKS,
-  FREELANCER_LEDGER,
 } from "@/data/dashboardData";
 import { formatBdt } from "@/lib/format";
 import {
@@ -46,23 +50,34 @@ import {
   saveLivePayoutMethod,
   removeLivePayoutMethod,
   setPrimaryLivePayoutMethod,
-  getStoredWalletLedger,
-  recordStoredWalletEntry,
 } from "@/lib/data/wallet";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import { createClient } from "@/lib/supabase/client";
 import { fetchOpenJobs } from "@/lib/data/jobs";
 import { fetchMyProposals, submitProposal } from "@/lib/data/proposals";
 import { fetchUserContracts } from "@/lib/data/contracts";
-import { Job, WalletEntry, TrackedProposal, WorkspaceContract } from "@/types";
-import { PLATFORM_FEE_PCT } from "@/lib/data/mappers";
+import {
+  DEFAULT_PLATFORM_FEE_PCT,
+  calculateContractFeeBreakdown,
+} from "@/lib/payments/constants";
+import {
+  ESCROW_SIMULATION_DISCLAIMER,
+  ESCROW_SIMULATION_DISCLAIMER_BN,
+  getPaymentStatusMeta,
+  getWorkStatusMeta,
+} from "@/lib/payments/escrow";
+import { Job, TrackedProposal, WorkspaceContract } from "@/types";
+import type {
+  FreelancerPaymentDashboardPayload,
+  PaymentDashboardItem,
+} from "@/types/payment";
 
 function FreelancerDashboardContent() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const searchParams = useSearchParams();
   const deniedFrom = searchParams ? searchParams.get("denied") : null;
-  const { userId, name, email, role, freelancerId, title, avatarUrl, loading: userLoading } = useCurrentUser();
+  const { userId, name, email, role, freelancerId, avatarUrl, loading: userLoading } = useCurrentUser();
   const [lang, setLang] = useState<"en" | "bn">("en");
   const tabParam = searchParams ? searchParams.get("tab") : null;
   const threadParam = searchParams ? (searchParams.get("threadId") || searchParams.get("proposalId") || searchParams.get("contractId")) : null;
@@ -71,21 +86,25 @@ function FreelancerDashboardContent() {
   const [selectedMessageThreadId, setSelectedMessageThreadId] = useState<string | null>(threadParam || null);
 
   useEffect(() => {
-    if (tabParam) {
-      setActiveTab(tabParam === "contracts" ? "workspace" : tabParam);
-    } else if (threadParam) {
-      setActiveTab("messages");
-    } else if (typeof window !== "undefined") {
-      const rawHash = window.location.hash.replace("#", "");
-      const hash = rawHash === "contracts" ? "workspace" : rawHash;
-      if (hash && ["overview", "find-work", "proposals", "workspace", "messages", "wallet", "profile"].includes(hash)) {
-        setActiveTab(hash);
+    const applyRouteState = () => {
+      if (tabParam) {
+        setActiveTab(tabParam === "contracts" ? "workspace" : tabParam);
+      } else if (threadParam) {
+        setActiveTab("messages");
+      } else if (typeof window !== "undefined") {
+        const rawHash = window.location.hash.replace("#", "");
+        const hash = rawHash === "contracts" ? "workspace" : rawHash;
+        if (hash && ["overview", "find-work", "proposals", "workspace", "messages", "wallet", "profile"].includes(hash)) {
+          setActiveTab(hash);
+        }
       }
-    }
 
-    if (threadParam) {
-      setSelectedMessageThreadId(threadParam);
-    }
+      if (threadParam) {
+        setSelectedMessageThreadId(threadParam);
+      }
+    };
+
+    const timerId = window.setTimeout(applyRouteState, 0);
 
     const handleHashChange = () => {
       if (typeof window !== "undefined") {
@@ -98,15 +117,58 @@ function FreelancerDashboardContent() {
     };
 
     window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    return () => {
+      window.clearTimeout(timerId);
+      window.removeEventListener("hashchange", handleHashChange);
+    };
   }, [tabParam, threadParam]);
+
   const [pickedSkills, setPickedSkills] = useState<string[]>([]);
-  const [available, setAvailable] = useState<number>(87500);
-  const [ledgerEntries, setLedgerEntries] = useState<WalletEntry[]>(FREELANCER_LEDGER);
+  const [isAvailableForWork, setIsAvailableForWork] = useState<boolean>(true);
+  const [updatingAvailability, setUpdatingAvailability] = useState<boolean>(false);
   const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]);
   const [myProposals, setMyProposals] = useState<TrackedProposal[]>([]);
   const [contracts, setContracts] = useState<WorkspaceContract[]>([]);
-  const [loadingContracts, setLoadingContracts] = useState(false);
+
+  // Live Supabase Earnings & Escrow Dashboard State
+  const [paymentDashboard, setPaymentDashboard] = useState<FreelancerPaymentDashboardPayload | null>(null);
+  const [loadingPayments, setLoadingPayments] = useState<boolean>(false);
+  const [paymentsError, setPaymentsError] = useState<string | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<PaymentDashboardItem | null>(null);
+  const [paymentRefreshTick, setPaymentRefreshTick] = useState<number>(0);
+
+  useEffect(() => {
+    if (!freelancerId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("freelancers")
+        .select("available")
+        .eq("id", freelancerId)
+        .maybeSingle();
+      if (!cancelled && data && typeof data.available === "boolean") {
+        setIsAvailableForWork(data.available);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, freelancerId]);
+
+  const handleToggleAvailability = async () => {
+    const nextVal = !isAvailableForWork;
+    setIsAvailableForWork(nextVal);
+    if (!freelancerId) return;
+    setUpdatingAvailability(true);
+    try {
+      await supabase
+        .from("freelancers")
+        .update({ available: nextVal })
+        .eq("id", freelancerId);
+    } finally {
+      setUpdatingAvailability(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -135,7 +197,6 @@ function FreelancerDashboardContent() {
     if (!freelancerId && !userId) return;
     let cancelled = false;
     (async () => {
-      setLoadingContracts(true);
       try {
         const live = await fetchUserContracts(supabase, {
           role: "freelancer",
@@ -145,14 +206,59 @@ function FreelancerDashboardContent() {
         if (!cancelled) setContracts(live || []);
       } catch (err) {
         console.error("Failed to load freelancer contracts:", err);
-      } finally {
-        if (!cancelled) setLoadingContracts(false);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [supabase, userId, freelancerId]);
+  }, [supabase, userId, freelancerId, paymentRefreshTick]);
+
+  const fetchFreelancerPayments = useCallback(async (): Promise<FreelancerPaymentDashboardPayload> => {
+    const response = await fetch("/api/payments/dashboard?role=freelancer", {
+      cache: "no-store",
+    });
+    const data = (await response.json()) as
+      | FreelancerPaymentDashboardPayload
+      | { ok?: false; error?: string };
+
+    if (!response.ok || !data || !("ok" in data) || !data.ok) {
+      throw new Error(
+        (data as { error?: string })?.error ||
+          "Unable to load freelancer payment records."
+      );
+    }
+    return data;
+  }, []);
+
+  useEffect(() => {
+    if (!userId || role !== "freelancer") return;
+    let cancelled = false;
+    fetchFreelancerPayments()
+      .then((payload) => {
+        if (cancelled) return;
+        setPaymentDashboard(payload);
+        setPaymentsError(null);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setPaymentsError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load freelancer payment telemetry."
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPayments(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, role, paymentRefreshTick, fetchFreelancerPayments]);
+
+  const handleRefreshPayments = () => {
+    setLoadingPayments(true);
+    setPaymentRefreshTick((t) => t + 1);
+  };
 
   useEffect(() => {
     if (!userLoading) {
@@ -170,7 +276,7 @@ function FreelancerDashboardContent() {
   const firstName = displayName.split(" ")[0];
   const displayAvatar = avatarUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80";
 
-  // Payout Methods State
+  // Saved Payout Preferences State
   const [payoutMethods, setPayoutMethods] = useState<PayoutMethod[]>([]);
 
   useEffect(() => {
@@ -181,7 +287,6 @@ function FreelancerDashboardContent() {
         setPayoutMethods(live);
       }
     })();
-    setLedgerEntries(getStoredWalletLedger());
     return () => {
       cancelled = true;
     };
@@ -240,25 +345,45 @@ function FreelancerDashboardContent() {
     }, 1000);
   };
 
-    // MFS Withdrawal Modal State
+  // Simulated Payout Request Preview Modal State
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState<number>(25000);
+  const [withdrawAmount, setWithdrawAmount] = useState<number>(0);
   const [withdrawGateway, setWithdrawGateway] = useState<"BKASH" | "NAGAD" | "BANK">("BKASH");
   const [withdrawAccount, setWithdrawAccount] = useState("+8801712-345678");
-  const [withdrawStep, setWithdrawStep] = useState<"FORM" | "PROCESSING" | "SUCCESS">("FORM");
-  const [trxIdResult, setTrxIdResult] = useState<string>("");
+  const [withdrawStep, setWithdrawStep] = useState<"FORM" | "PREVIEWED">("FORM");
 
   // Job proposal fast modal
   const [selectedJobToApply, setSelectedJobToApply] = useState<Job | null>(null);
   const [applyBidAmount, setApplyBidAmount] = useState<number>(15000);
   const [applyDays, setApplyDays] = useState<number>(5);
-  const [applyCoverNote, setApplyCoverNote] = useState<string>("I have extensive Next.js and API integration experience with bKash/Nagad gateways.");
+  const [applyCoverNote, setApplyCoverNote] = useState<string>("I have extensive Next.js and API integration experience with SSLCOMMERZ and local payment workflows.");
   const [applySuccess, setApplySuccess] = useState(false);
 
-  const earned = contracts.reduce((s, c) => s + (c.releasedBdt || 0), 0);
-  const inEscrow = contracts.reduce((s, c) => s + (c.escrowHeldBdt || 0), 0);
+  // Strict Supabase-derived earnings & contract metrics
+  const earningsSummary = paymentDashboard?.summary;
+  const totalEarningsBdt = earningsSummary?.totalEarningsBdt ?? contracts.reduce((s, c) => s + (c.releasedBdt || 0), 0);
+  const releasedEarningsBdt = earningsSummary?.releasedEarningsBdt ?? contracts.reduce((s, c) => s + (c.releasedBdt || 0), 0);
+  const releasedGrossBdt = earningsSummary?.releasedGrossBdt ?? 0;
+  const platformFeesDeductedBdt = earningsSummary?.platformFeesDeductedBdt ?? 0;
+  const pendingEarningsBdt = earningsSummary?.pendingEarningsBdt ?? contracts.reduce((s, c) => s + (c.escrowHeldBdt || 0), 0);
+  const pendingEscrowGrossBdt = earningsSummary?.pendingEscrowGrossBdt ?? 0;
+  const availableEarningsSimulatedBdt = earningsSummary?.availableEarningsSimulatedBdt ?? releasedEarningsBdt;
+  const activeFundedContracts = paymentDashboard?.activeFundedContracts ?? [];
+  const completedReleasedCount = earningsSummary?.completedReleasedCount ?? 0;
   const activeContractsCount = contracts.filter((c) => c.stage === "ACTIVE").length;
-  const successRate = 100;
+  const refundRequests = useMemo(
+    () => paymentDashboard?.refundRequests ?? [],
+    [paymentDashboard]
+  );
+  const openRefundContractIds = useMemo(
+    () =>
+      new Set(
+        refundRequests
+          .filter((r) => r.status === "PENDING" || r.status === "GATEWAY_INITIATED")
+          .map((r) => r.contract_id)
+      ),
+    [refundRequests]
+  );
 
   const missingProfile = [
     "Add your employment history",
@@ -277,33 +402,14 @@ function FreelancerDashboardContent() {
     setPickedSkills((prev) => (prev.includes(skill) ? prev : [...prev, skill]));
   };
 
-  // Cashout calculation
-  const mfsFee = Math.round(withdrawAmount * 0.015);
-  const netReceived = withdrawAmount - mfsFee;
+  // Simulated Cashout Preview Calculation
+  const clampedPreviewAmount = Math.max(0, Math.min(withdrawAmount, availableEarningsSimulatedBdt));
+  const mfsFee = Math.round(clampedPreviewAmount * 0.015);
+  const netReceived = Math.max(0, clampedPreviewAmount - mfsFee);
 
-  const handleExecuteWithdrawal = () => {
-    if (withdrawAmount <= 0 || withdrawAmount > available) return;
-    setWithdrawStep("PROCESSING");
-
-    setTimeout(() => {
-      const generatedTrx = `TRX-${withdrawGateway === "BKASH" ? "BK" : withdrawGateway === "NAGAD" ? "NG" : "BNK"}${Math.floor(100000 + Math.random() * 900000)}`;
-      setTrxIdResult(generatedTrx);
-      setAvailable((prev) => prev - withdrawAmount);
-
-      const newEntry: WalletEntry = {
-        id: `tx-${Date.now()}`,
-        label: `Instant Payout to ${withdrawGateway === "BKASH" ? "bKash" : withdrawGateway === "NAGAD" ? "Nagad" : "Bank"} (${withdrawAccount})`,
-        labelBn: `${withdrawGateway === "BKASH" ? "বিকাশ" : withdrawGateway === "NAGAD" ? "নগদ" : "ব্যাংক"}-এ তাৎক্ষণিক উত্তোলন (${withdrawAccount})`,
-        method: withdrawGateway === "BKASH" ? "BKASH" : withdrawGateway === "NAGAD" ? "NAGAD" : "BANK",
-        amountBdt: -withdrawAmount,
-        status: "COMPLETED",
-        createdLabel: "Just now",
-      };
-
-      const updated = recordStoredWalletEntry(newEntry);
-      setLedgerEntries(updated);
-      setWithdrawStep("SUCCESS");
-    }, 1200);
+  const handlePreviewSimulatedPayout = () => {
+    if (clampedPreviewAmount <= 0 || availableEarningsSimulatedBdt <= 0) return;
+    setWithdrawStep("PREVIEWED");
   };
 
   const handleApplyToJob = async (e: React.FormEvent) => {
@@ -311,13 +417,16 @@ function FreelancerDashboardContent() {
     if (!selectedJobToApply) return;
 
     if (freelancerId) {
-      const platformFee = Math.round(applyBidAmount * PLATFORM_FEE_PCT);
+      const breakdown = calculateContractFeeBreakdown(
+        applyBidAmount,
+        DEFAULT_PLATFORM_FEE_PCT
+      );
       await submitProposal(supabase, {
         jobId: selectedJobToApply.id,
         freelancerId,
-        bidAmountBdt: applyBidAmount,
-        platformFeeBdt: platformFee,
-        netEarnedBdt: applyBidAmount - platformFee,
+        bidAmountBdt: breakdown.grossAmount,
+        platformFeeBdt: breakdown.platformFeeAmount,
+        netEarnedBdt: breakdown.freelancerPayableAmount,
         deliveryDays: applyDays,
         biddingType: "PROJECT",
         coverLetter: applyCoverNote,
@@ -342,8 +451,8 @@ function FreelancerDashboardContent() {
       userName={displayName}
       userMeta={email}
       avatar={displayAvatar}
-      walletBdt={available}
-      walletLabel={lang === "en" ? "available" : "উত্তোলনযোগ্য"}
+      walletBdt={availableEarningsSimulatedBdt}
+      walletLabel={lang === "en" ? "simulated earnings" : "সিমুলেটেড আয়"}
       activeTab={activeTab}
       onTabChange={setActiveTab}
       lang={lang}
@@ -375,7 +484,7 @@ function FreelancerDashboardContent() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
                   {lang === "en" ? "Freelancer Command Center" : "ফ্রিল্যান্সার ড্যাশবোর্ড"}
                 </span>
                 <span className="text-slate-300">•</span>
@@ -399,7 +508,7 @@ function FreelancerDashboardContent() {
                   </>
                 )}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1 flex flex-wrap items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                 {email || (lang === "en" ? "Freelancer Account" : "ফ্রিল্যান্সার অ্যাকাউন্ট")}
                 <span className="text-slate-300">•</span>
@@ -408,6 +517,45 @@ function FreelancerDashboardContent() {
                   : "এনআইডি যাচাইকৃত · ৪.৯৮ রেটিং · ঢাকা, বাংলাদেশ"}
               </p>
             </div>
+
+            {/* Live Availability Status Toggle */}
+            <div className="flex items-center gap-2.5 self-start sm:self-auto bg-white border border-slate-200/90 rounded-2xl px-3.5 py-2.5 shadow-2xs">
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  isAvailableForWork ? "bg-emerald-500 animate-pulse" : "bg-amber-400"
+                }`}
+              />
+              <div className="text-left">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                  {lang === "en" ? "Directory Status" : "ডিরেক্টরি স্ট্যাটাস"}
+                </span>
+                <span className="text-xs font-bold text-slate-800">
+                  {isAvailableForWork
+                    ? lang === "en"
+                      ? "Available for Work"
+                      : "কাজের জন্য উপলব্ধ"
+                    : lang === "en"
+                      ? "Busy / Hidden"
+                      : "ব্যস্ত / লুকানো"}
+                </span>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isAvailableForWork}
+                disabled={updatingAvailability}
+                onClick={handleToggleAvailability}
+                className={`ml-2 relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  isAvailableForWork ? "bg-emerald-600" : "bg-slate-200"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                    isAvailableForWork ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         )}
 
@@ -415,42 +563,136 @@ function FreelancerDashboardContent() {
 
         {/* Stats Grid (Only on Overview) */}
         {activeTab === "overview" && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <StatCard
-              icon={Wallet}
-              label="Available to withdraw"
-              labelBn="উত্তোলনযোগ্য"
-              value={formatBdt(available)}
-              delta="+৳23,250"
-              lang={lang}
-              accent="emerald"
-            />
-            <StatCard
-              icon={TrendingUp}
-              label="Earned this month"
-              labelBn="এই মাসে আয়"
-              value={formatBdt(earned)}
-              delta="+18%"
-              lang={lang}
-              accent="sky"
-            />
-            <StatCard
-              icon={Handshake}
-              label="Active contracts"
-              labelBn="সক্রিয় চুক্তি"
-              value={String(activeContractsCount)}
-              delta={lang === "en" ? `${activeContractsCount} active` : `${activeContractsCount}টি সক্রিয়`}
-              lang={lang}
-              accent="violet"
-            />
-            <StatCard
-              icon={Star}
-              label="Job success score"
-              labelBn="কাজ সফলতার স্কোর"
-              value={`${successRate}%`}
-              lang={lang}
-              accent="amber"
-            />
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+              <StatCard
+                icon={TrendingUp}
+                label="Total earnings (Net)"
+                labelBn="মোট আয় (নিট)"
+                value={formatBdt(totalEarningsBdt)}
+                delta={
+                  lang === "en"
+                    ? `${completedReleasedCount} released (Simulated)`
+                    : `${completedReleasedCount}টি রিলিজড (সিমুলেটেড)`
+                }
+                lang={lang}
+                accent="emerald"
+              />
+              <StatCard
+                icon={Clock}
+                label="Pending earnings"
+                labelBn="অপেক্ষমান আয় (এসক্রো)"
+                value={formatBdt(pendingEarningsBdt)}
+                delta={
+                  lang === "en"
+                    ? `${activeFundedContracts.length} funded in escrow`
+                    : `${activeFundedContracts.length}টি এসক্রোতে ফান্ডেড`
+                }
+                lang={lang}
+                accent="sky"
+              />
+              <StatCard
+                icon={Wallet}
+                label="Available (Simulated)"
+                labelBn="সিমুলেটেড উপলব্ধ আয়"
+                value={formatBdt(availableEarningsSimulatedBdt)}
+                delta={
+                  lang === "en"
+                    ? "Internal Ledger Balance"
+                    : "অভ্যন্তরীণ লেজার ব্যালেন্স"
+                }
+                lang={lang}
+                accent="violet"
+              />
+              <StatCard
+                icon={Handshake}
+                label="Active funded contracts"
+                labelBn="সক্রিয় ফান্ডেড চুক্তি"
+                value={String(activeFundedContracts.length)}
+                delta={
+                  lang === "en"
+                    ? `${activeContractsCount} total active`
+                    : `মোট ${activeContractsCount}টি সক্রিয়`
+                }
+                lang={lang}
+                accent="amber"
+              />
+            </div>
+
+            {activeFundedContracts.length > 0 && (
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      <span>
+                        {lang === "en"
+                          ? "Active Funded Contracts"
+                          : "সক্রিয় ফান্ডেড চুক্তিসমূহ"}
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      {lang === "en"
+                        ? "Escrow-funded milestones ready for work submission and client approval."
+                        : "কাজ জমা ও ক্লায়েন্ট অনুমোদনের জন্য প্রস্তুত ফান্ডেড চুক্তি।"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("wallet")}
+                    className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>
+                      {lang === "en" ? "Open Earnings & Escrow" : "আয় ও এসক্রো দেখুন"}
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {activeFundedContracts.slice(0, 4).map((ct) => {
+                    const workMeta = getWorkStatusMeta(ct.workStatus);
+                    return (
+                      <div
+                        key={ct.id}
+                        className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/60 flex items-center justify-between gap-3"
+                      >
+                        <div className="min-w-0">
+                          <Link
+                            href={`/contracts/${ct.id}`}
+                            className="text-xs font-bold text-slate-900 hover:text-emerald-700 hover:underline line-clamp-1"
+                          >
+                            {ct.title}
+                          </Link>
+                          <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                            {ct.counterpartyName} · {ct.contractCode}
+                          </p>
+                          <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                            {lang === "en" ? workMeta.label : workMeta.labelBn}
+                          </span>
+                        </div>
+
+                        <div className="text-right shrink-0">
+                          <p className="text-xs font-black text-emerald-700">
+                            {formatBdt(ct.netEarningsBdt)}
+                          </p>
+                          <p className="text-[10px] text-slate-400">
+                            Net 90% of {formatBdt(ct.totalBdt)}
+                          </p>
+                          <Link
+                            href={`/contracts/${ct.id}`}
+                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:underline"
+                          >
+                            <span>{lang === "en" ? "Workspace" : "ওয়ার্কস্পেস"}</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -640,64 +882,475 @@ function FreelancerDashboardContent() {
           </div>
         )}
 
-        {/* Wallet Section (Only shown in wallet tab) */}
+        {/* Earnings, Simulated Escrow & Payouts Section (Only shown in wallet tab) */}
         {activeTab === "wallet" && (
           <div id="wallet" className="space-y-6">
-            {/* MFS Payout Wallet Card */}
-            <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 rounded-2xl p-6 text-white shadow-sm border border-slate-800">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            {paymentsError && (
+              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{paymentsError}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRefreshPayments}
+                  className="px-3 py-1 rounded-lg bg-white border border-rose-200 text-rose-700 font-bold hover:bg-rose-100 cursor-pointer"
+                >
+                  {lang === "en" ? "Retry" : "আবার চেষ্টা করুন"}
+                </button>
+              </div>
+            )}
+
+            {/* Academic Simulation Disclaimer */}
+            <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/90 text-xs text-amber-950">
+              <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                {lang === "en"
+                  ? ESCROW_SIMULATION_DISCLAIMER
+                  : ESCROW_SIMULATION_DISCLAIMER_BN}
+              </p>
+            </div>
+
+            {/* Simulated Freelancer Earnings Card */}
+            <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 rounded-2xl p-6 text-white shadow-sm border border-slate-800 space-y-5">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
                     <Wallet className="w-4 h-4 text-emerald-400" />
-                    <span className="text-[10px] font-black uppercase tracking-wider">
-                      {lang === "en" ? "MFS Payout Wallet" : "এমএফএস ওয়ালেট"}
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
+                      {lang === "en"
+                        ? "Freelancer Earnings Ledger"
+                        : "ফ্রিল্যান্সার আয় ও এসক্রো লেজার"}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-400/20 text-amber-200 border border-amber-400/30">
+                      {lang === "en"
+                        ? "Simulated Internal Ledger"
+                        : "সিমুলেটেড অভ্যন্তরীণ লেজার"}
                     </span>
                   </div>
-                  <p className="text-3xl font-black tracking-tight">{formatBdt(available)}</p>
+                  <p className="text-3xl font-black tracking-tight">
+                    {formatBdt(availableEarningsSimulatedBdt)}
+                  </p>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    {lang === "en" ? "Available for instant transfer" : "তাৎক্ষণিক উত্তোলনের জন্য প্রস্তুত"}
+                    {lang === "en"
+                      ? "Available earnings (simulated) credited from released escrow contracts after 10% platform commission."
+                      : "১০% প্ল্যাটফর্ম কমিশন বাদ দিয়ে রিলিজ হওয়া এসক্রো চুক্তি থেকে সিমুলেটেড উপলব্ধ আয়।"}
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/5 text-center">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase">
-                      {lang === "en" ? "In Escrow" : "এসক্রোতে"}
-                    </p>
-                    <p className="text-sm font-black text-amber-300">{formatBdt(inEscrow)}</p>
-                  </div>
-                  <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/5 text-center">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase">
-                      {lang === "en" ? "Lifetime Earned" : "সর্বমোট আয়"}
-                    </p>
-                    <p className="text-sm font-black text-emerald-300">{formatBdt(earned)}</p>
-                  </div>
+                <div className="flex flex-wrap items-center gap-2.5">
                   <button
+                    type="button"
+                    onClick={handleRefreshPayments}
+                    disabled={loadingPayments}
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw
+                      className={`w-3.5 h-3.5 ${
+                        loadingPayments ? "animate-spin" : ""
+                      }`}
+                    />
+                    <span>{lang === "en" ? "Sync Ledger" : "রিফ্রেশ"}</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => {
+                      setWithdrawAmount(availableEarningsSimulatedBdt);
                       setWithdrawStep("FORM");
                       setWithdrawModalOpen(true);
                     }}
-                    className="flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all cursor-pointer shadow-md shadow-emerald-500/20 active:scale-95"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all cursor-pointer shadow-md shadow-emerald-500/20 active:scale-95"
                   >
                     <Smartphone className="w-4 h-4" />
-                    <span>{lang === "en" ? "Withdraw to bKash / Nagad" : "বিকাশ বা নগদে ক্যাশআউট"}</span>
+                    <span>
+                      {lang === "en"
+                        ? "Simulated Payout Preview"
+                        : "সিমুলেটেড উত্তোলন প্রিভিউ"}
+                    </span>
                   </button>
+                </div>
+              </div>
+
+              {/* 4 Earnings KPIs derived from Supabase */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-4 border-t border-white/10">
+                <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">
+                    {lang === "en" ? "Total Earnings (Net)" : "মোট আয় (নিট)"}
+                  </p>
+                  <p className="text-base font-black text-white mt-0.5">
+                    {formatBdt(totalEarningsBdt)}
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    Gross {formatBdt(releasedGrossBdt)}
+                  </p>
+                </div>
+
+                <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">
+                    {lang === "en"
+                      ? "Pending Earnings (Escrow)"
+                      : "অপেক্ষমান আয় (এসক্রো)"}
+                  </p>
+                  <p className="text-base font-black text-amber-300 mt-0.5">
+                    {formatBdt(pendingEarningsBdt)}
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    Gross held {formatBdt(pendingEscrowGrossBdt)}
+                  </p>
+                </div>
+
+                <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">
+                    {lang === "en"
+                      ? "Released Earnings (90%)"
+                      : "রিলিজড আয় (৯০%)"}
+                  </p>
+                  <p className="text-base font-black text-emerald-300 mt-0.5">
+                    {formatBdt(releasedEarningsBdt)}
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {completedReleasedCount}{" "}
+                    {lang === "en" ? "released payments" : "টি রিলিজড পেমেন্ট"}
+                  </p>
+                </div>
+
+                <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">
+                    {lang === "en"
+                      ? "Platform Fees (10%)"
+                      : "প্ল্যাটফর্ম ফি (১০%)"}
+                  </p>
+                  <p className="text-base font-black text-sky-300 mt-0.5">
+                    {formatBdt(platformFeesDeductedBdt)}
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {lang === "en"
+                      ? "Deducted on ledger release"
+                      : "রিলিজের সময় কর্তনকৃত"}
+                  </p>
                 </div>
               </div>
             </div>
 
-                        {/* Payout & Payment Methods Section */}
+            {/* Active Funded Contracts */}
+            <div className="space-y-3">
+              <SectionHeading
+                title="Active funded contracts"
+                titleBn="সক্রিয় ফান্ডেড চুক্তিসমূহ"
+                subtitle="Contracts funded in SSLCOMMERZ Sandbox and held in simulated escrow awaiting work completion"
+                subtitleBn="SSLCOMMERZ স্যান্ডবক্সে ফান্ড করা এবং কাজ সম্পন্ন হওয়ার অপেক্ষায় থাকা চুক্তি"
+                lang={lang}
+                action={
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("workspace")}
+                    className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>
+                      {lang === "en" ? "Go to Workspace" : "ওয়ার্কস্পেসে যান"}
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                }
+              />
+
+              {activeFundedContracts.length === 0 ? (
+                <div className="bg-white border border-dashed border-slate-200 rounded-2xl p-8 text-center space-y-2">
+                  <Lock className="w-7 h-7 text-slate-300 mx-auto" />
+                  <p className="text-xs font-bold text-slate-800">
+                    {lang === "en"
+                      ? "No active funded contracts right now"
+                      : "বর্তমানে কোনো ফান্ডেড চুক্তি নেই"}
+                  </p>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    {lang === "en"
+                      ? "Once a client funds a contract via SSLCOMMERZ Sandbox, it will appear here so you can submit work and earn simulated escrow release."
+                      : "ক্লায়েন্ট SSLCOMMERZ স্যান্ডবক্সের মাধ্যমে চুক্তি ফান্ড করলে তা এখানে দেখা যাবে।"}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {activeFundedContracts.map((ct) => {
+                    const workMeta = getWorkStatusMeta(ct.workStatus);
+                    const payMeta = getPaymentStatusMeta(ct.paymentStatus);
+                    return (
+                      <div
+                        key={ct.id}
+                        className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="font-mono text-[10px] text-slate-400">
+                              {ct.contractCode}
+                            </p>
+                            <Link
+                              href={`/contracts/${ct.id}`}
+                              className="text-sm font-black text-slate-900 hover:text-emerald-700 hover:underline line-clamp-1"
+                            >
+                              {ct.title}
+                            </Link>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              Client: {ct.counterpartyName}
+                            </p>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            <p className="text-sm font-black text-emerald-700">
+                              {formatBdt(ct.netEarningsBdt)}
+                            </p>
+                            <p className="text-[10px] text-slate-400">
+                              Net 90% of {formatBdt(ct.totalBdt)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                              {lang === "en" ? payMeta.label : payMeta.labelBn}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                              {lang === "en" ? workMeta.label : workMeta.labelBn}
+                            </span>
+                            {openRefundContractIds.has(ct.id) && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-800 border border-amber-200">
+                                {lang === "en" ? "Refund Pending Review" : "রিফান্ড পর্যালোচনাধীন"}
+                              </span>
+                            )}
+                          </div>
+
+                          <Link
+                            href={`/contracts/${ct.id}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors"
+                          >
+                            <span>
+                              {lang === "en"
+                                ? "Open & Submit Work"
+                                : "কাজ জমা দিন"}
+                            </span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Freelancer Payment History (Settled / Funded / Released / Refunded) */}
+            <div className="space-y-3">
+              <SectionHeading
+                title="Payment history"
+                titleBn="পেমেন্ট ইতিহাস"
+                subtitle="Escrow-settled and released contract payments recorded in Supabase (click any transaction ID for details)"
+                subtitleBn="সুপাবেজে সংরক্ষিত এসক্রো ও রিলিজড পেমেন্টসমূহ (বিস্তারিত দেখতে ট্রানজেকশন আইডিতে ক্লিক করুন)"
+                lang={lang}
+              />
+              <PaymentHistoryTable
+                payments={paymentDashboard?.payments ?? []}
+                viewerRole="freelancer"
+                lang={lang}
+                loading={loadingPayments}
+                onViewDetails={setSelectedPayment}
+                emptyTitle={
+                  lang === "en"
+                    ? "No funded or released contract payments yet"
+                    : "এখনো কোনো ফান্ডেড বা রিলিজড পেমেন্ট নেই"
+                }
+                emptySubtitle={
+                  lang === "en"
+                    ? "Settled client escrow deposits and released milestone payouts will appear here automatically."
+                    : "ক্লায়েন্ট এসক্রো ফান্ড করলে এবং পেমেন্ট রিলিজ হলে তা এখানে দেখা যাবে।"
+                }
+              />
+            </div>
+
+            {/* Refund & Dispute Status Updates */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <SectionHeading
+                  title="Refund & escrow dispute updates"
+                  titleBn="রিফান্ড ও এসক্রো বিরোধ অবস্থা"
+                  subtitle="Track any client refund requests moderated by Muktokormo Admin on your contracts"
+                  subtitleBn="আপনার চুক্তির যেকোনো রিফান্ড অনুরোধ ও অ্যাডমিন সিদ্ধান্ত দেখুন"
+                  lang={lang}
+                />
+                <div className="flex items-center gap-2 text-[11px] font-bold">
+                  <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    {refundRequests.length}{" "}
+                    {lang === "en" ? "requests" : "টি অনুরোধ"}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200">
+                    {earningsSummary?.refundedCount ?? 0}{" "}
+                    {lang === "en" ? "refunded" : "টি রিফান্ডেড"}
+                  </span>
+                </div>
+              </div>
+
+              {refundRequests.length === 0 ? (
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-5 text-xs text-slate-500 flex items-center gap-2.5">
+                  <RotateCcw className="w-4 h-4 text-slate-400 shrink-0" />
+                  <span>
+                    {lang === "en"
+                      ? "No refund requests or escrow disputes have been filed on your contracts."
+                      : "আপনার চুক্তিসমূহে কোনো রিফান্ড বা বিরোধ অনুরোধ নেই।"}
+                  </span>
+                </div>
+              ) : (
+                <div className="bg-white border border-slate-200/90 rounded-2xl divide-y divide-slate-100 shadow-xs overflow-hidden">
+                  {refundRequests.map((req) => {
+                    const statusClass =
+                      req.status === "COMPLETED"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : req.status === "REJECTED" || req.status === "FAILED"
+                          ? "bg-rose-50 text-rose-700 border-rose-200"
+                          : req.status === "GATEWAY_INITIATED"
+                            ? "bg-sky-50 text-sky-700 border-sky-200"
+                            : "bg-amber-50 text-amber-800 border-amber-200";
+                    return (
+                      <div
+                        key={req.id}
+                        className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      >
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-black text-slate-900">
+                              {formatBdt(req.amount)}
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${statusClass}`}
+                            >
+                              {req.status}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                              {req.refund_mode}
+                            </span>
+                            {req.gateway_status && (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-100 text-slate-600">
+                                GW: {req.gateway_status}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-600">{req.reason}</p>
+                          {req.admin_notes && (
+                            <p className="text-[11px] text-slate-500">
+                              {lang === "en" ? "Admin note:" : "অ্যাডমিন নোট:"}{" "}
+                              {req.admin_notes}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-left sm:text-right shrink-0 text-[10px] text-slate-400 font-mono space-y-1">
+                          <div>
+                            {new Intl.DateTimeFormat("en-BD", {
+                              dateStyle: "medium",
+                            }).format(new Date(req.created_at))}
+                          </div>
+                          {req.gateway_refund_ref_id && (
+                            <div>Ref: {req.gateway_refund_ref_id}</div>
+                          )}
+                          <div>
+                            <Link
+                              href={`/contracts/${req.contract_id}`}
+                              className="font-sans text-[11px] font-bold text-emerald-700 hover:underline"
+                            >
+                              {lang === "en" ? "Open Contract →" : "চুক্তি দেখুন →"}
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Simulated Internal Escrow Ledger Entries */}
+            <div className="space-y-3">
+              <SectionHeading
+                title="Simulated internal escrow ledger"
+                titleBn="সিমুলেটেড অভ্যন্তরীণ এসক্রো খতিয়ান"
+                subtitle="Database-tracked FUND, RELEASE (10% fee / 90% net), and REFUND ledger entries"
+                subtitleBn="ডাটাবেসে সংরক্ষিত ফান্ড, রিলিজ এবং রিফান্ড লেজার এন্ট্রি"
+                lang={lang}
+              />
+              <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+                {(paymentDashboard?.ledgerEntries ?? []).length === 0 ? (
+                  <div className="p-8 text-center text-xs text-slate-500">
+                    {lang === "en"
+                      ? "No internal escrow ledger entries recorded yet."
+                      : "এখনো কোনো অভ্যন্তরীণ এসক্রো লেজার এন্ট্রি নেই।"}
+                  </div>
+                ) : (
+                  <div className="divide-y divide-slate-100">
+                    {(paymentDashboard?.ledgerEntries ?? []).map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="px-4 sm:px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50/70"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${
+                                entry.entry_type === "RELEASE"
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : entry.entry_type === "REFUND"
+                                    ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                    : "bg-sky-50 text-sky-700 border-sky-200"
+                              }`}
+                            >
+                              {entry.entry_type}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                              Simulated Ledger
+                            </span>
+                            <span className="text-[11px] text-slate-400">
+                              {new Intl.DateTimeFormat("en-BD", {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              }).format(new Date(entry.created_at))}
+                            </span>
+                          </div>
+                          <p className="text-xs font-bold text-slate-800 mt-1">
+                            {entry.description}
+                          </p>
+                        </div>
+
+                        <div className="text-left sm:text-right shrink-0">
+                          <p className="text-xs font-black text-slate-900">
+                            {entry.entry_type === "RELEASE"
+                              ? `+${formatBdt(entry.freelancer_net_amount)} Net`
+                              : formatBdt(entry.amount)}
+                          </p>
+                          <p className="text-[10px] text-slate-400">
+                            Gross {formatBdt(entry.amount)} · Fee{" "}
+                            {formatBdt(entry.platform_fee_amount)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Payout Account Preferences (Preview / Profile Setup Only) */}
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
                     <CreditCard className="w-5 h-5 text-emerald-600" />
-                    <span>{lang === "en" ? "Payout & Payment Methods" : "উত্তোলন ও পেমেন্ট মাধ্যম"}</span>
+                    <span>
+                      {lang === "en"
+                        ? "Saved Payout Preferences"
+                        : "সংরক্ষিত উত্তোলন মাধ্যম"}
+                    </span>
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
                     {lang === "en"
-                      ? "Manage verified Bangladeshi MFS and local bank accounts for instant earnings withdrawal."
-                      : "আপনার ভেরিফাইড বিকাশ, নগদ ও লোকাল ব্যাংক হিসাবসমূহ ব্যবস্থাপনা করুন।"}
+                      ? "Store preferred MFS/bank accounts on your profile. Automated live transfers are disabled in academic sandbox mode."
+                      : "আপনার প্রোফাইলে পছন্দের বিকাশ/নগদ/ব্যাংক তথ্য সংরক্ষণ করুন। স্যান্ডবক্স মোডে সরাসরি টাকা পাঠানো হয় না।"}
                   </p>
                 </div>
                 <button
@@ -813,9 +1466,9 @@ function FreelancerDashboardContent() {
 
                       {/* Card Footer: Status and Delete */}
                       <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>{lang === "en" ? "Verified for Cashout" : "উত্তোলনের জন্য প্রস্তুত"}</span>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>{lang === "en" ? "Preference Saved" : "সংরক্ষিত"}</span>
                         </span>
 
                         <button
@@ -852,33 +1505,6 @@ function FreelancerDashboardContent() {
                   </div>
                 </button>
               </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <SectionHeading
-                  title="Wallet transactions"
-                  titleBn="ওয়ালেট লেনদেন বিবরণী"
-                  subtitle="Milestone releases, service fees and MFS withdrawals"
-                  subtitleBn="মাইলস্টোন মুক্তি, সার্ভিস ফি এবং বিকাশ/নগদ উত্তোলন"
-                  lang={lang}
-                />
-                <button
-                  onClick={() => {
-                    setWithdrawStep("FORM");
-                    setWithdrawModalOpen(true);
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold hover:bg-emerald-100 transition-all cursor-pointer"
-                >
-                  + {lang === "en" ? "New Withdrawal" : "নতুন উত্তোলন"}
-                </button>
-              </div>
-              <LedgerList
-                entries={ledgerEntries}
-                lang={lang}
-                emptyLabel="No wallet activity yet"
-                emptyLabelBn="এখনো কোনো লেনদেন নেই"
-              />
             </div>
           </div>
         )}
@@ -1130,7 +1756,7 @@ function FreelancerDashboardContent() {
       )}
 
       
-      {/* Interactive MFS Cashout Modal */}
+      {/* Simulated Payout Request Preview Modal (Academic Sandbox Mode) */}
       {withdrawModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150">
@@ -1142,82 +1768,88 @@ function FreelancerDashboardContent() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">
-                    {lang === "en" ? "Withdraw Freelancer Earnings" : "ফ্রিল্যান্সার আয় উত্তোলন"}
+                    {lang === "en"
+                      ? "Simulated Payout Preview"
+                      : "সিমুলেটেড উত্তোলন প্রিভিউ"}
                   </h3>
                   <p className="text-[11px] text-slate-400">
-                    {lang === "en" ? "Available Balance: " : "উত্তোলনযোগ্য ব্যালেন্স: "}
-                    <span className="font-bold text-slate-700">৳{available.toLocaleString()} BDT</span>
+                    {lang === "en"
+                      ? "Simulated Available Balance: "
+                      : "সিমুলেটেড উপলব্ধ ব্যালেন্স: "}
+                    <span className="font-bold text-slate-700">
+                      {formatBdt(availableEarningsSimulatedBdt)} BDT
+                    </span>
                   </p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setWithdrawModalOpen(false)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {withdrawStep === "FORM" && (
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
+              <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                {lang === "en"
+                  ? "Academic Sandbox Notice: Real bKash, Nagad, or bank transfers do not run automatically. This calculator only previews payout breakdown against your Supabase-released earnings."
+                  : "একাডেমিক স্যান্ডবক্স বিজ্ঞপ্তি: বাস্তব বিকাশ, নগদ বা ব্যাংক ট্রান্সফার স্বয়ংক্রিয়ভাবে সম্পন্ন হয় না। এটি শুধুমাত্র হিসাব প্রিভিউ প্রদর্শন করে।"}
+              </p>
+            </div>
+
+            {availableEarningsSimulatedBdt <= 0 ? (
+              <div className="py-4 text-center space-y-3">
+                <Lock className="w-8 h-8 text-slate-300 mx-auto" />
+                <p className="text-xs font-bold text-slate-800">
+                  {lang === "en"
+                    ? "No released earnings available yet"
+                    : "এখনো কোনো রিলিজড আয় নেই"}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {lang === "en"
+                    ? "Submit completed contract work and receive client approval to credit released earnings in Supabase."
+                    : "চুক্তির কাজ জমা দিয়ে ক্লায়েন্টের অনুমোদন পেলে রিলিজড আয় যুক্ত হবে।"}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setWithdrawModalOpen(false)}
+                  className="w-full py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer"
+                >
+                  {lang === "en" ? "Close" : "বন্ধ করুন"}
+                </button>
+              </div>
+            ) : withdrawStep === "FORM" ? (
               <div className="space-y-4">
-                {/* Method selector */}
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                    {lang === "en" ? "Select Payout Gateway" : "পেমেন্ট গেটওয়ে নির্বাচন করুন"}
+                    {lang === "en" ? "Preferred Payout Channel" : "পছন্দের মাধ্যম"}
                   </label>
                   <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setWithdrawGateway("BKASH");
-                        setWithdrawAccount("+8801712-345678");
-                      }}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                        withdrawGateway === "BKASH"
-                          ? "bg-pink-50 border-pink-500 text-pink-700 font-bold shadow-2xs"
-                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      <Smartphone className="w-4 h-4 mx-auto mb-1 text-pink-600" />
-                      <span className="text-xs">bKash</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setWithdrawGateway("NAGAD");
-                        setWithdrawAccount("+8801819-876543");
-                      }}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                        withdrawGateway === "NAGAD"
-                          ? "bg-orange-50 border-orange-500 text-orange-700 font-bold shadow-2xs"
-                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      <Smartphone className="w-4 h-4 mx-auto mb-1 text-orange-600" />
-                      <span className="text-xs">Nagad</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setWithdrawGateway("BANK");
-                        setWithdrawAccount("City Bank AC # 205118920");
-                      }}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
-                        withdrawGateway === "BANK"
-                          ? "bg-sky-50 border-sky-500 text-sky-700 font-bold shadow-2xs"
-                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                      }`}
-                    >
-                      <Building className="w-4 h-4 mx-auto mb-1 text-sky-600" />
-                      <span className="text-xs">Bank NPSB</span>
-                    </button>
+                    {(["BKASH", "NAGAD", "BANK"] as const).map((gw) => (
+                      <button
+                        key={gw}
+                        type="button"
+                        onClick={() => setWithdrawGateway(gw)}
+                        className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                          withdrawGateway === gw
+                            ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-bold shadow-2xs"
+                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        <span className="text-xs font-bold">
+                          {gw === "BANK" ? "Bank NPSB" : gw}
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                {/* Account number */}
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">
-                    {lang === "en" ? "Recipient Account Number" : "গ্রাহক একাউন্ট নম্বর"}
+                    {lang === "en" ? "Account Reference" : "অ্যাকাউন্ট নম্বর"}
                   </label>
                   <input
                     type="text"
@@ -1227,103 +1859,78 @@ function FreelancerDashboardContent() {
                   />
                 </div>
 
-                {/* Amount input */}
                 <div>
                   <div className="flex justify-between items-center mb-1">
                     <label className="text-xs font-bold text-slate-700">
-                      {lang === "en" ? "Withdrawal Amount (BDT)" : "উত্তোলনের পরিমাণ (টাকা)"}
+                      {lang === "en" ? "Preview Amount (BDT)" : "প্রিভিউ পরিমাণ (টাকা)"}
                     </label>
                     <button
                       type="button"
-                      onClick={() => setWithdrawAmount(available)}
-                      className="text-[11px] font-bold text-emerald-600 hover:underline"
+                      onClick={() => setWithdrawAmount(availableEarningsSimulatedBdt)}
+                      className="text-[11px] font-bold text-emerald-600 hover:underline cursor-pointer"
                     >
-                      {lang === "en" ? "Withdraw All" : "সব উত্তোলন"}
+                      {lang === "en" ? "Use Max" : "সর্বোচ্চ"}
                     </button>
                   </div>
                   <input
                     type="number"
-                    min="1000"
-                    max={available}
-                    step="500"
+                    min="1"
+                    max={availableEarningsSimulatedBdt}
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(Number(e.target.value))}
                     className="w-full px-3 py-2 text-base font-black text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
-                  <div className="flex gap-1.5 mt-2">
-                    {[10000, 25000, 50000].map((amt) => (
-                      <button
-                        key={amt}
-                        type="button"
-                        onClick={() => setWithdrawAmount(Math.min(amt, available))}
-                        className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[10px] font-bold text-slate-700"
-                      >
-                        ৳{amt.toLocaleString()}
-                      </button>
-                    ))}
-                  </div>
                 </div>
 
-                {/* Calculation breakdown */}
                 <div className="p-3 bg-slate-50 rounded-xl space-y-1 text-xs">
                   <div className="flex justify-between text-slate-500">
-                    <span>Requested Amount:</span>
-                    <span className="font-bold text-slate-800">৳{withdrawAmount.toLocaleString()} BDT</span>
+                    <span>Preview Amount:</span>
+                    <span className="font-bold text-slate-800">
+                      {formatBdt(clampedPreviewAmount)} BDT
+                    </span>
                   </div>
                   <div className="flex justify-between text-slate-500">
-                    <span>MFS Cashout Fee (1.5%):</span>
-                    <span className="font-bold text-rose-600">-৳{mfsFee.toLocaleString()} BDT</span>
+                    <span>Estimated MFS Fee (1.5%):</span>
+                    <span className="font-bold text-rose-600">
+                      -{formatBdt(mfsFee)} BDT
+                    </span>
                   </div>
                   <div className="flex justify-between text-emerald-700 font-bold pt-1 border-t border-slate-200">
-                    <span>Net Credited to Wallet:</span>
-                    <span>৳{netReceived.toLocaleString()} BDT</span>
+                    <span>Estimated Net (Simulated):</span>
+                    <span>{formatBdt(netReceived)} BDT</span>
                   </div>
                 </div>
 
                 <button
-                  onClick={handleExecuteWithdrawal}
-                  disabled={withdrawAmount <= 0 || withdrawAmount > available}
-                  className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-200 text-white font-bold text-xs shadow-md shadow-emerald-600/20 cursor-pointer transition-all flex items-center justify-center gap-2"
+                  type="button"
+                  onClick={handlePreviewSimulatedPayout}
+                  disabled={clampedPreviewAmount <= 0}
+                  className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 text-white font-bold text-xs cursor-pointer transition-all"
                 >
-                  <Smartphone className="w-4 h-4" />
-                  <span>
-                    {lang === "en"
-                      ? `Confirm Transfer of ৳${withdrawAmount.toLocaleString()} BDT`
-                      : `৳${withdrawAmount.toLocaleString()} টাকা ট্রান্সফার নিশ্চিত করুন`}
-                  </span>
+                  {lang === "en"
+                    ? "Preview Payout Summary (Simulated Only)"
+                    : "সিমুলেটেড পেআউট সারাংশ দেখুন"}
                 </button>
               </div>
-            )}
-
-            {withdrawStep === "PROCESSING" && (
-              <div className="py-8 text-center space-y-3">
-                <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
-                <h4 className="text-sm font-bold text-slate-900">
-                  {lang === "en" ? "Processing MFS Cashout Transfer..." : "এমএফএস ট্রান্সফার প্রক্রিয়াধীন..."}
-                </h4>
-                <p className="text-xs text-slate-500">
-                  Communicating with Bangladesh MFS Settlement Network.
-                </p>
-              </div>
-            )}
-
-            {withdrawStep === "SUCCESS" && (
-              <div className="py-4 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-6 h-6" />
+            ) : (
+              <div className="py-3 text-center space-y-3">
+                <div className="w-11 h-11 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+                  <Info className="w-5 h-5" />
                 </div>
-                <h4 className="text-base font-black text-slate-900">
-                  {lang === "en" ? "Funds Transferred Successfully!" : "টাকা সফলভাবে পাঠানো হয়েছে!"}
+                <h4 className="text-sm font-black text-slate-900">
+                  {lang === "en"
+                    ? "Simulated Payout Preview Recorded Locally"
+                    : "সিমুলেটেড পেআউট প্রিভিউ"}
                 </h4>
-                <p className="text-xs text-slate-600 max-w-xs mx-auto">
-                  ৳{netReceived.toLocaleString()} BDT has been credited to your {withdrawGateway} account ({withdrawAccount}).
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {lang === "en"
+                    ? `Estimated net ${formatBdt(netReceived)} to ${withdrawGateway} (${withdrawAccount}). No real funds were moved and your Supabase ledger balance remains ${formatBdt(availableEarningsSimulatedBdt)}.`
+                    : `${withdrawGateway} (${withdrawAccount})-এর জন্য আনুমানিক ${formatBdt(netReceived)} প্রদর্শিত হয়েছে। কোনো বাস্তব অর্থ স্থানান্তর করা হয়নি।`}
                 </p>
-                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-700 font-bold">
-                  TrxID: {trxIdResult}
-                </div>
                 <button
+                  type="button"
                   onClick={() => setWithdrawModalOpen(false)}
-                  className="w-full py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs"
+                  className="w-full py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer"
                 >
                   {lang === "en" ? "Back to Dashboard" : "ড্যাশবোর্ডে ফিরুন"}
                 </button>
@@ -1348,7 +1955,7 @@ function FreelancerDashboardContent() {
               </div>
               <button
                 onClick={() => setSelectedJobToApply(null)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1385,6 +1992,26 @@ function FreelancerDashboardContent() {
                   </div>
                 </div>
 
+                {(() => {
+                  const preview = calculateContractFeeBreakdown(
+                    applyBidAmount,
+                    DEFAULT_PLATFORM_FEE_PCT
+                  );
+                  return (
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] flex items-center justify-between">
+                      <span className="text-slate-500">
+                        Platform commission ({preview.platformFeePct}%):{" "}
+                        <strong className="text-slate-800">
+                          {formatBdt(preview.platformFeeAmount)}
+                        </strong>
+                      </span>
+                      <span className="text-emerald-700 font-bold">
+                        Net Payable: {formatBdt(preview.freelancerPayableAmount)}
+                      </span>
+                    </div>
+                  );
+                })()}
+
                 <div>
                   <label className="text-[11px] font-bold text-slate-700 block mb-1">Proposal Pitch</label>
                   <textarea
@@ -1400,13 +2027,13 @@ function FreelancerDashboardContent() {
                   <button
                     type="button"
                     onClick={() => setSelectedJobToApply(null)}
-                    className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-xs hover:bg-emerald-700"
+                    className="px-5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-xs hover:bg-emerald-700 cursor-pointer"
                   >
                     Submit Proposal
                   </button>
@@ -1416,6 +2043,14 @@ function FreelancerDashboardContent() {
           </div>
         </div>
       )}
+
+      {/* Payment Details Modal */}
+      <PaymentDetailModal
+        payment={selectedPayment}
+        viewerRole="freelancer"
+        lang={lang}
+        onClose={() => setSelectedPayment(null)}
+      />
     </DashboardShell>
   );
 }

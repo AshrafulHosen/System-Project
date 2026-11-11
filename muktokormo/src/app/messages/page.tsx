@@ -94,8 +94,8 @@ function MessagesHubContent() {
   const [contracts, setContracts] = useState<WorkspaceContract[]>([]);
   const [loadingContracts, setLoadingContracts] = useState(true);
 
-  // Selected conversation thread ID
-  const [activeConvId, setActiveConvId] = useState<string | null>(null);
+  // Selected conversation thread ID (null falls back to URL / first conversation)
+  const [selectedConvId, setSelectedConvId] = useState<string | null>(null);
 
   // View mode: 'chatbox' (workspace view with context sidebars) vs 'inbox' (TalkJS native full inbox)
   const [viewMode, setViewMode] = useState<"chatbox" | "inbox">("chatbox");
@@ -214,22 +214,22 @@ function MessagesHubContent() {
     return items;
   }, [contracts, userRole, urlPartnerId, urlPartnerName, urlPartnerRole, urlPartnerAvatar, urlSubject, urlConvId, urlContractId]);
 
-  // Set default active conversation once conversations are loaded
-  useEffect(() => {
-    if (activeConvId) return;
-
+  // Derive active conversation thread (respecting explicit user click, URL params, or first conversation)
+  const activeConvId = useMemo(() => {
+    if (selectedConvId && conversations.some((c) => c.id === selectedConvId)) {
+      return selectedConvId;
+    }
     if (urlConvId && conversations.some((c) => c.id === urlConvId)) {
-      setActiveConvId(urlConvId);
-    } else if (urlContractId) {
+      return urlConvId;
+    }
+    if (urlContractId) {
       const match = conversations.find(
         (c) => c.contractId === urlContractId || c.id === urlContractId || c.id === `conv-${urlContractId}`
       );
-      if (match) setActiveConvId(match.id);
-      else if (conversations.length > 0) setActiveConvId(conversations[0].id);
-    } else if (conversations.length > 0) {
-      setActiveConvId(conversations[0].id);
+      if (match) return match.id;
     }
-  }, [conversations, urlConvId, urlContractId, activeConvId]);
+    return conversations[0]?.id ?? null;
+  }, [selectedConvId, conversations, urlConvId, urlContractId]);
 
   // Selected conversation item
   const activeConversation = useMemo(() => {
@@ -428,7 +428,7 @@ function MessagesHubContent() {
                     <button
                       key={conv.id}
                       type="button"
-                      onClick={() => setActiveConvId(conv.id)}
+                      onClick={() => setSelectedConvId(conv.id)}
                       className={`w-full text-left p-3.5 rounded-2xl transition-all cursor-pointer flex items-start gap-3 relative ${
                         isSelected
                           ? "bg-[#14a800] text-white shadow-xs"

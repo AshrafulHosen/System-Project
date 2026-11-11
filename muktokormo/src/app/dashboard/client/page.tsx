@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, Suspense } from "react";
+import React, { useState, useEffect, useMemo, useCallback, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   Briefcase,
   Send,
@@ -12,9 +12,7 @@ import {
   Video,
   ArrowRight,
   Sparkles,
-  Star,
   CheckCircle2,
-  FileText,
   Clock,
   ShieldCheck,
   ChevronRight,
@@ -22,33 +20,29 @@ import {
   Smartphone,
   CreditCard,
   Building,
-  PlusCircle,
-  Eye,
   AlertCircle,
   X,
   RefreshCw,
-  Search,
   Bookmark,
   Gavel,
   MessageSquare,
   Plus,
   Trash2,
   Check,
-  Download,
   Receipt,
   ExternalLink,
   Printer,
   Edit3,
+  Info,
+  RotateCcw,
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import WorkspaceMessagesSection from "@/components/dashboard/WorkspaceMessagesSection";
 import WorkspaceSection from "@/components/dashboard/WorkspaceSection";
 import { SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
-import {
-  ContractCard,
-  DraftJobsTable,
-  LedgerList,
-} from "@/components/dashboard/Widgets";
+import { DraftJobsTable } from "@/components/dashboard/Widgets";
+import PaymentHistoryTable from "@/components/payments/PaymentHistoryTable";
+import PaymentDetailModal from "@/components/payments/PaymentDetailModal";
 import {
   CLIENT_NAV,
   CLIENT_ONBOARDING_TASKS,
@@ -58,10 +52,25 @@ import {
 } from "@/data/dashboardData";
 import { formatBdt } from "@/lib/format";
 import { WalletEntry, DraftJob, WorkspaceContract } from "@/types";
+import type {
+  ClientPaymentDashboardPayload,
+  PaymentDashboardItem,
+} from "@/types/payment";
+import {
+  ESCROW_SIMULATION_DISCLAIMER,
+  ESCROW_SIMULATION_DISCLAIMER_BN,
+  getPaymentStatusMeta,
+  getWorkStatusMeta,
+} from "@/lib/payments/escrow";
+import {
+  DEFAULT_PLATFORM_FEE_PCT,
+  calculateContractFeeBreakdown,
+} from "@/lib/payments/constants";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import { createClient } from "@/lib/supabase/client";
 import { fetchClientProjects } from "@/lib/data/jobs";
 import { createContractFromProposal, fetchUserContracts } from "@/lib/data/contracts";
+import { fetchSavedTalent, unsaveTalent } from "@/lib/data/freelancers";
 import {
   fetchClientProposals,
   ClientProposal,
@@ -74,6 +83,17 @@ import {
   removeLivePayoutMethod,
   setPrimaryLivePayoutMethod,
 } from "@/lib/data/wallet";
+
+type ClientLedgerEntry = WalletEntry & { trxId?: string };
+
+const STATUS_TONE_CLASSES: Record<string, string> = {
+  emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  sky: "bg-sky-50 text-sky-700 border-sky-200",
+  amber: "bg-amber-50 text-amber-700 border-amber-200",
+  rose: "bg-rose-50 text-rose-700 border-rose-200",
+  indigo: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  slate: "bg-slate-100 text-slate-700 border-slate-200",
+};
 
 const CONSULTANTS = [
   {
@@ -205,13 +225,13 @@ function ClientDashboardContent() {
   const [lang, setLang] = useState<"en" | "bn">("en");
   const toggleLang = () => setLang((prev) => (prev === "en" ? "bn" : "en"));
 
-  const { userId, clientId, name, email, companyName, avatarUrl } = useCurrentUser();
+  const { userId, clientId, name, email, companyName, avatarUrl, role } = useCurrentUser();
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
 
   const [selectedMessageThreadId, setSelectedMessageThreadId] = useState<string | null>(null);
 
-  const isDemo = email === "apex@lifestyle.bd" || !email;
+  const isDemo = !userId && (email === "apex@lifestyle.bd" || !email);
   const displayName = name || (isDemo ? "Ahad A" : "Client");
   const displayFirstName = displayName.split(" ")[0] || "Client";
   const displayCompany = companyName || (isDemo ? "Apex Lifestyle BD" : "My Organization");
@@ -222,15 +242,19 @@ function ClientDashboardContent() {
   const [activeTab, setActiveTab] = useState<string>(initialTab);
 
   useEffect(() => {
-    if (tabParam) {
-      setActiveTab(tabParam === "contracts" ? "workspace" : tabParam);
-    } else if (typeof window !== "undefined") {
-      const rawHash = window.location.hash.replace("#", "");
-      const hash = rawHash === "contracts" ? "workspace" : rawHash;
-      if (hash && ["overview", "jobs", "proposals", "workspace", "messages", "payments", "disputes", "saved"].includes(hash)) {
-        setActiveTab(hash);
+    const syncRouteTab = () => {
+      if (tabParam) {
+        setActiveTab(tabParam === "contracts" ? "workspace" : tabParam);
+      } else if (typeof window !== "undefined") {
+        const rawHash = window.location.hash.replace("#", "");
+        const hash = rawHash === "contracts" ? "workspace" : rawHash;
+        if (hash && ["overview", "jobs", "proposals", "workspace", "messages", "payments", "disputes", "saved"].includes(hash)) {
+          setActiveTab(hash);
+        }
       }
-    }
+    };
+
+    const timerId = window.setTimeout(syncRouteTab, 0);
 
     const handleHashChange = () => {
       if (typeof window !== "undefined") {
@@ -243,16 +267,18 @@ function ClientDashboardContent() {
     };
 
     window.addEventListener("hashchange", handleHashChange);
-    return () => window.removeEventListener("hashchange", handleHashChange);
+    return () => {
+      window.clearTimeout(timerId);
+      window.removeEventListener("hashchange", handleHashChange);
+    };
   }, [tabParam]);
 
   const [acceptedProposalIds, setAcceptedProposalIds] = useState<string[]>(["prop-1"]);
   const [consultants, setConsultants] = useState(true);
-  const [ledgerEntries, setLedgerEntries] = useState<WalletEntry[]>(isDemo ? CLIENT_LEDGER : []);
-  const [prefundedBalance, setPrefundedBalance] = useState<number>(15000);
-  const [ledgerFilter, setLedgerFilter] = useState<"ALL" | "ESCROW" | "RELEASED" | "DEPOSIT">("ALL");
+  const [ledgerEntries] = useState<ClientLedgerEntry[]>(isDemo ? CLIENT_LEDGER : []);
+  const [ledgerFilter, setLedgerFilter] = useState<"ALL" | "FUND" | "RELEASE" | "REFUND">("ALL");
 
-  // Payment & Billing Methods State
+  // Payment & Billing Preferences State
   const [payoutMethods, setPayoutMethods] = useState<PayoutMethod[]>(DEFAULT_CLIENT_METHODS);
   const [addMethodModalOpen, setAddMethodModalOpen] = useState(false);
   const [newMethodType, setNewMethodType] = useState<"BKASH" | "NAGAD" | "ROCKET" | "BANK">("BKASH");
@@ -276,36 +302,100 @@ function ClientDashboardContent() {
   const [editBillingModalOpen, setEditBillingModalOpen] = useState(false);
 
   // Tax Invoice / Receipt Modal State
-  const [selectedInvoice, setSelectedInvoice] = useState<WalletEntry | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<ClientLedgerEntry | null>(null);
 
-  // Escrow Deposit Modal
+  // Live SSLCOMMERZ Sandbox Payment Dashboard State
+  const [paymentDashboard, setPaymentDashboard] = useState<ClientPaymentDashboardPayload | null>(null);
+  const [loadingPayments, setLoadingPayments] = useState<boolean>(false);
+  const [paymentsError, setPaymentsError] = useState<string | null>(null);
+  const [paymentNotice, setPaymentNotice] = useState<{ tone: "emerald" | "rose"; text: string } | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<PaymentDashboardItem | null>(null);
+  const [initiatingContractId, setInitiatingContractId] = useState<string | null>(null);
+  const [verifyingTranId, setVerifyingTranId] = useState<string | null>(null);
+  const [paymentRefreshTick, setPaymentRefreshTick] = useState<number>(0);
+
+  // Contract Funding Selector Modal (Replaces old fake deposit modal)
   const [depositModalOpen, setDepositModalOpen] = useState(false);
-  const [depositAmount, setDepositAmount] = useState<number>(20000);
-  const [depositGateway, setDepositGateway] = useState<"BKASH" | "NAGAD" | "CARD" | "BANK">("BKASH");
-  const [depositStep, setDepositStep] = useState<"FORM" | "PROCESSING" | "SUCCESS">("FORM");
-  const [trxResult, setTrxResult] = useState<string>("");
+  const [selectedContractIdToFund, setSelectedContractIdToFund] = useState<string>("");
 
   const [contracts, setContracts] = useState<WorkspaceContract[]>([]);
   const [draftJobs, setDraftJobs] = useState<DraftJob[]>(isDemo ? CLIENT_DRAFT_JOBS : []);
   const [proposals, setProposals] = useState<ClientProposal[]>(isDemo ? (MOCK_PROPOSALS as unknown as ClientProposal[]) : []);
+  const [savedTalentList, setSavedTalentList] = useState<
+    { id: string; name: string; nameBn?: string; title: string; titleBn?: string; location: string; locationBn?: string; rating: number; rateBdt: number; avatar: string }[]
+  >(isDemo ? SAVED_TALENT : []);
   const [loadingJobs, setLoadingJobs] = useState(false);
   const [loadingProposals, setLoadingProposals] = useState(false);
-  const [loadingContracts, setLoadingContracts] = useState(false);
 
   const activeContracts = contracts.filter((c) => c.stage === "ACTIVE");
-  const escrowHeld = contracts.reduce((sum, c) => sum + (c.escrowHeldBdt || 0), 0);
-  const totalSpent = contracts.reduce((sum, c) => sum + (c.releasedBdt || 0), 0);
   const totalProposals = proposals.length > 0
     ? proposals.length
     : (isDemo ? 3 : draftJobs.reduce((sum, d) => sum + (d.proposalCount || 0), 0));
+
+  // Real Supabase-derived Client Payment KPIs
+  const paymentSummary = paymentDashboard?.summary;
+  const fallbackEscrowHeld = contracts.reduce((sum, c) => sum + (c.escrowHeldBdt || 0), 0);
+  const fallbackReleasedSpent = contracts.reduce((sum, c) => sum + (c.releasedBdt || 0), 0);
+  const inEscrowBdt = userId ? (paymentSummary?.inEscrowBdt ?? fallbackEscrowHeld) : fallbackEscrowHeld;
+  const releasedSpendingBdt = userId ? (paymentSummary?.releasedSpendingBdt ?? fallbackReleasedSpent) : fallbackReleasedSpent;
+  const totalSpendingBdt = userId ? (paymentSummary?.totalSpendingBdt ?? inEscrowBdt + releasedSpendingBdt) : inEscrowBdt + releasedSpendingBdt;
+  const refundedBdt = userId ? (paymentSummary?.refundedBdt ?? 0) : 0;
+  const fundedContractsCount = userId ? (paymentSummary?.fundedContractsCount ?? 0) : activeContracts.length;
+  const pendingPaymentsCount = userId ? (paymentSummary?.pendingPaymentsCount ?? 0) : 0;
+  const pendingPaymentAttemptsCount = userId ? (paymentSummary?.pendingPaymentAttemptsCount ?? 0) : 0;
+  const failedOrCancelledCount = userId ? (paymentSummary?.failedOrCancelledCount ?? 0) : 0;
+  const refundRequestsCount = userId ? (paymentSummary?.refundRequestsCount ?? 0) : 0;
+  const pendingRefundCount = userId ? (paymentSummary?.pendingRefundCount ?? 0) : 0;
+  const disputedContractsCount = contracts.filter((c) => c.stage === "DISPUTED").length;
+
+  const fundableContracts = useMemo(
+    () =>
+      (paymentDashboard?.contracts ?? []).filter(
+        (c) => c.canFund || c.canRetry
+      ),
+    [paymentDashboard]
+  );
+
+  const effectiveContractIdToFund = fundableContracts.some(
+    (c) => c.id === selectedContractIdToFund
+  )
+    ? selectedContractIdToFund
+    : fundableContracts[0]?.id ?? "";
+
+  const selectedFundableContract =
+    fundableContracts.find((c) => c.id === effectiveContractIdToFund) ?? null;
+
+  const latestInvoiceEntry: ClientLedgerEntry | null = useMemo(() => {
+    const firstPayment = paymentDashboard?.payments?.[0];
+    if (userId && firstPayment) {
+      return {
+        id: firstPayment.id,
+        label: `${firstPayment.contract_title} (${firstPayment.contract_code})`,
+        labelBn: `${firstPayment.contract_title} (${firstPayment.contract_code})`,
+        method: "ESCROW",
+        amountBdt: firstPayment.amount,
+        status:
+          firstPayment.status === "FAILED" || firstPayment.status === "CANCELLED"
+            ? "FAILED"
+            : firstPayment.status === "PENDING"
+            ? "PENDING"
+            : "COMPLETED",
+        createdLabel: new Date(firstPayment.created_at).toLocaleDateString("en-BD"),
+        trxId: firstPayment.transaction_id,
+      };
+    }
+    return isDemo ? (ledgerEntries[0] ?? null) : null;
+  }, [userId, paymentDashboard, isDemo, ledgerEntries]);
 
   // Fetch live client projects, proposals and contracts
   useEffect(() => {
     if (!clientId && !userId) {
       if (isDemo) {
-        setDraftJobs(CLIENT_DRAFT_JOBS);
-        setProposals(MOCK_PROPOSALS as unknown as ClientProposal[]);
-        setContracts(CLIENT_CONTRACTS as unknown as WorkspaceContract[]);
+        Promise.resolve().then(() => {
+          setDraftJobs(CLIENT_DRAFT_JOBS);
+          setProposals(MOCK_PROPOSALS as unknown as ClientProposal[]);
+          setContracts(CLIENT_CONTRACTS as unknown as WorkspaceContract[]);
+        });
       }
       return;
     }
@@ -314,12 +404,12 @@ function ClientDashboardContent() {
     (async () => {
       setLoadingJobs(true);
       setLoadingProposals(true);
-      setLoadingContracts(true);
       try {
-        const [liveProjects, liveProposals, liveContracts] = await Promise.all([
+        const [liveProjects, liveProposals, liveContracts, liveSaved] = await Promise.all([
           clientId ? fetchClientProjects(supabase, clientId) : Promise.resolve([]),
           clientId ? fetchClientProposals(supabase, clientId) : Promise.resolve([]),
           fetchUserContracts(supabase, { role: "client", userId, entityId: clientId }),
+          clientId ? fetchSavedTalent(supabase, clientId) : Promise.resolve([]),
         ]);
         if (!cancelled) {
           if (liveProjects.length > 0 || !isDemo) {
@@ -337,6 +427,19 @@ function ClientDashboardContent() {
           if (liveContracts) {
             setContracts(liveContracts);
           }
+          if (clientId) {
+            setSavedTalentList(
+              liveSaved.map((f) => ({
+                id: f.id,
+                name: f.name,
+                title: f.title,
+                location: f.location,
+                rating: f.rating,
+                rateBdt: f.hourlyRateBdt,
+                avatar: f.avatar,
+              }))
+            );
+          }
         }
       } catch (err) {
         console.error("Failed to load live client jobs, proposals & contracts:", err);
@@ -344,7 +447,6 @@ function ClientDashboardContent() {
         if (!cancelled) {
           setLoadingJobs(false);
           setLoadingProposals(false);
-          setLoadingContracts(false);
         }
       }
     })();
@@ -352,7 +454,142 @@ function ClientDashboardContent() {
     return () => {
       cancelled = true;
     };
-  }, [supabase, clientId, userId, isDemo]);
+  }, [supabase, clientId, userId, isDemo, paymentRefreshTick]);
+
+  const fetchClientPayments = useCallback(async (): Promise<ClientPaymentDashboardPayload> => {
+    const response = await fetch("/api/payments/dashboard?role=client", {
+      cache: "no-store",
+    });
+    const data = (await response.json()) as
+      | ClientPaymentDashboardPayload
+      | { ok?: false; error?: string };
+
+    if (!response.ok || !data || !("ok" in data) || !data.ok) {
+      throw new Error(
+        (data as { error?: string })?.error ||
+          "Unable to load client payment records."
+      );
+    }
+    return data;
+  }, []);
+
+  useEffect(() => {
+    if (!userId || role !== "client") return;
+    let cancelled = false;
+    fetchClientPayments()
+      .then((payload) => {
+        if (cancelled) return;
+        setPaymentDashboard(payload);
+        setPaymentsError(null);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setPaymentsError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load client payment records."
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPayments(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, role, paymentRefreshTick, fetchClientPayments]);
+
+  const handleRefreshPayments = () => {
+    setLoadingPayments(true);
+    setPaymentRefreshTick((t) => t + 1);
+  };
+
+  const handleInitiatePayment = async (contractId: string) => {
+    if (!contractId) return;
+    setPaymentNotice(null);
+    setInitiatingContractId(contractId);
+    try {
+      const response = await fetch("/api/payments/initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contractId }),
+      });
+      const data = (await response.json()) as {
+        ok?: boolean;
+        error?: string;
+        gatewayPageUrl?: string;
+      };
+
+      if (!response.ok || !data.ok || !data.gatewayPageUrl) {
+        setPaymentNotice({
+          tone: "rose",
+          text:
+            data.error ||
+            "Unable to initialize SSLCOMMERZ Sandbox checkout session.",
+        });
+        return;
+      }
+
+      setPaymentNotice({
+        tone: "emerald",
+        text:
+          lang === "en"
+            ? "Redirecting to SSLCOMMERZ Sandbox payment gateway..."
+            : "SSLCOMMERZ স্যান্ডবক্স গেটওয়েতে রিডাইরেক্ট করা হচ্ছে...",
+      });
+      window.location.assign(data.gatewayPageUrl);
+    } catch {
+      setPaymentNotice({
+        tone: "rose",
+        text: "Network error contacting /api/payments/initiate.",
+      });
+    } finally {
+      setInitiatingContractId(null);
+    }
+  };
+
+  const handleVerifyPendingPayment = async (transactionId: string) => {
+    if (!transactionId) return;
+    setPaymentNotice(null);
+    setVerifyingTranId(transactionId);
+    try {
+      const response = await fetch("/api/payments/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transactionId }),
+      });
+      const data = (await response.json()) as {
+        ok?: boolean;
+        paymentStatus?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !data.ok) {
+        setPaymentNotice({
+          tone: "rose",
+          text:
+            data.error ||
+            "Transaction is not verified as successful at SSLCOMMERZ Sandbox yet.",
+        });
+      } else {
+        setPaymentNotice({
+          tone: "emerald",
+          text:
+            lang === "en"
+              ? `Payment verified via SSLCOMMERZ Sandbox (Status: ${data.paymentStatus ?? "FUNDED"}).`
+              : `SSLCOMMERZ স্যান্ডবক্স দ্বারা যাচাই সম্পন্ন (${data.paymentStatus ?? "FUNDED"})।`,
+        });
+        setSelectedPayment(null);
+      }
+      setPaymentRefreshTick((t) => t + 1);
+    } catch {
+      setPaymentNotice({
+        tone: "rose",
+        text: "Network error while verifying transaction status.",
+      });
+    } finally {
+      setVerifyingTranId(null);
+    }
+  };
 
   const handleAcceptBid = async (proposalId: string) => {
     setAcceptedProposalIds((prev) => Array.from(new Set([...prev, proposalId])));
@@ -362,10 +599,13 @@ function ClientDashboardContent() {
     setSelectedMessageThreadId(proposalId);
     if (!proposalId.startsWith("prop-")) {
       try {
-        await updateProposalStatus(supabase, proposalId, "ACCEPTED");
-        const contract = await createContractFromProposal(supabase, proposalId);
-        if (contract) {
-          setSelectedMessageThreadId(contract.id);
+        const updated = await updateProposalStatus(supabase, proposalId, "ACCEPTED");
+        if (updated) {
+          const contract = await createContractFromProposal(supabase, proposalId);
+          if (contract) {
+            setSelectedMessageThreadId(contract.id);
+            setPaymentRefreshTick((t) => t + 1);
+          }
         }
       } catch (err) {
         console.error("Failed to update proposal status & create contract in DB:", err);
@@ -428,37 +668,18 @@ function ClientDashboardContent() {
     }, 1000);
   };
 
-  const handleDepositEscrow = () => {
-    if (depositAmount <= 0) return;
-    setDepositStep("PROCESSING");
-
-    setTimeout(() => {
-      const generatedTrx = `TRX-${depositGateway === "BKASH" ? "BK" : depositGateway === "NAGAD" ? "NG" : depositGateway === "CARD" ? "CRD" : "BNK"}${Math.floor(100000 + Math.random() * 900000)}`;
-      setTrxResult(generatedTrx);
-
-      const newEntry: WalletEntry = {
-        id: `tx-${Date.now()}`,
-        label: `Escrow Funded via ${depositGateway} for Milestone`,
-        labelBn: `মাইলস্টোনের জন্য ${depositGateway}-এ এসক্রো ফান্ড জমা`,
-        method: (depositGateway === "BKASH" ? "BKASH" : depositGateway === "NAGAD" ? "NAGAD" : "BANK") as any,
-        amountBdt: depositAmount,
-        status: "COMPLETED",
-        createdLabel: "Just now",
-      };
-      (newEntry as any).trxId = generatedTrx;
-
-      setLedgerEntries((prev) => [newEntry, ...prev]);
-      setPrefundedBalance((prev) => prev + depositAmount);
-      setDepositStep("SUCCESS");
-    }, 1200);
-  };
-
-  // Filtered ledger entries
-  const filteredLedgerEntries = ledgerEntries.filter((entry) => {
+  // Filtered Supabase Escrow Ledger entries (or showcase preview when unauthenticated)
+  const supabaseLedgerEntries = paymentDashboard?.ledgerEntries ?? [];
+  const filteredSupabaseLedger = supabaseLedgerEntries.filter((entry) => {
     if (ledgerFilter === "ALL") return true;
-    if (ledgerFilter === "ESCROW") return entry.label.toLowerCase().includes("escrow");
-    if (ledgerFilter === "RELEASED") return entry.label.toLowerCase().includes("released") || entry.label.toLowerCase().includes("disbursed");
-    if (ledgerFilter === "DEPOSIT") return entry.amountBdt > 0 || entry.label.toLowerCase().includes("top-up") || entry.label.toLowerCase().includes("deposit");
+    return entry.entry_type === ledgerFilter;
+  });
+
+  const filteredDemoLedger = ledgerEntries.filter((entry) => {
+    if (ledgerFilter === "ALL") return true;
+    if (ledgerFilter === "FUND") return entry.label.toLowerCase().includes("escrow");
+    if (ledgerFilter === "RELEASE") return entry.label.toLowerCase().includes("released") || entry.label.toLowerCase().includes("disbursed");
+    if (ledgerFilter === "REFUND") return entry.label.toLowerCase().includes("refund");
     return true;
   });
 
@@ -468,9 +689,9 @@ function ClientDashboardContent() {
       nav={CLIENT_NAV}
       userName={displayName}
       userMeta={displayMeta}
-      avatar="https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=100&auto=format&fit=crop&q=80"
-      walletBdt={escrowHeld}
-      walletLabel={lang === "en" ? "in escrow safe" : "এসক্রোতে সুরক্ষিত"}
+      avatar={avatarUrl || "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=100&auto=format&fit=crop&q=80"}
+      walletBdt={inEscrowBdt}
+      walletLabel={lang === "en" ? "in simulated escrow" : "সিমুলেটেড এসক্রোতে"}
       activeTab={activeTab}
       onTabChange={setActiveTab}
       lang={lang}
@@ -551,14 +772,89 @@ function ClientDashboardContent() {
             />
             <StatCard
               icon={Wallet}
-              label="Total spent in escrow"
-              labelBn="মোট এসক্রো ও ব্যয়"
-              value={formatBdt(totalSpent + escrowHeld)}
-              delta="-12% vs last month"
-              deltaUp={false}
+              label="Total spending"
+              labelBn="মোট ব্যয় (এসক্রো ও রিলিজ)"
+              value={formatBdt(totalSpendingBdt)}
+              delta={
+                lang === "en"
+                  ? `${fundedContractsCount} funded · ${pendingPaymentsCount} pending`
+                  : `${fundedContractsCount} ফান্ডেড · ${pendingPaymentsCount} অপেক্ষমান`
+              }
               lang={lang}
               accent="amber"
             />
+          </div>
+        )}
+
+        {/* Overview Payment & Escrow Quick Summary */}
+        {activeTab === "overview" && (
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-1">
+              <div className="rounded-xl bg-slate-50 border border-slate-100 px-3.5 py-2.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  {lang === "en" ? "Funded Contracts" : "ফান্ডেড চুক্তি"}
+                </p>
+                <p className="text-sm font-black text-emerald-700 mt-0.5">
+                  {fundedContractsCount}
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-50 border border-slate-100 px-3.5 py-2.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  {lang === "en" ? "Simulated Escrow" : "সিমুলেটেড এসক্রো"}
+                </p>
+                <p className="text-sm font-black text-slate-900 mt-0.5">
+                  {formatBdt(inEscrowBdt)}
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-50 border border-slate-100 px-3.5 py-2.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  {lang === "en" ? "Released Spending" : "রিলিজকৃত ব্যয়"}
+                </p>
+                <p className="text-sm font-black text-slate-900 mt-0.5">
+                  {formatBdt(releasedSpendingBdt)}
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-50 border border-slate-100 px-3.5 py-2.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  {lang === "en" ? "Pending & Refunds" : "অপেক্ষমান ও রিফান্ড"}
+                </p>
+                <p className="text-xs font-black text-amber-700 mt-1">
+                  {pendingPaymentsCount} {lang === "en" ? "pending" : "অপেক্ষমান"}
+                  {failedOrCancelledCount > 0
+                    ? lang === "en"
+                      ? ` · ${failedOrCancelledCount} retryable`
+                      : ` · ${failedOrCancelledCount} পুনঃচেষ্টা`
+                    : ""}{" "}
+                  · {formatBdt(refundedBdt)} {lang === "en" ? "refunded" : "রিফান্ড"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              {fundableContracts.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setDepositModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>
+                    {lang === "en"
+                      ? `Fund Contract (${fundableContracts.length})`
+                      : `চুক্তি ফান্ড করুন (${fundableContracts.length})`}
+                  </span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setActiveTab("payments")}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
+              >
+                <Wallet className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{lang === "en" ? "Payment History & Escrow" : "পেমেন্ট ও এসক্রো"}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         )}
 
@@ -753,7 +1049,7 @@ function ClientDashboardContent() {
                             {lang === "bn" && prop.freelancerTitleBn ? prop.freelancerTitleBn : prop.freelancerTitle}
                           </p>
                           <p className="text-xs text-slate-600 line-clamp-2 max-w-xl italic">
-                            "{lang === "bn" && prop.coverNoteBn ? prop.coverNoteBn : prop.coverNote}"
+                            &ldquo;{lang === "bn" && prop.coverNoteBn ? prop.coverNoteBn : prop.coverNote}&rdquo;
                           </p>
                           <p className="text-[10px] text-slate-400">
                             {lang === "en" ? "Applying for: " : "আবেদনকৃত কাজ: "}
@@ -859,10 +1155,72 @@ function ClientDashboardContent() {
         )}
 
         {/* ----------------------------------------------------------------------------- */}
-        {/* CLIENT WALLET & PAYMENTS SECTION (LIKE FREELANCER WALLET + CLIENT ESSENTIALS)  */}
+        {/* CLIENT ESCROW VAULT & SSLCOMMERZ SANDBOX PAYMENTS SECTION                      */}
         {/* ----------------------------------------------------------------------------- */}
         {activeTab === "payments" && (
           <div id="payments" className="space-y-6">
+            {/* Error & Action Notice Banners */}
+            {paymentsError && (
+              <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-rose-800">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">
+                      {lang === "en" ? "Unable to refresh live payments" : "লাইভ পেমেন্ট লোড করা যায়নি"}
+                    </p>
+                    <p className="text-[11px] text-rose-700 mt-0.5">{paymentsError}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRefreshPayments}
+                  className="px-3 py-1.5 rounded-xl bg-white border border-rose-200 text-rose-700 font-bold hover:bg-rose-100 cursor-pointer shrink-0"
+                >
+                  {lang === "en" ? "Retry" : "আবার চেষ্টা করুন"}
+                </button>
+              </div>
+            )}
+
+            {paymentNotice && (
+              <div
+                className={`rounded-2xl p-4 border flex items-center justify-between gap-3 text-xs ${
+                  paymentNotice.tone === "emerald"
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                    : "bg-rose-50 border-rose-200 text-rose-900"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  {paymentNotice.tone === "emerald" ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  )}
+                  <span className="font-semibold">{paymentNotice.text}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPaymentNotice(null)}
+                  className="p-1 rounded-lg hover:bg-black/5 cursor-pointer shrink-0"
+                  aria-label="Dismiss notification"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Academic Sandbox Simulation Disclaimer */}
+            <div className="bg-amber-50/90 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+              <Info className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+              <div className="text-xs text-amber-900 leading-relaxed">
+                <span className="font-black uppercase tracking-wider text-[10px] block mb-0.5 text-amber-800">
+                  {lang === "en"
+                    ? "SSLCOMMERZ Sandbox & Simulated Escrow Disclosure"
+                    : "SSLCOMMERZ স্যান্ডবক্স ও সিমুলেটেড এসক্রো তথ্য"}
+                </span>
+                {lang === "en" ? ESCROW_SIMULATION_DISCLAIMER : ESCROW_SIMULATION_DISCLAIMER_BN}
+              </div>
+            </div>
+
             {/* Client Escrow & Billing Hero Card */}
             <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 rounded-2xl p-6 text-white shadow-sm border border-slate-800">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -870,16 +1228,16 @@ function ClientDashboardContent() {
                   <div className="flex items-center gap-2 mb-2">
                     <ShieldCheck className="w-4 h-4 text-emerald-400" />
                     <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
-                      {lang === "en" ? "Client Escrow & Billing Vault" : "ক্লায়েন্ট এসক্রো ও বিলিং ভল্ট"}
+                      {lang === "en" ? "Client Escrow & Payment Vault" : "ক্লায়েন্ট এসক্রো ও পেমেন্ট ভল্ট"}
                     </span>
                   </div>
-                  <p className="text-3xl font-black tracking-tight">{formatBdt(escrowHeld)}</p>
+                  <p className="text-3xl font-black tracking-tight">{formatBdt(inEscrowBdt)}</p>
                   <p className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
-                    <Lock className="w-3 h-3 text-emerald-400" />
+                    <Lock className="w-3 h-3 text-emerald-400 shrink-0" />
                     <span>
                       {lang === "en"
-                        ? "Protected in neutral MuktoKormo milestone escrow"
-                        : "নিরপেক্ষ মুক্তকর্ম মাইলস্টোন এসক্রোতে সম্পূর্ণ সুরক্ষিত"}
+                        ? "Currently held in simulated PostgreSQL escrow (SSLCOMMERZ Sandbox)"
+                        : "বর্তমানে সিমুলেটেড PostgreSQL এসক্রোতে সুরক্ষিত (SSLCOMMERZ স্যান্ডবক্স)"}
                     </span>
                   </p>
                 </div>
@@ -887,376 +1245,493 @@ function ClientDashboardContent() {
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/5 text-center">
                     <p className="text-[9px] font-bold text-slate-400 uppercase">
-                      {lang === "en" ? "Pre-Funded Credits" : "প্রি-ফান্ডেড ক্রেডিট"}
+                      {lang === "en" ? "Total Spending" : "মোট ব্যয়"}
                     </p>
-                    <p className="text-sm font-black text-amber-300">{formatBdt(prefundedBalance)}</p>
+                    <p className="text-sm font-black text-emerald-300">{formatBdt(totalSpendingBdt)}</p>
                   </div>
                   <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/5 text-center">
                     <p className="text-[9px] font-bold text-slate-400 uppercase">
-                      {lang === "en" ? "Lifetime Disbursed" : "সর্বমোট পরিশোধিত"}
+                      {lang === "en" ? "Funded Contracts" : "ফান্ডেড চুক্তি"}
                     </p>
-                    <p className="text-sm font-black text-emerald-300">{formatBdt(totalSpent)}</p>
+                    <p className="text-sm font-black text-sky-300">{fundedContractsCount}</p>
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/5 text-center">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase">
+                      {lang === "en" ? "Pending" : "অপেক্ষমান"}
+                    </p>
+                    <p className="text-sm font-black text-amber-300">
+                      {pendingPaymentsCount}
+                      {pendingPaymentAttemptsCount > pendingPaymentsCount
+                        ? ` (${pendingPaymentAttemptsCount})`
+                        : ""}
+                    </p>
+                  </div>
+                  <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/5 text-center">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase">
+                      {lang === "en" ? "Refunded" : "রিফান্ডেড"}
+                    </p>
+                    <p className="text-sm font-black text-indigo-300">{formatBdt(refundedBdt)}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
                     <button
-                      onClick={() => {
-                        setDepositStep("FORM");
-                        setDepositModalOpen(true);
-                      }}
+                      type="button"
+                      onClick={() => setDepositModalOpen(true)}
                       className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all cursor-pointer shadow-md shadow-emerald-500/20 active:scale-95"
                     >
                       <Plus className="w-4 h-4 stroke-[3]" />
-                      <span>{lang === "en" ? "Fund Escrow / Deposit" : "এসক্রো জমা / ডিপোজিট"}</span>
+                      <span>{lang === "en" ? "Fund Contract" : "চুক্তি ফান্ড করুন"}</span>
                     </button>
                     <button
-                      onClick={() => {
-                        if (ledgerEntries.length > 0) {
-                          setSelectedInvoice(ledgerEntries[0]);
-                        }
-                      }}
-                      className="flex items-center justify-center gap-1.5 px-3.5 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-all cursor-pointer border border-white/10"
+                      type="button"
+                      onClick={handleRefreshPayments}
+                      disabled={loadingPayments}
+                      className="flex items-center justify-center gap-1.5 px-3.5 py-3 rounded-xl bg-white/10 hover:bg-white/15 disabled:opacity-60 text-white text-xs font-bold transition-all cursor-pointer border border-white/10"
                     >
-                      <Receipt className="w-3.5 h-3.5 text-slate-300" />
-                      <span>{lang === "en" ? "Tax Statement" : "ট্যাক্স বিবরণী"}</span>
+                      <RefreshCw className={`w-3.5 h-3.5 text-slate-300 ${loadingPayments ? "animate-spin" : ""}`} />
+                      <span>{lang === "en" ? "Refresh" : "রিফ্রেশ"}</span>
                     </button>
+                    {latestInvoiceEntry && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedInvoice(latestInvoiceEntry)}
+                        className="flex items-center justify-center gap-1.5 px-3.5 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-all cursor-pointer border border-white/10"
+                      >
+                        <Receipt className="w-3.5 h-3.5 text-slate-300" />
+                        <span>{lang === "en" ? "Statement" : "বিবরণী"}</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Payout & Billing Methods Section (Matches Freelancer Payout Grid) */}
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-emerald-600" />
-                    <span>{lang === "en" ? "Billing & Payment Methods" : "বিলিং ও পেমেন্ট মাধ্যম"}</span>
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {lang === "en"
-                      ? "Manage verified Bangladeshi MFS (bKash/Nagad) and corporate bank accounts for 1-click milestone funding."
-                      : "মাইলস্টোন ফান্ড করার জন্য ভেরিফাইড বিকাশ, নগদ ও লোকাল ব্যাংক অ্যাকাউন্টসমূহ ব্যবস্থাপনা করুন।"}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setAddMethodModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer hover:scale-[1.02] active:scale-95 shrink-0"
-                >
-                  <Plus className="w-4 h-4 stroke-[2.5]" />
-                  <span>{lang === "en" ? "Add Payment Method" : "নতুন মাধ্যম যোগ করুন"}</span>
-                </button>
-              </div>
-
-              {/* Methods Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                {payoutMethods.map((m) => {
-                  const isBkash = m.type === "BKASH";
-                  const isNagad = m.type === "NAGAD";
-                  const isRocket = m.type === "ROCKET";
-                  const isBank = m.type === "BANK";
-
-                  return (
-                    <div
-                      key={m.id}
-                      className={`relative rounded-2xl p-4.5 border transition-all flex flex-col justify-between ${
-                        m.isPrimary
-                          ? "bg-white border-emerald-500/80 shadow-sm ring-2 ring-emerald-500/20"
-                          : "bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs"
-                      }`}
-                    >
-                      <div>
-                        {/* Card Header: Type Badge & Primary Pill */}
-                        <div className="flex items-center justify-between gap-2 mb-3">
-                          <div className="flex items-center gap-2">
-                            {isBkash && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-pink-50 text-pink-700 border border-pink-200">
-                                <Smartphone className="w-3.5 h-3.5 text-pink-600" />
-                                bKash Merchant
-                              </span>
-                            )}
-                            {isNagad && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-orange-50 text-orange-700 border border-orange-200">
-                                <Smartphone className="w-3.5 h-3.5 text-orange-600" />
-                                Nagad Direct
-                              </span>
-                            )}
-                            {isRocket && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-purple-50 text-purple-700 border border-purple-200">
-                                <Smartphone className="w-3.5 h-3.5 text-purple-600" />
-                                Rocket
-                              </span>
-                            )}
-                            {isBank && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-sky-50 text-sky-700 border border-sky-200">
-                                <Building className="w-3.5 h-3.5 text-sky-600" />
-                                Corporate Bank (NPSB)
-                              </span>
-                            )}
-
-                            {m.accountType && (
-                              <span className="text-[10px] font-bold text-slate-400 uppercase">
-                                {m.accountType}
-                              </span>
-                            )}
-                          </div>
-
-                          {m.isPrimary ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              <Check className="w-3 h-3 stroke-[3]" />
-                              {lang === "en" ? "Default" : "প্রধান"}
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => handleSetPrimaryMethod(m.id)}
-                              className="text-[11px] font-bold text-slate-400 hover:text-emerald-700 hover:underline cursor-pointer"
-                            >
-                              {lang === "en" ? "Make Default" : "ডিফল্ট করুন"}
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Account Details */}
-                        <div className="space-y-1">
-                          {isBank ? (
-                            <>
-                              <h4 className="text-sm font-black text-slate-900 leading-tight">
-                                {m.bankName || "Corporate Account"}
-                              </h4>
-                              {m.branchName && (
-                                <p className="text-[11px] text-slate-500 font-medium">{m.branchName}</p>
-                              )}
-                              <p className="text-xs font-mono font-bold text-slate-700 pt-1">
-                                A/C: {m.accountNumber}
-                              </p>
-                              {m.routingNumber && (
-                                <p className="text-[10px] font-mono text-slate-400">
-                                  Routing: {m.routingNumber}
-                                </p>
-                              )}
-                            </>
-                          ) : (
-                            <>
-                              <p className="text-sm font-mono font-black text-slate-900 tracking-wide">
-                                {m.accountNumber}
-                              </p>
-                              <p className="text-[11px] text-slate-500 font-medium">
-                                {m.accountHolder}
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Card Footer: Status and Delete */}
-                      <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>{lang === "en" ? "Verified for 1-Click Escrow" : "এসক্রোর জন্য প্রস্তুত"}</span>
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveMethod(m.id)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                          title={lang === "en" ? "Remove method" : "মাধ্যমটি মুছুন"}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* Add New Method Dashed Button Card */}
-                <button
-                  type="button"
-                  onClick={() => setAddMethodModalOpen(true)}
-                  className="rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/30 p-5 flex flex-col items-center justify-center text-center gap-2 transition-all cursor-pointer group min-h-[160px]"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-emerald-100 text-slate-500 group-hover:text-emerald-700 flex items-center justify-center transition-colors">
-                    <Plus className="w-5 h-5 stroke-[2.5]" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold text-slate-800 group-hover:text-emerald-700 block">
-                      {lang === "en" ? "Add New Billing Method" : "নতুন বিলিং মাধ্যম যোগ করুন"}
-                    </span>
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">
-                      {lang === "en"
-                        ? "bKash, Nagad, Rocket or Corporate Bank Account"
-                        : "বিকাশ, নগদ, রকেট বা কর্পোরেট ব্যাংক হিসাব"}
-                    </span>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* CLIENT-SPECIFIC ESSENTIALS: Escrow Protection Guarantees & Corporate Tax Info */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* Escrow Guarantee Cards */}
-              <div className="lg:col-span-2 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl p-5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
-                    <ShieldCheck className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black uppercase tracking-wider text-emerald-900">
-                      {lang === "en" ? "100% Escrow Protection Protocol" : "১০০% এসক্রো সুরক্ষা নীতিমালা"}
-                    </h4>
-                    <p className="text-[11px] text-emerald-700">
-                      {lang === "en"
-                        ? "Bangladesh Bank approved framework protecting client capital"
-                        : "বাংলাদেশ ব্যাংকের নির্দেশিকা মেনে ক্লায়েন্টের অর্থ সুরক্ষিত"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                  <div className="bg-white/90 rounded-xl p-3 border border-emerald-100">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 mb-1">
-                      <Lock className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>{lang === "en" ? "Release Control" : "সম্পূর্ণ নিয়ন্ত্রণ"}</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 leading-snug">
-                      {lang === "en"
-                        ? "Zero automatic payouts. Funds disburse only when you approve."
-                        : "আপনার অনুমোদন ছাড়া কোনো টাকা ফ্রিল্যান্সারের কাছে যাবে না।"}
-                    </p>
-                  </div>
-
-                  <div className="bg-white/90 rounded-xl p-3 border border-emerald-100">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 mb-1">
-                      <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>{lang === "en" ? "7-Day Inspection" : "৭ দিনের রিভিউ"}</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 leading-snug">
-                      {lang === "en"
-                        ? "Full 7 days to inspect code & request unlimited revisions."
-                        : "কাজ যাচাই করতে ৭ দিন সময় এবং আনলিমিটেড রিভিশন সুবিধা।"}
-                    </p>
-                  </div>
-
-                  <div className="bg-white/90 rounded-xl p-3 border border-emerald-100">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 mb-1">
-                      <Gavel className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>{lang === "en" ? "Arbitration" : "মধ্যস্থতা সেবা"}</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 leading-snug">
-                      {lang === "en"
-                        ? "Dedicated dispute resolution board ensures safe refunds."
-                        : "কাজে অমিল থাকলে নিরপেক্ষ সালিশের মাধ্যমে রিফান্ড নিশ্চিত।"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Company VAT & Billing Profile Card */}
-              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 flex flex-col justify-between space-y-3 shadow-xs">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                      {lang === "en" ? "Corporate Billing Profile" : "প্রাতিষ্ঠানিক বিলিং প্রোফাইল"}
-                    </span>
-                    <button
-                      onClick={() => setEditBillingModalOpen(true)}
-                      className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <Edit3 className="w-3 h-3" />
-                      <span>{lang === "en" ? "Edit" : "সম্পাদনা"}</span>
-                    </button>
-                  </div>
-
-                  <h4 className="text-xs font-black text-slate-900 leading-tight">
-                    {billingProfile.companyName}
-                  </h4>
-                  <p className="text-[11px] font-mono font-bold text-slate-600 mt-1">
-                    BIN: {billingProfile.binNumber}
-                  </p>
-                  <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">
-                    {billingProfile.billingAddress}
-                  </p>
-                </div>
-
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    <CheckCircle2 className="w-3 h-3" />
-                    Mushak-6.3 VAT Ready
-                  </span>
-                  <button
-                    onClick={() => {
-                      if (ledgerEntries.length > 0) setSelectedInvoice(ledgerEntries[0]);
-                    }}
-                    className="text-[10px] font-bold text-slate-500 hover:text-slate-800 underline cursor-pointer"
-                  >
-                    {lang === "en" ? "View Sample VAT Receipt" : "নমুনা ভ্যাট রসিদ"}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Escrow Transactions & Invoices Ledger */}
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Contract Funding & Payment Status Queue */}
+            {userId && (
+              <div className="space-y-4">
                 <SectionHeading
-                  title="Recent payments & escrow ledger"
-                  titleBn="সাম্প্রতিক পেমেন্ট ও এসক্রো খতিয়ান"
-                  subtitle="Escrow deposits, milestones released and MFS transaction records"
-                  subtitleBn="এসক্রো জমা, মাইলস্টোন মুক্তি ও বিকাশ/নগদ লেনদেনের বিবরণী"
+                  title="Contract funding & escrow status"
+                  titleBn="চুক্তি ফান্ডিং ও এসক্রো অবস্থা"
+                  subtitle="Fund unpaid contracts via SSLCOMMERZ Sandbox, verify pending checkouts, or retry failed/cancelled sessions"
+                  subtitleBn="SSLCOMMERZ স্যান্ডবক্সের মাধ্যমে চুক্তি ফান্ড করুন, অপেক্ষমান পেমেন্ট যাচাই করুন বা ব্যর্থ লেনদেন পুনরায় চেষ্টা করুন"
                   lang={lang}
                 />
 
-                <div className="flex items-center gap-2">
+                {!paymentDashboard?.contracts || paymentDashboard.contracts.length === 0 ? (
+                  <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center space-y-2">
+                    <Handshake className="w-8 h-8 text-slate-300 mx-auto" />
+                    <p className="text-xs font-bold text-slate-800">
+                      {lang === "en" ? "No client contracts found yet" : "এখনো কোনো চুক্তি তৈরি হয়নি"}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {lang === "en"
+                        ? "Accept a freelancer proposal to generate a contract ready for SSLCOMMERZ Sandbox funding."
+                        : "ফ্রিল্যান্সারের আবেদন অনুমোদন করলে ফান্ডিং-যোগ্য চুক্তি এখানে দেখা যাবে।"}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {paymentDashboard.contracts.map((c) => {
+                      const paymentBadge = getPaymentStatusMeta(c.paymentStatus);
+                      const workBadge = getWorkStatusMeta(c.workStatus);
+                      const isInitiating = initiatingContractId === c.id;
+                      const isVerifying = Boolean(
+                        c.latestTransactionId && verifyingTranId === c.latestTransactionId
+                      );
+
+                      return (
+                        <div
+                          key={c.id}
+                          className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-4"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <span className="text-[10px] font-mono font-bold text-slate-400">
+                                {c.contractCode}
+                              </span>
+                              <h4 className="text-sm font-black text-slate-900 truncate mt-0.5">
+                                {c.title}
+                              </h4>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                {lang === "en" ? "Freelancer:" : "ফ্রিল্যান্সার:"}{" "}
+                                <span className="font-semibold text-slate-700">{c.counterpartyName}</span>
+                              </p>
+                            </div>
+                            <div className="flex flex-col items-end gap-1 shrink-0">
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                                  STATUS_TONE_CLASSES[paymentBadge.tone] ?? STATUS_TONE_CLASSES.slate
+                                }`}
+                              >
+                                {lang === "en" ? paymentBadge.label : paymentBadge.labelBn}
+                              </span>
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                                  STATUS_TONE_CLASSES[workBadge.tone] ?? STATUS_TONE_CLASSES.slate
+                                }`}
+                              >
+                                {lang === "en" ? workBadge.label : workBadge.labelBn}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-50 border border-slate-100 p-3 text-xs">
+                            <div>
+                              <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                                {lang === "en" ? "Contract" : "চুক্তি"}
+                              </span>
+                              <span className="font-black text-slate-900">{formatBdt(c.totalBdt)}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                                {lang === "en" ? `Fee (${c.platformFeePct}%)` : `ফি (${c.platformFeePct}%)`}
+                              </span>
+                              <span className="font-bold text-slate-700">{formatBdt(c.platformFeeAmount)}</span>
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-slate-400 font-bold uppercase block">
+                                {lang === "en" ? "Freelancer Net" : "ফ্রিল্যান্সার নিট"}
+                              </span>
+                              <span className="font-black text-emerald-700">{formatBdt(c.netEarningsBdt)}</span>
+                            </div>
+                          </div>
+
+                          {c.latestFailureReason && (
+                            <div className="rounded-xl bg-rose-50 border border-rose-200 px-3 py-2 text-[11px] text-rose-800 flex items-start gap-2">
+                              <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0 mt-0.5" />
+                              <span>{c.latestFailureReason}</span>
+                            </div>
+                          )}
+
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {c.canFund && (
+                                <button
+                                  type="button"
+                                  disabled={isInitiating}
+                                  onClick={() => handleInitiatePayment(c.id)}
+                                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-xs font-bold cursor-pointer"
+                                >
+                                  <Lock className="w-3.5 h-3.5" />
+                                  <span>
+                                    {isInitiating
+                                      ? lang === "en"
+                                        ? "Starting..."
+                                        : "শুরু হচ্ছে..."
+                                      : lang === "en"
+                                      ? "Fund Contract"
+                                      : "চুক্তি ফান্ড করুন"}
+                                  </span>
+                                </button>
+                              )}
+
+                              {!c.canFund && c.canRetry && (
+                                <button
+                                  type="button"
+                                  disabled={isInitiating}
+                                  onClick={() => handleInitiatePayment(c.id)}
+                                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white text-xs font-bold cursor-pointer"
+                                >
+                                  <RotateCcw className="w-3.5 h-3.5" />
+                                  <span>
+                                    {isInitiating
+                                      ? lang === "en"
+                                        ? "Retrying..."
+                                        : "পুনরায় হচ্ছে..."
+                                      : lang === "en"
+                                      ? "Retry Payment"
+                                      : "পুনরায় পেমেন্ট করুন"}
+                                  </span>
+                                </button>
+                              )}
+
+                              {c.canVerifyPending && c.latestTransactionId && (
+                                <button
+                                  type="button"
+                                  disabled={isVerifying}
+                                  onClick={() => handleVerifyPendingPayment(c.latestTransactionId!)}
+                                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white text-xs font-bold cursor-pointer"
+                                >
+                                  <RefreshCw className={`w-3.5 h-3.5 ${isVerifying ? "animate-spin" : ""}`} />
+                                  <span>
+                                    {isVerifying
+                                      ? lang === "en"
+                                        ? "Verifying..."
+                                        : "যাচাই হচ্ছে..."
+                                      : lang === "en"
+                                      ? "Verify Status"
+                                      : "স্ট্যাটাস যাচাই"}
+                                  </span>
+                                </button>
+                              )}
+                            </div>
+
+                            <Link
+                              href={`/contracts/${c.id}`}
+                              className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold"
+                            >
+                              <span>{lang === "en" ? "Open Contract" : "চুক্তি দেখুন"}</span>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </Link>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SSLCOMMERZ Sandbox Payment History Table */}
+            <div className="space-y-4">
+              <SectionHeading
+                title="SSLCOMMERZ payment history"
+                titleBn="SSLCOMMERZ পেমেন্ট ইতিহাস"
+                subtitle="Full history of gateway sessions, validation status, platform fee splits, and receipt details"
+                subtitleBn="গেটওয়ে সেশন, ভ্যালিডেশন স্ট্যাটাস, প্ল্যাটফর্ম ফি ও রসিদ বিবরণী"
+                lang={lang}
+              />
+              <PaymentHistoryTable
+                payments={paymentDashboard?.payments ?? []}
+                viewerRole="client"
+                lang={lang}
+                loading={loadingPayments}
+                onViewDetails={setSelectedPayment}
+                onRetryPayment={handleInitiatePayment}
+                onVerifyPending={handleVerifyPendingPayment}
+                retryingContractId={initiatingContractId}
+                verifyingTranId={verifyingTranId}
+              />
+            </div>
+
+            {/* Refund Status & Requests Section */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <SectionHeading
+                  title="Refund status & history"
+                  titleBn="রিফান্ড অবস্থা ও ইতিহাস"
+                  subtitle="Track submitted refund requests and simulated/sandbox refund outcomes"
+                  subtitleBn="জমাকৃত রিফান্ড অনুরোধ এবং রিফান্ড ফলাফল দেখুন"
+                  lang={lang}
+                />
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
+                  <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    {lang === "en" ? `${refundRequestsCount} requests` : `${refundRequestsCount}টি অনুরোধ`}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                    {lang === "en" ? `${pendingRefundCount} pending` : `${pendingRefundCount} অপেক্ষমান`}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200">
+                    {formatBdt(refundedBdt)} {lang === "en" ? "refunded" : "রিফান্ডেড"}
+                  </span>
+                </div>
+              </div>
+
+              {!paymentDashboard?.refundRequests || paymentDashboard.refundRequests.length === 0 ? (
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 text-xs text-slate-500 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <RotateCcw className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                    <span>
+                      {lang === "en"
+                        ? "No refund requests submitted yet. Eligible funded (unreleased) contracts show refund status updates here."
+                        : "এখনো কোনো রিফান্ড অনুরোধ জমা হয়নি। ফান্ডেড কিন্তু রিলিজ না হওয়া চুক্তির রিফান্ড তথ্য এখানে প্রদর্শিত হবে।"}
+                    </span>
+                  </div>
+                  <Link
+                    href="/dashboard/client?tab=workspace"
+                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold shrink-0 text-center"
+                  >
+                    {lang === "en" ? "View Contracts" : "চুক্তিসমূহ দেখুন"}
+                  </Link>
+                </div>
+              ) : (
+                <div className="bg-white border border-slate-200/90 rounded-2xl divide-y divide-slate-100 shadow-xs overflow-hidden">
+                  {paymentDashboard.refundRequests.map((req) => {
+                    const statusStyle =
+                      req.status === "COMPLETED"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : req.status === "REJECTED" || req.status === "FAILED"
+                          ? "bg-rose-50 text-rose-700 border-rose-200"
+                          : req.status === "GATEWAY_INITIATED"
+                            ? "bg-sky-50 text-sky-700 border-sky-200"
+                            : "bg-amber-50 text-amber-800 border-amber-200";
+                    return (
+                    <div
+                      key={req.id}
+                      className="p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    >
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-black text-slate-900">
+                            {formatBdt(req.amount)}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${statusStyle}`}
+                          >
+                            {req.status}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                            {req.refund_mode}
+                          </span>
+                          {req.gateway_status && (
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-100 text-slate-600">
+                              GW: {req.gateway_status}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-600">{req.reason}</p>
+                        {req.admin_notes && (
+                          <p className="text-[11px] text-slate-500">
+                            {lang === "en" ? "Admin note:" : "অ্যাডমিন নোট:"} {req.admin_notes}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-left sm:text-right shrink-0 text-[10px] text-slate-400 font-mono space-y-1">
+                        <div>{new Date(req.created_at).toLocaleDateString("en-BD")}</div>
+                        {req.gateway_refund_ref_id && <div>Ref: {req.gateway_refund_ref_id}</div>}
+                        <div>
+                          <Link
+                            href={`/contracts/${req.contract_id}`}
+                            className="font-sans text-[11px] font-bold text-emerald-700 hover:underline"
+                          >
+                            {lang === "en" ? "View Contract →" : "চুক্তি দেখুন →"}
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Escrow Ledger Entries (Supabase public.escrow_ledger or Demo Preview) */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <SectionHeading
+                  title="Simulated escrow ledger"
+                  titleBn="সিমুলেটেড এসক্রো খতিয়ান"
+                  subtitle="Immutable PostgreSQL ledger of FUND, RELEASE, and REFUND movements"
+                  subtitleBn="এসক্রো জমা (FUND), মুক্তি (RELEASE) ও রিফান্ড (REFUND) লেজার রেকর্ড"
+                  lang={lang}
+                />
+
+                <div className="flex items-center gap-2 flex-wrap">
                   <div className="flex bg-slate-100 p-0.5 rounded-xl text-[11px] font-bold text-slate-600">
-                    <button
-                      onClick={() => setLedgerFilter("ALL")}
-                      className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                        ledgerFilter === "ALL" ? "bg-white text-slate-900 shadow-xs" : "hover:text-slate-900"
-                      }`}
-                    >
-                      {lang === "en" ? "All" : "সকল"}
-                    </button>
-                    <button
-                      onClick={() => setLedgerFilter("ESCROW")}
-                      className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                        ledgerFilter === "ESCROW" ? "bg-white text-slate-900 shadow-xs" : "hover:text-slate-900"
-                      }`}
-                    >
-                      {lang === "en" ? "Escrow" : "এসক্রো"}
-                    </button>
-                    <button
-                      onClick={() => setLedgerFilter("RELEASED")}
-                      className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                        ledgerFilter === "RELEASED" ? "bg-white text-slate-900 shadow-xs" : "hover:text-slate-900"
-                      }`}
-                    >
-                      {lang === "en" ? "Released" : "পরিশোধিত"}
-                    </button>
+                    {(
+                      [
+                        { id: "ALL", en: "All", bn: "সকল" },
+                        { id: "FUND", en: "Fund", bn: "জমা" },
+                        { id: "RELEASE", en: "Release", bn: "রিলিজ" },
+                        { id: "REFUND", en: "Refund", bn: "রিফান্ড" },
+                      ] as const
+                    ).map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setLedgerFilter(f.id)}
+                        className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                          ledgerFilter === f.id ? "bg-white text-slate-900 shadow-xs" : "hover:text-slate-900"
+                        }`}
+                      >
+                        {lang === "en" ? f.en : f.bn}
+                      </button>
+                    ))}
                   </div>
 
                   <button
-                    onClick={() => {
-                      setDepositStep("FORM");
-                      setDepositModalOpen(true);
-                    }}
+                    type="button"
+                    onClick={() => setDepositModalOpen(true)}
                     className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs shrink-0"
                   >
-                    + {lang === "en" ? "Deposit Escrow" : "এসক্রো জমা"}
+                    + {lang === "en" ? "Fund Contract" : "চুক্তি ফান্ড"}
                   </button>
                 </div>
               </div>
 
-              {/* Transactions List with Invoice Buttons */}
               <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
                 <div className="divide-y divide-slate-100">
-                  {filteredLedgerEntries.length === 0 ? (
+                  {userId ? (
+                    filteredSupabaseLedger.length === 0 ? (
+                      <div className="p-8 text-center text-xs text-slate-500">
+                        {lang === "en"
+                          ? "No escrow ledger entries in this category yet."
+                          : "এই ক্যাটাগরিতে এখনো কোনো এসক্রো লেজার এন্ট্রি নেই।"}
+                      </div>
+                    ) : (
+                      filteredSupabaseLedger.map((entry) => (
+                        <div
+                          key={entry.id}
+                          className="px-4 sm:px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/60 transition-colors"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span
+                              className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${
+                                entry.entry_type === "FUND"
+                                  ? "bg-sky-50 border-sky-200 text-sky-600"
+                                  : entry.entry_type === "RELEASE"
+                                  ? "bg-emerald-50 border-emerald-200 text-emerald-600"
+                                  : "bg-indigo-50 border-indigo-200 text-indigo-600"
+                              }`}
+                            >
+                              <ShieldCheck className="w-4 h-4" />
+                            </span>
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-black bg-slate-100 text-slate-700">
+                                  {entry.entry_type}
+                                </span>
+                                <p className="text-xs font-bold text-slate-800 truncate">
+                                  {entry.description}
+                                </p>
+                              </div>
+                              <p className="text-[10px] text-slate-400 mt-0.5">
+                                {new Date(entry.created_at).toLocaleString("en-BD")} ·{" "}
+                                {entry.is_simulated ? "Simulated Escrow Ledger" : "Gateway Settlement"}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
+                            <div className="text-right">
+                              <p className="text-xs font-black text-slate-900">
+                                {formatBdt(entry.amount)}
+                              </p>
+                              <p className="text-[10px] text-slate-500">
+                                Fee: {formatBdt(entry.platform_fee_amount)} · Net:{" "}
+                                {formatBdt(entry.freelancer_net_amount)}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setSelectedInvoice({
+                                  id: entry.id,
+                                  label: entry.description,
+                                  labelBn: entry.description,
+                                  method: "ESCROW",
+                                  amountBdt: entry.amount,
+                                  status: "COMPLETED",
+                                  createdLabel: new Date(entry.created_at).toLocaleDateString("en-BD"),
+                                  trxId: entry.payment_id,
+                                })
+                              }
+                              className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Receipt className="w-3 h-3 text-slate-500" />
+                              <span>{lang === "en" ? "Statement" : "রসিদ"}</span>
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )
+                  ) : filteredDemoLedger.length === 0 ? (
                     <div className="p-8 text-center text-xs text-slate-500">
                       {lang === "en" ? "No transactions found in this category" : "এই ক্যাটাগরিতে কোনো লেনদেন পাওয়া যায়নি"}
                     </div>
                   ) : (
-                    filteredLedgerEntries.map((entry) => {
+                    filteredDemoLedger.map((entry) => {
                       const isCredit = entry.amountBdt > 0;
-                      const trxCode = (entry as any).trxId;
+                      const trxCode = entry.trxId;
                       return (
                         <div
                           key={entry.id}
@@ -1308,12 +1783,13 @@ function ClientDashboardContent() {
                             </div>
 
                             <button
+                              type="button"
                               onClick={() => setSelectedInvoice(entry)}
                               className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
-                              title={lang === "en" ? "View Tax Invoice" : "ট্যাক্স রসিদ দেখুন"}
+                              title={lang === "en" ? "View Statement" : "রসিদ দেখুন"}
                             >
                               <Receipt className="w-3 h-3 text-slate-500" />
-                              <span>{lang === "en" ? "Invoice" : "রসিদ"}</span>
+                              <span>{lang === "en" ? "Statement" : "রসিদ"}</span>
                             </button>
                           </div>
                         </div>
@@ -1323,42 +1799,334 @@ function ClientDashboardContent() {
                 </div>
               </div>
             </div>
+
+            {/* Payout & Billing Methods Section */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
+                    <CreditCard className="w-5 h-5 text-emerald-600" />
+                    <span>{lang === "en" ? "Saved Billing Preferences" : "সংরক্ষিত বিলিং মাধ্যম"}</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {lang === "en"
+                      ? "Reference MFS and corporate bank billing profiles for your organization (contract checkouts always route through SSLCOMMERZ Sandbox)."
+                      : "আপনার প্রতিষ্ঠানের জন্য সংরক্ষিত বিলিং প্রোফাইল (চুক্তির পেমেন্ট সর্বদা SSLCOMMERZ স্যান্ডবক্সের মাধ্যমে সম্পন্ন হয়)।"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAddMethodModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer hover:scale-[1.02] active:scale-95 shrink-0"
+                >
+                  <Plus className="w-4 h-4 stroke-[2.5]" />
+                  <span>{lang === "en" ? "Add Payment Method" : "নতুন মাধ্যম যোগ করুন"}</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {payoutMethods.map((m) => {
+                  const isBkash = m.type === "BKASH";
+                  const isNagad = m.type === "NAGAD";
+                  const isRocket = m.type === "ROCKET";
+                  const isBank = m.type === "BANK";
+
+                  return (
+                    <div
+                      key={m.id}
+                      className={`relative rounded-2xl p-4.5 border transition-all flex flex-col justify-between ${
+                        m.isPrimary
+                          ? "bg-white border-emerald-500/80 shadow-sm ring-2 ring-emerald-500/20"
+                          : "bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs"
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <div className="flex items-center gap-2">
+                            {isBkash && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-pink-50 text-pink-700 border border-pink-200">
+                                <Smartphone className="w-3.5 h-3.5 text-pink-600" />
+                                bKash Merchant
+                              </span>
+                            )}
+                            {isNagad && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-orange-50 text-orange-700 border border-orange-200">
+                                <Smartphone className="w-3.5 h-3.5 text-orange-600" />
+                                Nagad Direct
+                              </span>
+                            )}
+                            {isRocket && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-purple-50 text-purple-700 border border-purple-200">
+                                <Smartphone className="w-3.5 h-3.5 text-purple-600" />
+                                Rocket
+                              </span>
+                            )}
+                            {isBank && (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-sky-50 text-sky-700 border border-sky-200">
+                                <Building className="w-3.5 h-3.5 text-sky-600" />
+                                Corporate Bank (NPSB)
+                              </span>
+                            )}
+
+                            {m.accountType && (
+                              <span className="text-[10px] font-bold text-slate-400 uppercase">
+                                {m.accountType}
+                              </span>
+                            )}
+                          </div>
+
+                          {m.isPrimary ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                              {lang === "en" ? "Default" : "প্রধান"}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSetPrimaryMethod(m.id)}
+                              className="text-[11px] font-bold text-slate-400 hover:text-emerald-700 hover:underline cursor-pointer"
+                            >
+                              {lang === "en" ? "Make Default" : "ডিফল্ট করুন"}
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="space-y-1">
+                          {isBank ? (
+                            <>
+                              <h4 className="text-sm font-black text-slate-900 leading-tight">
+                                {m.bankName || "Corporate Account"}
+                              </h4>
+                              {m.branchName && (
+                                <p className="text-[11px] text-slate-500 font-medium">{m.branchName}</p>
+                              )}
+                              <p className="text-xs font-mono font-bold text-slate-700 pt-1">
+                                A/C: {m.accountNumber}
+                              </p>
+                              {m.routingNumber && (
+                                <p className="text-[10px] font-mono text-slate-400">
+                                  Routing: {m.routingNumber}
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-sm font-mono font-black text-slate-900 tracking-wide">
+                                {m.accountNumber}
+                              </p>
+                              <p className="text-[11px] text-slate-500 font-medium">
+                                {m.accountHolder}
+                              </p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>{lang === "en" ? "Saved Billing Reference" : "সংরক্ষিত বিলিং প্রোফাইল"}</span>
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveMethod(m.id)}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title={lang === "en" ? "Remove method" : "মাধ্যমটি মুছুন"}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={() => setAddMethodModalOpen(true)}
+                  className="rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/30 p-5 flex flex-col items-center justify-center text-center gap-2 transition-all cursor-pointer group min-h-[160px]"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-emerald-100 text-slate-500 group-hover:text-emerald-700 flex items-center justify-center transition-colors">
+                    <Plus className="w-5 h-5 stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 group-hover:text-emerald-700 block">
+                      {lang === "en" ? "Add New Billing Method" : "নতুন বিলিং মাধ্যম যোগ করুন"}
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">
+                      {lang === "en"
+                        ? "bKash, Nagad, Rocket or Corporate Bank Account"
+                        : "বিকাশ, নগদ, রকেট বা কর্পোরেট ব্যাংক হিসাব"}
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            {/* Simulated Escrow Protocol Guarantees & Corporate Billing Profile */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-emerald-900">
+                      {lang === "en" ? "Simulated Escrow Release Protocol" : "সিমুলেটেড এসক্রো মুক্তি নীতিমালা"}
+                    </h4>
+                    <p className="text-[11px] text-emerald-700">
+                      {lang === "en"
+                        ? "Server-verified SSLCOMMERZ Sandbox checkout with 10% platform commission ledger"
+                        : "সার্ভার-যাচাইকৃত SSLCOMMERZ স্যান্ডবক্স চেকআউট ও ১০% প্ল্যাটফর্ম কমিশন হিসাব"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                  <div className="bg-white/90 rounded-xl p-3 border border-emerald-100">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 mb-1">
+                      <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{lang === "en" ? "Release Control" : "সম্পূর্ণ নিয়ন্ত্রণ"}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-snug">
+                      {lang === "en"
+                        ? "Funds stay in simulated escrow until you approve deliverables."
+                        : "আপনার অনুমোদন ছাড়া কোনো তহবিল রিলিজ হবে না।"}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/90 rounded-xl p-3 border border-emerald-100">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 mb-1">
+                      <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{lang === "en" ? "Server Validation" : "সার্ভার ভ্যালিডেশন"}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-snug">
+                      {lang === "en"
+                        ? "Every SSLCOMMERZ Sandbox callback is verified against Validation API v4."
+                        : "প্রতিটি স্যান্ডবক্স কলব্যাক Validation API v4 দ্বারা যাচাই হয়।"}
+                    </p>
+                  </div>
+
+                  <div className="bg-white/90 rounded-xl p-3 border border-emerald-100">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-900 mb-1">
+                      <Gavel className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{lang === "en" ? "Refund Governance" : "রিফান্ড পর্যালোচনা"}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-snug">
+                      {lang === "en"
+                        ? "Refund requests on funded contracts are tracked and reviewed transparently."
+                        : "ফান্ডেড চুক্তির রিফান্ড অনুরোধ স্বচ্ছভাবে পর্যালোচনা করা হয়।"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Company Billing Profile Card */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 flex flex-col justify-between space-y-3 shadow-xs">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      {lang === "en" ? "Corporate Billing Profile" : "প্রাতিষ্ঠানিক বিলিং প্রোফাইল"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setEditBillingModalOpen(true)}
+                      className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      <span>{lang === "en" ? "Edit" : "সম্পাদনা"}</span>
+                    </button>
+                  </div>
+
+                  <h4 className="text-xs font-black text-slate-900 leading-tight">
+                    {billingProfile.companyName}
+                  </h4>
+                  <p className="text-[11px] font-mono font-bold text-slate-600 mt-1">
+                    BIN: {billingProfile.binNumber}
+                  </p>
+                  <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">
+                    {billingProfile.billingAddress}
+                  </p>
+                </div>
+
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Mushak-6.3 Profile
+                  </span>
+                  {latestInvoiceEntry && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedInvoice(latestInvoiceEntry)}
+                      className="text-[10px] font-bold text-slate-500 hover:text-slate-800 underline cursor-pointer"
+                    >
+                      {lang === "en" ? "View Latest Statement" : "সর্বশেষ বিবরণী"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Dispute Resolution Tab */}
+        {/* Dispute & Refund Governance Tab */}
         {(activeTab === "overview" || activeTab === "disputes") && (
           <div id="disputes" className="space-y-4">
             <SectionHeading
-              title="Escrow dispute & arbitration center"
-              titleBn="এসক্রো বিরোধ ও মধ্যস্থতা কেন্দ্র"
-              subtitle="MuktoKormo escrow mediation protects your funds until deliverables are verified"
-              subtitleBn="মুক্তকর্ম এসক্রো মধ্যস্থতা সেবা কাজ যাচাই না হওয়া পর্যন্ত আপনার ফান্ড সুরক্ষিত রাখে"
+              title="Escrow dispute & refund center"
+              titleBn="এসক্রো বিরোধ ও রিফান্ড কেন্দ্র"
+              subtitle="Track disputed contracts and refund requests protected by MuktoKormo simulated escrow"
+              subtitleBn="মুক্তকর্ম সিমুলেটেড এসক্রো দ্বারা সুরক্ষিত বিরোধ ও রিফান্ড অবস্থা দেখুন"
               lang={lang}
             />
             <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <div
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                    disputedContractsCount > 0 || pendingRefundCount > 0
+                      ? "bg-amber-50 text-amber-600"
+                      : "bg-emerald-50 text-emerald-600"
+                  }`}
+                >
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-slate-900">
-                    {lang === "en" ? "Zero Active Disputes" : "কোনো চলমান বিরোধ নেই"}
+                    {disputedContractsCount === 0 && pendingRefundCount === 0
+                      ? lang === "en"
+                        ? "Zero Active Disputes"
+                        : "কোনো চলমান বিরোধ নেই"
+                      : lang === "en"
+                      ? `${disputedContractsCount} Disputed Contract(s) · ${pendingRefundCount} Pending Refund(s)`
+                      : `${disputedContractsCount}টি বিরোধপূর্ণ চুক্তি · ${pendingRefundCount}টি অপেক্ষমান রিফান্ড`}
                   </h4>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    {lang === "en"
-                      ? "All your contracts are proceeding normally under milestone protection."
-                      : "আপনার সকল চুক্তি বর্তমানে মাইলস্টোন সুরক্ষায় স্বাভাবিকভাবে চলছে।"}
+                    {disputedContractsCount === 0 && pendingRefundCount === 0
+                      ? lang === "en"
+                        ? `${refundRequestsCount} historical refund request(s) recorded (${formatBdt(refundedBdt)} refunded).`
+                        : `${refundRequestsCount}টি রিফান্ড অনুরোধ নথিভুক্ত (${formatBdt(refundedBdt)} রিফান্ডেড)।`
+                      : lang === "en"
+                      ? "Inspect contract timelines or review refund status inside the Payments & Workspace tabs."
+                      : "পেমেন্ট বা ওয়ার্কস্পেস ট্যাব থেকে চুক্তি ও রিফান্ড অবস্থা পর্যালোচনা করুন।"}
                   </p>
                 </div>
               </div>
 
-              <Link
-                href="/post-job"
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
-              >
-                {lang === "en" ? "Post a Protected Job" : "সুরক্ষিত কাজ পোস্ট করুন"}
-              </Link>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("payments")}
+                  className="px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  {lang === "en" ? "View Refund Status" : "রিফান্ড অবস্থা"}
+                </button>
+                <Link
+                  href="/post-job"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
+                >
+                  {lang === "en" ? "Post a Protected Job" : "সুরক্ষিত কাজ পোস্ট করুন"}
+                </Link>
+              </div>
             </div>
           </div>
         )}
@@ -1372,43 +2140,92 @@ function ClientDashboardContent() {
               subtitle="Pre-vetted Bangladeshi developers & designers for upcoming projects"
               subtitleBn="পরবর্তী প্রজেক্টের জন্য সংরক্ষিত বাংলাদেশি ডেভেলপার ও ডিজাইনার"
               lang={lang}
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {SAVED_TALENT.map((t) => (
-                <div
-                  key={t.id}
-                  className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex items-center justify-between gap-4 hover:border-emerald-300 transition-all"
+              action={
+                <Link
+                  href="/#freelancers-section"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={t.avatar}
-                      alt={t.name}
-                      className="w-11 h-11 rounded-full object-cover ring-2 ring-emerald-500/20 shrink-0"
-                    />
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-900">
-                        {lang === "bn" && t.nameBn ? t.nameBn : t.name}
-                      </h4>
-                      <p className="text-[11px] text-slate-500">
-                        {lang === "bn" && t.titleBn ? t.titleBn : t.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
-                        <span className="text-emerald-600 font-bold">★ {t.rating}</span>
-                        <span>• ৳{t.rateBdt}/{lang === "en" ? "hr" : "ঘণ্টা"}</span>
-                        <span>• {lang === "bn" && t.locationBn ? t.locationBn : t.location}</span>
+                  <Users className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>{lang === "en" ? "Browse Talent" : "ট্যালেন্ট খুঁজুন"}</span>
+                </Link>
+              }
+            />
+            {savedTalentList.length === 0 ? (
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center space-y-3">
+                <div className="w-11 h-11 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center mx-auto border border-slate-200/70">
+                  <Bookmark className="w-5 h-5" />
+                </div>
+                <h3 className="text-sm font-bold text-slate-900">
+                  {lang === "en" ? "No saved freelancers yet" : "এখনও কোনো ফ্রিল্যান্সার সংরক্ষিত নেই"}
+                </h3>
+                <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  {lang === "en"
+                    ? "Bookmark verified freelancers from the talent directory to quickly invite them to your future projects."
+                    : "ভবিষ্যতের প্রজেক্টে দ্রুত আমন্ত্রণ জানাতে ট্যালেন্ট ডিরেক্টরি থেকে পছন্দের ফ্রিল্যান্সার সংরক্ষণ করুন।"}
+                </p>
+                <Link
+                  href="/#freelancers-section"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs"
+                >
+                  <span>{lang === "en" ? "Explore Verified Talent" : "ভেরিফাইড ট্যালেন্ট দেখুন"}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {savedTalentList.map((t) => (
+                  <div
+                    key={t.id}
+                    className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs flex items-center justify-between gap-4 hover:border-emerald-300 transition-all"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={t.avatar}
+                        alt={t.name}
+                        className="w-11 h-11 rounded-full object-cover ring-2 ring-emerald-500/20 shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-slate-900 truncate">
+                          {lang === "bn" && t.nameBn ? t.nameBn : t.name}
+                        </h4>
+                        <p className="text-[11px] text-slate-500 truncate">
+                          {lang === "bn" && t.titleBn ? t.titleBn : t.title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1 text-[10px] text-slate-400">
+                          <span className="text-emerald-600 font-bold">★ {t.rating}</span>
+                          <span>• ৳{t.rateBdt.toLocaleString()}/{lang === "en" ? "hr" : "ঘণ্টা"}</span>
+                          <span className="truncate">• {lang === "bn" && t.locationBn ? t.locationBn : t.location}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <Link
-                    href={`/post-job?invite=${t.id}`}
-                    className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors shrink-0"
-                  >
-                    {lang === "en" ? "Direct Hire" : "সরাসরি নিয়োগ"}
-                  </Link>
-                </div>
-              ))}
-            </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {clientId && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const ok = await unsaveTalent(supabase, clientId, t.id);
+                            if (ok) {
+                              setSavedTalentList((prev) => prev.filter((item) => item.id !== t.id));
+                            }
+                          }}
+                          title={lang === "en" ? "Remove from saved" : "সরান"}
+                          className="p-2 rounded-xl border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <Link
+                        href={`/post-job?invite=${t.id}`}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition-colors"
+                      >
+                        {lang === "en" ? "Direct Hire" : "সরাসরি নিয়োগ"}
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1465,16 +2282,18 @@ function ClientDashboardContent() {
                     {lang === "en" ? "Payment Channel" : "পেমেন্ট চ্যানেল"}
                   </label>
                   <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { type: "BKASH", label: "bKash" },
-                      { type: "NAGAD", label: "Nagad" },
-                      { type: "ROCKET", label: "Rocket" },
-                      { type: "BANK", label: "Bank" },
-                    ].map((t) => (
+                    {(
+                      [
+                        { type: "BKASH", label: "bKash" },
+                        { type: "NAGAD", label: "Nagad" },
+                        { type: "ROCKET", label: "Rocket" },
+                        { type: "BANK", label: "Bank" },
+                      ] as const
+                    ).map((t) => (
                       <button
                         key={t.type}
                         type="button"
-                        onClick={() => setNewMethodType(t.type as any)}
+                        onClick={() => setNewMethodType(t.type)}
                         className={`py-2 px-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
                           newMethodType === t.type
                             ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
@@ -1705,121 +2524,157 @@ function ClientDashboardContent() {
       )}
 
       {/* ----------------------------------------------------------------------------- */}
-      {/* OFFICIAL NBR MUSHAK-6.3 TAX INVOICE MODAL                                     */}
+      {/* SANDBOX ESCROW STATEMENT / INVOICE MODAL                                      */}
       {/* ----------------------------------------------------------------------------- */}
-      {selectedInvoice && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
-            {/* Invoice Top Actions */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-emerald-600" />
-                <span className="text-xs font-black uppercase tracking-wider text-slate-800">
-                  NBR Mushak-6.3 VAT Tax Invoice
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
+      {selectedInvoice &&
+        (() => {
+          const feeSplit = calculateContractFeeBreakdown(
+            Math.abs(selectedInvoice.amountBdt),
+            DEFAULT_PLATFORM_FEE_PCT
+          );
+          return (
+            <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <Receipt className="w-5 h-5 text-emerald-600" />
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-800">
+                      {lang === "en"
+                        ? "Escrow Payment Statement"
+                        : "এসক্রো পেমেন্ট বিবরণী"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>{lang === "en" ? "Print" : "প্রিন্ট"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedInvoice(null)}
+                      className="p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 space-y-4 text-xs font-sans">
+                  <div className="flex justify-between items-start gap-3">
+                    <div>
+                      <h3 className="text-base font-black text-slate-900">MuktoKormo Sandbox</h3>
+                      <p className="text-[11px] text-slate-500">
+                        Simulated Escrow &amp; Platform Ledger Statement
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                        BIN: 001928472-0101 · Academic Sandbox Mode
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        {selectedInvoice.status || "RECORDED"}
+                      </span>
+                      <p className="text-[10px] text-slate-400 font-mono mt-1">
+                        REF-{selectedInvoice.id.slice(0, 8)}
+                      </p>
+                      <p className="text-[10px] text-slate-400">{selectedInvoice.createdLabel}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-white rounded-xl border border-slate-200 grid grid-cols-2 gap-2 text-[11px]">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                        Billed To (Client):
+                      </span>
+                      <p className="font-bold text-slate-900">{billingProfile.companyName}</p>
+                      <p className="text-slate-500 font-mono text-[10px]">
+                        BIN: {billingProfile.binNumber}
+                      </p>
+                      <p className="text-slate-500 text-[10px]">{billingProfile.billingAddress}</p>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">
+                        Gateway / Ledger:
+                      </span>
+                      <p className="font-bold text-slate-900">{selectedInvoice.method}</p>
+                      <p className="text-slate-500 font-mono text-[10px] break-all">
+                        TrxID: {selectedInvoice.trxId || "SANDBOX-TRX"}
+                      </p>
+                      <p className="text-emerald-600 font-bold text-[10px]">
+                        Platform Split: {DEFAULT_PLATFORM_FEE_PCT}% Fee / 90% Freelancer Net
+                      </p>
+                    </div>
+                  </div>
+
+                  <table className="w-full text-left text-[11px]">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[9px]">
+                        <th className="py-1.5">Description</th>
+                        <th className="py-1.5 text-right">Amount (BDT)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      <tr>
+                        <td className="py-2 text-slate-800 font-medium">
+                          {lang === "en"
+                            ? selectedInvoice.label
+                            : selectedInvoice.labelBn || selectedInvoice.label}
+                        </td>
+                        <td className="py-2 text-right font-mono font-bold text-slate-900">
+                          {formatBdt(feeSplit.grossAmount)}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-1 text-slate-500">
+                          Platform Commission ({feeSplit.platformFeePct}%)
+                        </td>
+                        <td className="py-1 text-right font-mono text-slate-600">
+                          {formatBdt(feeSplit.platformFeeAmount)}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-1 text-slate-500">Freelancer Net Allocation (90%)</td>
+                        <td className="py-1 text-right font-mono text-slate-600">
+                          {formatBdt(feeSplit.freelancerPayableAmount)}
+                        </td>
+                      </tr>
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t-2 border-slate-900 font-black text-slate-900">
+                        <td className="pt-2 text-xs">Gross Contract Amount:</td>
+                        <td className="pt-2 text-right font-mono text-sm text-emerald-600">
+                          {formatBdt(feeSplit.grossAmount)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+
                 <button
-                  onClick={() => window.print()}
-                  className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                  type="button"
+                  onClick={() => setSelectedInvoice(null)}
+                  className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer"
                 >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>{lang === "en" ? "Print" : "প্রিন্ট"}</span>
-                </button>
-                <button onClick={() => setSelectedInvoice(null)} className="p-1 text-slate-400 hover:text-slate-700 cursor-pointer">
-                  <X className="w-5 h-5" />
+                  {lang === "en" ? "Close Statement" : "বন্ধ করুন"}
                 </button>
               </div>
             </div>
-
-            {/* Printable Invoice Sheet */}
-            <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 space-y-4 text-xs font-sans">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-base font-black text-slate-900">MuktoKormo Limited</h3>
-                  <p className="text-[11px] text-slate-500">Bangladesh Freelance Escrow Trust</p>
-                  <p className="text-[10px] text-slate-400 font-mono mt-0.5">BIN: 001928472-0101 · NBR Reg: MK-BDT-2026</p>
-                </div>
-                <div className="text-right">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
-                    PAID / ESCROW HELD
-                  </span>
-                  <p className="text-[10px] text-slate-400 font-mono mt-1">Invoice: INV-{selectedInvoice.id.slice(0, 8)}</p>
-                  <p className="text-[10px] text-slate-400">{selectedInvoice.createdLabel}</p>
-                </div>
-              </div>
-
-              <div className="p-3 bg-white rounded-xl border border-slate-200 grid grid-cols-2 gap-2 text-[11px]">
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Billed To (Client):</span>
-                  <p className="font-bold text-slate-900">{billingProfile.companyName}</p>
-                  <p className="text-slate-500 font-mono text-[10px]">BIN: {billingProfile.binNumber}</p>
-                  <p className="text-slate-500 text-[10px]">{billingProfile.billingAddress}</p>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Payment Channel:</span>
-                  <p className="font-bold text-slate-900">{selectedInvoice.method} Direct</p>
-                  <p className="text-slate-500 font-mono text-[10px]">TrxID: {(selectedInvoice as any).trxId || "TRX-BK729182"}</p>
-                  <p className="text-emerald-600 font-bold text-[10px]">Status: Verified NBR VAT Compliant</p>
-                </div>
-              </div>
-
-              {/* Itemized Table */}
-              <table className="w-full text-left text-[11px]">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase text-[9px]">
-                    <th className="py-1.5">Description</th>
-                    <th className="py-1.5 text-right">Amount (BDT)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr>
-                    <td className="py-2 text-slate-800 font-medium">
-                      {lang === "en" ? selectedInvoice.label : selectedInvoice.labelBn || selectedInvoice.label}
-                    </td>
-                    <td className="py-2 text-right font-mono font-bold text-slate-900">
-                      ৳{Math.abs(selectedInvoice.amountBdt).toLocaleString()}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-1 text-slate-500">Platform Escrow Fee (3%)</td>
-                    <td className="py-1 text-right font-mono text-slate-600">
-                      ৳{Math.round(Math.abs(selectedInvoice.amountBdt) * 0.03).toLocaleString()}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-1 text-slate-500">Government VAT on Platform Fee (15%)</td>
-                    <td className="py-1 text-right font-mono text-slate-600">
-                      ৳{Math.round(Math.abs(selectedInvoice.amountBdt) * 0.03 * 0.15).toLocaleString()}
-                    </td>
-                  </tr>
-                </tbody>
-                <tfoot>
-                  <tr className="border-t-2 border-slate-900 font-black text-slate-900">
-                    <td className="pt-2 text-xs">Total Net Paid:</td>
-                    <td className="pt-2 text-right font-mono text-sm text-emerald-600">
-                      ৳{(Math.abs(selectedInvoice.amountBdt) + Math.round(Math.abs(selectedInvoice.amountBdt) * 0.0345)).toLocaleString()}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-
-            <button
-              onClick={() => setSelectedInvoice(null)}
-              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer"
-            >
-              Close Invoice
-            </button>
-          </div>
-        </div>
-      )}
+          );
+        })()}
 
       {/* ----------------------------------------------------------------------------- */}
-      {/* ESCROW DEPOSIT MODAL                                                          */}
+      {/* FUND CONTRACT VIA SSLCOMMERZ SANDBOX MODAL                                    */}
       {/* ----------------------------------------------------------------------------- */}
       {depositModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
@@ -1828,132 +2683,192 @@ function ClientDashboardContent() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">
-                    {lang === "en" ? "Fund MuktoKormo Escrow Safe" : "মুক্তকর্ম এসক্রোতে ফান্ড জমা"}
+                    {lang === "en"
+                      ? "Fund Contract via SSLCOMMERZ Sandbox"
+                      : "SSLCOMMERZ স্যান্ডবক্সে চুক্তি ফান্ড করুন"}
                   </h3>
                   <p className="text-[11px] text-slate-400">
-                    {lang === "en" ? "Safe custody via Bangladeshi MFS / Bank Gateway" : "বিকাশ, নগদ ও ব্যাংকের মাধ্যমে সুরক্ষিত তহবিল"}
+                    {lang === "en"
+                      ? "Server-verified amount · Simulated escrow custody"
+                      : "সার্ভার-যাচাইকৃত পরিমাণ · সিমুলেটেড এসক্রো"}
                   </p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setDepositModalOpen(false)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {depositStep === "FORM" && (
+            {!userId ? (
+              <div className="space-y-4 text-center py-4">
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  {lang === "en"
+                    ? "Sign in with a Client account to initiate a real SSLCOMMERZ Sandbox checkout session for your active contracts."
+                    : "সক্রিয় চুক্তির জন্য SSLCOMMERZ স্যান্ডবক্স পেমেন্ট শুরু করতে ক্লায়েন্ট অ্যাকাউন্ট দিয়ে সাইন ইন করুন।"}
+                </p>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+                >
+                  <span>{lang === "en" ? "Sign In as Client" : "ক্লায়েন্ট লগইন"}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            ) : fundableContracts.length === 0 ? (
+              <div className="space-y-4 text-center py-4">
+                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-slate-900">
+                    {lang === "en"
+                      ? "No Unpaid or Retryable Contracts"
+                      : "ফান্ডিং-যোগ্য কোনো চুক্তি বাকি নেই"}
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    {lang === "en"
+                      ? "Accept a freelancer proposal to create a contract ready for SSLCOMMERZ Sandbox funding."
+                      : "নতুন চুক্তি তৈরি করতে একটি ফ্রিল্যান্সার প্রস্তাব অনুমোদন করুন।"}
+                  </p>
+                </div>
+                <div className="flex justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDepositModalOpen(false);
+                      setActiveTab("proposals");
+                    }}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold cursor-pointer"
+                  >
+                    {lang === "en" ? "Review Proposals" : "আবেদন দেখুন"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDepositModalOpen(false);
+                      setActiveTab("workspace");
+                    }}
+                    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer"
+                  >
+                    {lang === "en" ? "Open Workspace" : "ওয়ার্কস্পেস"}
+                  </button>
+                </div>
+              </div>
+            ) : (
               <div className="space-y-4">
-                {/* Gateway */}
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                    {lang === "en" ? "Select Payment Channel" : "পেমেন্ট মাধ্যম নির্বাচন করুন"}
+                    {lang === "en"
+                      ? "Select Contract to Fund"
+                      : "ফান্ড করার জন্য চুক্তি নির্বাচন করুন"}
                   </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {[
-                      { id: "BKASH", name: "bKash" },
-                      { id: "NAGAD", name: "Nagad" },
-                      { id: "BANK", name: "Bank" },
-                      { id: "CARD", name: "Card" },
-                    ].map((gw) => (
-                      <button
-                        key={gw.id}
-                        type="button"
-                        onClick={() => setDepositGateway(gw.id as any)}
-                        className={`py-2 rounded-xl text-xs font-bold border transition-all text-center cursor-pointer ${
-                          depositGateway === gw.id
-                            ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                            : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                        }`}
-                      >
-                        {gw.name}
-                      </button>
+                  <select
+                    value={effectiveContractIdToFund}
+                    onChange={(e) => setSelectedContractIdToFund(e.target.value)}
+                    className="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-emerald-500"
+                  >
+                    {fundableContracts.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.contractCode} · {c.title} ({formatBdt(c.totalBdt)})
+                      </option>
                     ))}
-                  </div>
+                  </select>
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1.5">
-                    {lang === "en" ? "Amount to Fund (BDT)" : "জমার পরিমাণ (টাকা)"}
-                  </label>
-                  <input
-                    type="number"
-                    value={depositAmount}
-                    onChange={(e) => setDepositAmount(Number(e.target.value))}
-                    className="w-full text-base font-black px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-emerald-500 font-mono"
-                  />
-                  <div className="flex gap-1.5 mt-2">
-                    {[10000, 20000, 42000, 50000].map((amt) => (
-                      <button
-                        key={amt}
-                        type="button"
-                        onClick={() => setDepositAmount(amt)}
-                        className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[10px] font-bold text-slate-700 cursor-pointer"
-                      >
-                        ৳{amt.toLocaleString()}
-                      </button>
-                    ))}
+                {selectedFundableContract && (
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">
+                        {lang === "en" ? "Freelancer" : "ফ্রিল্যান্সার"}
+                      </span>
+                      <span className="font-bold text-slate-900">
+                        {selectedFundableContract.counterpartyName}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">
+                        {lang === "en" ? "Contract Amount" : "মোট চুক্তির পরিমাণ"}
+                      </span>
+                      <span className="font-black text-slate-900">
+                        {formatBdt(selectedFundableContract.totalBdt)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">
+                        {lang === "en"
+                          ? `Platform Commission (${selectedFundableContract.platformFeePct}%)`
+                          : `প্ল্যাটফর্ম কমিশন (${selectedFundableContract.platformFeePct}%)`}
+                      </span>
+                      <span className="font-bold text-slate-700">
+                        {formatBdt(selectedFundableContract.platformFeeAmount)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-slate-200">
+                      <span className="font-bold text-slate-700">
+                        {lang === "en" ? "Freelancer Payable (Net)" : "ফ্রিল্যান্সার প্রাপ্য (নিট)"}
+                      </span>
+                      <span className="font-black text-emerald-700">
+                        {formatBdt(selectedFundableContract.netEarningsBdt)}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="p-3 bg-emerald-50 rounded-xl space-y-1 text-xs text-emerald-900 border border-emerald-200/60">
                   <div className="flex items-center gap-2 font-bold">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span>100% Escrow Protection Guaranteed</span>
+                    <span>
+                      {lang === "en"
+                        ? "Server-Enforced Checkout Amount"
+                        : "সার্ভার-নির্ধারিত চেকআউট পরিমাণ"}
+                    </span>
                   </div>
                   <p className="text-[11px] text-emerald-700 leading-relaxed">
-                    Funds are safely held in MuktoKormo escrow. They will not be disbursed to the freelancer until you review and approve the submitted milestones.
+                    {lang === "en"
+                      ? "Your payment session is initiated server-side against the contract amount in PostgreSQL and validated via SSLCOMMERZ Sandbox."
+                      : "চুক্তির প্রকৃত অর্থের ভিত্তিতে সার্ভার থেকে SSLCOMMERZ স্যান্ডবক্স সেশন তৈরি ও যাচাই করা হবে।"}
                   </p>
                 </div>
 
                 <button
-                  onClick={handleDepositEscrow}
-                  className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 cursor-pointer transition-all flex items-center justify-center gap-2"
+                  type="button"
+                  disabled={!effectiveContractIdToFund || initiatingContractId === effectiveContractIdToFund}
+                  onClick={() => handleInitiatePayment(effectiveContractIdToFund)}
+                  className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold text-xs shadow-md shadow-emerald-600/20 cursor-pointer transition-all flex items-center justify-center gap-2"
                 >
                   <Lock className="w-4 h-4" />
-                  <span>Deposit ৳{depositAmount.toLocaleString()} to Escrow Safe</span>
-                </button>
-              </div>
-            )}
-
-            {depositStep === "PROCESSING" && (
-              <div className="py-8 text-center space-y-3">
-                <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin mx-auto" />
-                <h4 className="text-sm font-bold text-slate-900">
-                  Securing Funds in Escrow...
-                </h4>
-                <p className="text-xs text-slate-500">
-                  Verifying merchant transaction with {depositGateway}.
-                </p>
-              </div>
-            )}
-
-            {depositStep === "SUCCESS" && (
-              <div className="py-4 text-center space-y-3">
-                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-6 h-6" />
-                </div>
-                <h4 className="text-base font-black text-slate-900">
-                  ৳{depositAmount.toLocaleString()} Secured in Escrow!
-                </h4>
-                <p className="text-xs text-slate-600 max-w-xs mx-auto">
-                  Funds have been allocated. Freelancer has been notified that the milestone is fully funded and safe to begin work.
-                </p>
-                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-700 font-bold">
-                  TrxID: {trxResult}
-                </div>
-                <button
-                  onClick={() => setDepositModalOpen(false)}
-                  className="w-full py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer"
-                >
-                  Close & View Dashboard
+                  <span>
+                    {initiatingContractId === effectiveContractIdToFund
+                      ? lang === "en"
+                        ? "Creating SSLCOMMERZ Sandbox Session..."
+                        : "SSLCOMMERZ সেশন তৈরি হচ্ছে..."
+                      : lang === "en"
+                      ? `Proceed to SSLCOMMERZ Sandbox${
+                          selectedFundableContract
+                            ? ` (${formatBdt(selectedFundableContract.totalBdt)})`
+                            : ""
+                        }`
+                      : `SSLCOMMERZ স্যান্ডবক্সে এগিয়ে যান`}
+                  </span>
                 </button>
               </div>
             )}
           </div>
         </div>
       )}
+
+      {/* Payment Detail Modal */}
+      <PaymentDetailModal
+        payment={selectedPayment}
+        viewerRole="client"
+        lang={lang}
+        onClose={() => setSelectedPayment(null)}
+        onRetryPayment={handleInitiatePayment}
+        onVerifyPending={handleVerifyPendingPayment}
+        actionLoading={Boolean(initiatingContractId || verifyingTranId)}
+      />
     </DashboardShell>
   );
 }
