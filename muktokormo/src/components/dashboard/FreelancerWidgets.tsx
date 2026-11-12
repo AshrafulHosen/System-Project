@@ -8,27 +8,27 @@ import { formatBdt } from "@/lib/format";
 
 const STATUS_STYLES: Record<TrackedProposalStatus, { cls: string; label: string; labelBn: string }> = {
   PENDING: {
-    cls: "bg-slate-50 text-slate-700 border-slate-200",
+    cls: "bg-[#F4F2EC] text-[#3E434A] border-[rgba(17,19,21,0.12)]",
     label: "Pending",
     labelBn: "অপেক্ষমাণ",
   },
   SHORTLISTED: {
-    cls: "bg-amber-50 text-amber-700 border-amber-200",
+    cls: "bg-[#FEF6E6] text-[#A87224] border-[#A87224]/25",
     label: "Shortlisted",
     labelBn: "শর্টলিস্ট",
   },
   INTERVIEW: {
-    cls: "bg-violet-50 text-violet-700 border-violet-200",
+    cls: "bg-[#F3EFFA] text-[#5B3E96] border-[#5B3E96]/20",
     label: "Interview",
     labelBn: "ইন্টারভিউ",
   },
   ACCEPTED: {
-    cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    cls: "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25",
     label: "Accepted",
     labelBn: "গৃহীত",
   },
   REJECTED: {
-    cls: "bg-red-50 text-red-600 border-red-200",
+    cls: "bg-[#FEF2F2] text-[#DC2626] border-[#DC2626]/20",
     label: "Not selected",
     labelBn: "বাতিল",
   },
@@ -44,11 +44,11 @@ export function ProposalTracker({
   onOpenChat?: (proposalId: string) => void;
 }) {
   return (
-    <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+    <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-[0_1px_2px_rgba(17,19,21,0.04)] overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead>
-            <tr className="border-b border-slate-100 bg-slate-50/50">
+            <tr className="border-b border-[rgba(17,19,21,0.08)] bg-[#FAF9F6]">
               {[
                 { en: "Job", bn: "কাজ" },
                 { en: "Your bid", bn: "আপনার বিড" },
@@ -58,7 +58,7 @@ export function ProposalTracker({
               ].map((h) => (
                 <th
                   key={h.en}
-                  className="px-4 sm:px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-slate-500"
+                  className="px-4 sm:px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#686E78]"
                 >
                   {lang === "en" ? h.en : h.bn}
                 </th>
@@ -66,30 +66,30 @@ export function ProposalTracker({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-50">
+          <tbody className="divide-y divide-[rgba(17,19,21,0.06)]">
             {proposals.map((p) => {
               const status = STATUS_STYLES[p.status];
               return (
-                <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                <tr key={p.id} className="hover:bg-[#FAF9F6] transition-colors">
                   <td className="px-4 sm:px-5 py-3.5">
-                    <p className="text-xs font-bold text-slate-900 leading-snug">
+                    <p className="text-xs font-semibold text-[#111315] leading-snug">
                       {lang === "en" ? p.jobTitle : p.jobTitleBn}
                     </p>
-                    <p className="text-[10px] text-slate-400 mt-0.5">{p.clientName}</p>
+                    <p className="text-[10px] text-[#686E78] mt-0.5">{p.clientName}</p>
                   </td>
-                  <td className="px-4 sm:px-5 py-3.5 text-xs font-black text-slate-900 whitespace-nowrap">
+                  <td className="px-4 sm:px-5 py-3.5 text-xs font-bold font-mono mk-tabular text-[#111315] whitespace-nowrap">
                     {formatBdt(p.bidBdt)}
                   </td>
-                  <td className="px-4 sm:px-5 py-3.5 text-xs font-black text-emerald-600 whitespace-nowrap">
+                  <td className="px-4 sm:px-5 py-3.5 text-xs font-bold font-mono mk-tabular text-[#0F6E50] whitespace-nowrap">
                     {formatBdt(p.netBdt)}
                   </td>
-                  <td className="px-4 sm:px-5 py-3.5 text-[11px] text-slate-500 whitespace-nowrap">
+                  <td className="px-4 sm:px-5 py-3.5 text-[11px] text-[#686E78] whitespace-nowrap font-mono mk-tabular">
                     {p.submittedLabel}
                   </td>
                   <td className="px-4 sm:px-5 py-3.5 whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
                       <span
-                        className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${status.cls}`}
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-semibold border ${status.cls}`}
                       >
                         {lang === "en" ? status.label : status.labelBn}
                       </span>
@@ -100,31 +100,31 @@ export function ProposalTracker({
                             <button
                               type="button"
                               onClick={() => onOpenChat(p.id)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-semibold bg-[#EAF5F0] text-[#0B3B2E] border border-[#0F6E50]/25 hover:bg-[#DDF0E6] transition-colors cursor-pointer"
                             >
-                              <MessageSquare className="w-2.5 h-2.5" />
+                              <MessageSquare className="w-2.5 h-2.5 text-[#0F6E50]" />
                               <span>{lang === "en" ? "Chat" : "চ্যাট"}</span>
                             </button>
                           ) : (
                             <Link
                               href={`/dashboard/freelancer?tab=messages&threadId=${p.id}#messages`}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-semibold bg-[#EAF5F0] text-[#0B3B2E] border border-[#0F6E50]/25 hover:bg-[#DDF0E6] transition-colors"
                             >
-                              <MessageSquare className="w-2.5 h-2.5" />
+                              <MessageSquare className="w-2.5 h-2.5 text-[#0F6E50]" />
                               <span>{lang === "en" ? "Chat" : "চ্যাট"}</span>
                             </Link>
                           )}
                           <Link
                             href="/contracts"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-colors"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-semibold bg-[#0B3B2E] hover:bg-[#07281F] text-white transition-colors"
                           >
                             <span>Workspace</span>
                             <ArrowRight className="w-2.5 h-2.5" />
                           </Link>
                         </div>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] text-slate-400 bg-slate-50 border border-slate-200/60 font-medium">
-                          <Lock className="w-2.5 h-2.5 text-slate-400" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] text-[#949BA6] bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)] font-medium">
+                          <Lock className="w-2.5 h-2.5 text-[#949BA6]" />
                           <span>{lang === "en" ? "Chat locked" : "চ্যাট লকড"}</span>
                         </span>
                       )}
@@ -155,7 +155,7 @@ export function ProfileStrength({
   const offset = ring - (pct / 100) * ring;
 
   return (
-    <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs">
+    <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-5 sm:p-6 shadow-[0_1px_2px_rgba(17,19,21,0.04)]">
       <div className="flex items-center gap-5">
         <div className="relative w-20 h-20 shrink-0">
           <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
@@ -164,7 +164,7 @@ export function ProfileStrength({
               cy="40"
               r="34"
               fill="none"
-              stroke="#e2e8f0"
+              stroke="#F4F2EC"
               strokeWidth="8"
             />
             <circle
@@ -172,7 +172,7 @@ export function ProfileStrength({
               cy="40"
               r="34"
               fill="none"
-              stroke="#10b981"
+              stroke="#0F6E50"
               strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={ring}
@@ -180,16 +180,16 @@ export function ProfileStrength({
               className="transition-all duration-700"
             />
           </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-base font-black text-slate-900">
+          <span className="absolute inset-0 flex items-center justify-center text-base font-bold font-mono mk-tabular text-[#111315]">
             {pct}%
           </span>
         </div>
 
         <div className="min-w-0">
-          <h4 className="text-sm font-black text-slate-900">
+          <h4 className="text-sm font-bold text-[#111315]">
             {lang === "en" ? "Profile strength" : "প্রোফাইলের শক্তি"}
           </h4>
-          <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+          <p className="text-[11px] text-[#686E78] mt-1 leading-relaxed">
             {lang === "en"
               ? "A strong, complete profile helps clients find you and increases your chances of getting hired."
               : "সম্পূর্ণ প্রোফাইলে ক্লায়েন্ট আপনাকে সহজে পাবেন এবং নিয়োগের সম্ভাবনা বাড়বে।"}
@@ -197,20 +197,20 @@ export function ProfileStrength({
         </div>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
+      <div className="mt-4 pt-4 border-t border-[rgba(17,19,21,0.08)] space-y-2">
         {missing.map((m, i) => (
           <div key={m} className="flex items-center gap-2 text-[11px]">
-            <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+            <span className="w-4 h-4 rounded-full bg-[#FEF6E6] border border-[#A87224]/25 text-[#A87224] flex items-center justify-center shrink-0">
               <Clock className="w-2.5 h-2.5" />
             </span>
-            <span className="text-slate-600">{lang === "en" ? m : missingBn[i]}</span>
+            <span className="text-[#3E434A]">{lang === "en" ? m : missingBn[i]}</span>
           </div>
         ))}
       </div>
 
       <a
         href="/signup?step=profile"
-        className="mt-4 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all"
+        className="mt-4 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white text-xs font-semibold transition-all"
       >
         <Sparkles className="w-3.5 h-3.5" />
         {lang === "en" ? "Complete profile" : "প্রোফাইল সম্পূর্ণ করুন"}
@@ -237,14 +237,14 @@ export function RecommendedSkills({
   ];
 
   return (
-    <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs">
+    <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-5 sm:p-6 shadow-[0_1px_2px_rgba(17,19,21,0.04)]">
       <div className="flex items-center gap-2 mb-1">
-        <TrendingUp className="w-4 h-4 text-emerald-600" />
-        <h4 className="text-sm font-black text-slate-900">
+        <TrendingUp className="w-4 h-4 text-[#0F6E50]" />
+        <h4 className="text-sm font-bold text-[#111315]">
           {lang === "en" ? "Skills in demand" : "চাহিদাসম্পন্ন দক্ষতা"}
         </h4>
       </div>
-      <p className="text-[11px] text-slate-500 mb-3.5">
+      <p className="text-[11px] text-[#686E78] mb-3.5">
         {lang === "en"
           ? "Add these to your profile to appear in more searches."
           : "বেশি সার্চে দেখাতে এগুলো প্রোফাইলে যোগ করুন।"}
@@ -254,8 +254,9 @@ export function RecommendedSkills({
         {skills.map((s) => (
           <button
             key={s}
+            type="button"
             onClick={() => onPick(s)}
-            className="px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-emerald-50 hover:text-emerald-700 border border-slate-200 hover:border-emerald-200 text-[11px] font-bold text-slate-700 transition-all cursor-pointer"
+            className="px-2.5 py-1.5 rounded-lg bg-[#FAF9F6] hover:bg-[#EAF5F0] hover:text-[#0B3B2E] border border-[rgba(17,19,21,0.1)] hover:border-[#0F6E50]/30 text-[11px] font-semibold text-[#3E434A] transition-all cursor-pointer"
           >
             + {s}
           </button>
@@ -264,9 +265,9 @@ export function RecommendedSkills({
 
       <a
         href="#find-work"
-        className="mt-4 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all"
+        className="mt-4 w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#F4F2EC] hover:bg-[#EAE7DE] text-[#111315] text-xs font-semibold transition-all"
       >
-        <Send className="w-3.5 h-3.5" />
+        <Send className="w-3.5 h-3.5 text-[#0F6E50]" />
         {lang === "en" ? "Browse matching jobs" : "মিলে যাওয়া কাজ দেখুন"}
       </a>
     </div>

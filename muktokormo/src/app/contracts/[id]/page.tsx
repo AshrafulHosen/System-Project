@@ -334,14 +334,14 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
 
     if (paymentCallbackStatus === "success") {
       return (
-        <div className="bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-2xl p-4 flex items-start justify-between gap-3 shadow-xs">
+        <div className="bg-[#EAF5F0] border border-[#0F6E50]/30 text-[#0B3B2E] rounded-2xl p-4 flex items-start justify-between gap-3 shadow-xs">
           <div className="flex items-start gap-3">
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-5 h-5 text-[#0F6E50] shrink-0 mt-0.5" />
             <div className="text-xs space-y-0.5">
-              <p className="font-black text-sm">
+              <p className="font-semibold text-sm">
                 Payment Verified & Recorded as Funded (Simulated Escrow Ledger)
               </p>
-              <p className="text-emerald-800">
+              <p className="text-[#0B3B2E]/85">
                 SSLCOMMERZ Sandbox independently verified the transaction
                 {callbackTranId ? ` (${callbackTranId})` : ""} and added a{" "}
                 <strong>FUND</strong> entry to the internal escrow ledger.
@@ -351,7 +351,7 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
           <button
             type="button"
             onClick={dismissCallbackBanner}
-            className="text-emerald-700 hover:text-emerald-950 p-1 cursor-pointer"
+            className="text-[#0B3B2E] hover:text-[#111315] p-1 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -361,11 +361,11 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
 
     if (paymentCallbackStatus === "cancelled") {
       return (
-        <div className="bg-amber-50 border border-amber-300 text-amber-900 rounded-2xl p-4 flex items-start justify-between gap-3">
+        <div className="bg-[#FEF6E6] border border-[#A87224]/30 text-[#734C15] rounded-2xl p-4 flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-[#A87224] shrink-0 mt-0.5" />
             <div className="text-xs space-y-0.5">
-              <p className="font-black text-sm">Payment Attempt Cancelled</p>
+              <p className="font-semibold text-sm">Payment Attempt Cancelled</p>
               <p>
                 Your checkout session
                 {callbackTranId ? ` (${callbackTranId})` : ""} was cancelled.
@@ -376,7 +376,7 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
           <button
             type="button"
             onClick={dismissCallbackBanner}
-            className="text-amber-700 hover:text-amber-950 p-1 cursor-pointer"
+            className="text-[#A87224] hover:text-[#111315] p-1 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -385,11 +385,11 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
     }
 
     return (
-      <div className="bg-rose-50 border border-rose-300 text-rose-900 rounded-2xl p-4 flex items-start justify-between gap-3">
+      <div className="bg-[#FEF2F2] border border-[#DC2626]/25 text-[#991B1B] rounded-2xl p-4 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+          <ShieldAlert className="w-5 h-5 text-[#DC2626] shrink-0 mt-0.5" />
           <div className="text-xs space-y-0.5">
-            <p className="font-black text-sm">
+            <p className="font-semibold text-sm">
               {paymentCallbackStatus === "verification_failed"
                 ? "Payment Verification Rejected"
                 : "Payment Attempt Failed"}
@@ -405,7 +405,7 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
         <button
           type="button"
           onClick={dismissCallbackBanner}
-          className="text-rose-700 hover:text-rose-950 p-1 cursor-pointer"
+          className="text-[#DC2626] hover:text-[#111315] p-1 cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -415,7 +415,7 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
 
   if (loading && !contract) {
     return (
-      <div className="min-h-screen bg-slate-50/60 font-sans text-slate-900 flex flex-col">
+      <div className="min-h-screen bg-[#FAF9F6] font-sans text-[#111315] flex flex-col">
         <Navbar
           onOpenPostJob={() => {}}
           lang={lang}
@@ -424,9 +424,9 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
           onSearchChange={() => {}}
         />
         <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-12 space-y-6 animate-pulse">
-          <div className="h-14 rounded-2xl bg-slate-200/70" />
-          <div className="h-52 rounded-3xl bg-slate-200/70" />
-          <div className="h-64 rounded-3xl bg-slate-200/70" />
+          <div className="h-14 rounded-2xl bg-[#F4F2EC]" />
+          <div className="h-52 rounded-2xl bg-[#F4F2EC]" />
+          <div className="h-64 rounded-2xl bg-[#F4F2EC]" />
         </main>
         <Footer lang={lang} />
       </div>
@@ -435,7 +435,7 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
 
   if ((isDatabaseTarget || !isKnownDemoSample) && authState !== "ok") {
     return (
-      <div className="min-h-screen bg-slate-50/60 font-sans text-slate-900 flex flex-col">
+      <div className="min-h-screen bg-[#FAF9F6] font-sans text-[#111315] flex flex-col">
         <Navbar
           onOpenPostJob={() => {}}
           lang={lang}
@@ -444,9 +444,9 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
           onSearchChange={() => {}}
         />
         <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-16">
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center shadow-xs space-y-4">
-            <ShieldAlert className="w-10 h-10 text-amber-500 mx-auto" />
-            <h1 className="text-xl font-black text-slate-900">
+          <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-8 text-center shadow-xs space-y-4">
+            <ShieldAlert className="w-10 h-10 text-[#A87224] mx-auto" />
+            <h1 className="text-xl font-semibold text-[#111315]">
               {authState === "unauthenticated"
                 ? "Sign in required to view this contract"
                 : authState === "forbidden"
@@ -455,7 +455,7 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
                     ? "Contract Not Found"
                     : "Unable to Load Contract"}
             </h1>
-            <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+            <p className="text-xs text-[#686E78] max-w-md mx-auto leading-relaxed">
               {authState === "unauthenticated"
                 ? "Please sign in with the client, freelancer, or admin account associated with this contract."
                 : authState === "forbidden"
@@ -467,14 +467,14 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
               {authState === "unauthenticated" ? (
                 <Link
                   href={`/login?next=${encodeURIComponent(`/contracts/${contractId}`)}`}
-                  className="px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black"
+                  className="px-5 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold transition-colors"
                 >
                   Log In to Continue
                 </Link>
               ) : (
                 <Link
                   href="/contracts"
-                  className="px-5 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold"
+                  className="px-5 py-2.5 rounded-xl bg-[#111315] hover:bg-[#3E434A] text-white text-xs font-semibold transition-colors"
                 >
                   Back to My Contracts
                 </Link>
@@ -515,7 +515,7 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
     !hasOpenOrCompletedRefund;
 
   return (
-    <div className="min-h-screen bg-slate-50/60 font-sans text-slate-900 flex flex-col selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-[#FAF9F6] font-sans text-[#111315] flex flex-col selection:bg-[#0F6E50] selection:text-white">
       <Navbar
         onOpenPostJob={() => {}}
         lang={lang}
@@ -528,23 +528,23 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
         {renderCallbackBanner()}
 
         {/* Breadcrumb & Authenticated Perspective Bar */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/contracts"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-xl transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#3E434A] hover:text-[#111315] bg-[#F4F2EC] hover:bg-[#EAE7DF] px-3 py-1.5 rounded-xl transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>{lang === "en" ? "All Contracts" : "সকল কন্ট্রাক্ট"}</span>
             </Link>
 
-            <span className="text-slate-300">/</span>
+            <span className="text-[#949BA6]">/</span>
 
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#EAF5F0] text-[#0B3B2E] border border-[#0F6E50]/25 font-mono mk-tabular">
                 {contract.contractCode}
               </span>
-              <span className="text-xs font-semibold text-slate-400">
+              <span className="text-xs font-medium text-[#686E78]">
                 {contract.category}
               </span>
             </div>
@@ -552,8 +552,8 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
 
           <div className="flex items-center gap-2">
             {isLiveContract ? (
-              <span className="px-3.5 py-1.5 rounded-full text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#EAF5F0] text-[#0B3B2E] border border-[#0F6E50]/25 inline-flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#0F6E50]" />
                 <span>
                   {viewerRole === "admin"
                     ? "Verified Admin View"
@@ -563,17 +563,17 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
                 </span>
               </span>
             ) : (
-              <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-2xl border border-slate-200/70">
-                <span className="text-[11px] font-bold text-slate-500 px-2.5">
+              <div className="flex items-center gap-1.5 bg-[#F4F2EC] p-1 rounded-xl border border-[rgba(17,19,21,0.09)]">
+                <span className="text-[11px] font-semibold text-[#686E78] px-2">
                   Demo Preview:
                 </span>
                 <button
                   type="button"
                   onClick={() => setViewerRole("freelancer")}
-                  className={`px-3 py-1 rounded-xl text-xs font-black cursor-pointer ${
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
                     viewerRole === "freelancer"
-                      ? "bg-white text-emerald-700 shadow-xs"
-                      : "text-slate-600"
+                      ? "bg-[#0B3B2E] text-white shadow-2xs"
+                      : "text-[#3E434A]"
                   }`}
                 >
                   Freelancer
@@ -581,10 +581,10 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
                 <button
                   type="button"
                   onClick={() => setViewerRole("client")}
-                  className={`px-3 py-1 rounded-xl text-xs font-black cursor-pointer ${
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
                     viewerRole === "client"
-                      ? "bg-white text-sky-700 shadow-xs"
-                      : "text-slate-600"
+                      ? "bg-[#1E5B88] text-white shadow-2xs"
+                      : "text-[#3E434A]"
                   }`}
                 >
                   Client
@@ -595,21 +595,21 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
         </div>
 
         {/* Contract Header Card */}
-        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+        <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[rgba(17,19,21,0.09)]">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#EAF5F0] text-[#0B3B2E] border border-[#0F6E50]/25 inline-flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#0F6E50]" />
                   <span>{contract.stage} Contract</span>
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-[#686E78] font-mono mk-tabular">
                   Started {formatIsoDate(contract.startedAt)} · Due{" "}
                   {formatIsoDate(contract.deadlineDate)}
                 </span>
               </div>
 
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-[#111315] tracking-tight">
                 {lang === "en"
                   ? contract.title
                   : contract.titleBn || contract.title}
@@ -617,70 +617,70 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
             </div>
 
             <div className="text-left lg:text-right shrink-0">
-              <span className="text-xs uppercase font-bold tracking-wider text-slate-400 block">
+              <span className="text-[11px] uppercase font-semibold tracking-wider text-[#686E78] block">
                 {lang === "en" ? "Total Contract Value" : "মোট চুক্তির মূল্য"}
               </span>
-              <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+              <span className="text-2xl sm:text-3xl font-bold text-[#111315] tracking-tight font-mono mk-tabular">
                 {formatBdt(contract.totalBdt)}{" "}
-                <span className="text-sm font-bold text-slate-500">BDT</span>
+                <span className="text-sm font-semibold text-[#686E78]">BDT</span>
               </span>
             </div>
           </div>
 
           {/* Two-Party Profiles */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6">
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 flex items-center gap-4">
+            <div className="bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] rounded-xl p-4 flex items-center gap-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={contract.client.avatar}
                 alt={contract.client.name}
-                className="w-14 h-14 rounded-2xl object-cover border border-slate-200 shadow-2xs"
+                className="w-14 h-14 rounded-xl object-cover border border-[rgba(17,19,21,0.12)] shadow-2xs"
               />
-              <div className="flex-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#949BA6] block">
                   {lang === "en" ? "Employer / Client" : "ক্লায়েন্ট"}
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <h4 className="text-sm font-black text-slate-900">
+                  <h4 className="text-sm font-semibold text-[#111315] truncate">
                     {contract.client.name}
                   </h4>
                   {contract.client.isVerified && (
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <ShieldCheck className="w-4 h-4 text-[#0F6E50] shrink-0" />
                   )}
                 </div>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-xs text-[#686E78] font-medium truncate">
                   {contract.client.company} · {contract.client.location}
                 </p>
-                <div className="flex items-center gap-1 text-amber-500 text-xs font-bold mt-0.5">
-                  <Star className="w-3.5 h-3.5 fill-amber-400" />
+                <div className="flex items-center gap-1 text-[#A87224] text-xs font-semibold mt-0.5 font-mono mk-tabular">
+                  <Star className="w-3.5 h-3.5 fill-[#A87224]" />
                   <span>{contract.client.rating.toFixed(1)} rating</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 flex items-center gap-4">
+            <div className="bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] rounded-xl p-4 flex items-center gap-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={contract.freelancer.avatar}
                 alt={contract.freelancer.name}
-                className="w-14 h-14 rounded-2xl object-cover border border-slate-200 shadow-2xs"
+                className="w-14 h-14 rounded-xl object-cover border border-[rgba(17,19,21,0.12)] shadow-2xs"
               />
-              <div className="flex-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#949BA6] block">
                   {lang === "en" ? "Assigned Freelancer" : "নিয়োজিত ফ্রিল্যান্সার"}
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <h4 className="text-sm font-black text-slate-900">
+                  <h4 className="text-sm font-semibold text-[#111315] truncate">
                     {contract.freelancer.name}
                   </h4>
                   {contract.freelancer.isNidVerified && (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <CheckCircle2 className="w-4 h-4 text-[#0F6E50] shrink-0" />
                   )}
                 </div>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-xs text-[#686E78] font-medium truncate">
                   {contract.freelancer.title}
                 </p>
-                <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-slate-700 border border-slate-200">
+                <span className="inline-block mt-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white text-[#3E434A] border border-[rgba(17,19,21,0.09)]">
                   Payout: {contract.freelancer.payoutMethod}
                 </span>
               </div>
@@ -698,8 +698,8 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
             onPaymentVerified={fetchLiveContract}
           />
         ) : (
-          <div className="p-5 rounded-3xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
-            Static sample contract preview (`{contract.contractCode}`). Open a
+          <div className="p-5 rounded-2xl bg-[#FEF6E6] border border-[#A87224]/25 text-xs text-[#734C15]">
+            Static sample contract preview (<span className="font-mono">{contract.contractCode}</span>). Open a
             live database contract from your Dashboard Workspace to initiate
             SSLCOMMERZ Sandbox checkout and internal escrow settlements.
           </div>
@@ -730,19 +730,19 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
 
         {/* Phase 9: Escrow Refund Request & Governance Status */}
         {isLiveContract && (canClientRequestRefund || refunds.length > 0 || refundSuccess) && (
-          <section className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+          <section className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[rgba(17,19,21,0.09)]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center shrink-0">
-                  <RotateCcw className="w-5 h-5 text-indigo-600" />
+                <div className="w-10 h-10 rounded-xl bg-[#F3EFFA] border border-[#5B3E96]/20 flex items-center justify-center shrink-0">
+                  <RotateCcw className="w-5 h-5 text-[#5B3E96]" />
                 </div>
                 <div>
-                  <h2 className="text-base font-black text-slate-900">
+                  <h2 className="text-base font-semibold text-[#111315]">
                     {lang === "en"
                       ? "Escrow Refund Request & Moderation Status"
                       : "এসক্রো রিফান্ড অনুরোধ ও পর্যালোচনা অবস্থা"}
                   </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-[#686E78] mt-0.5">
                     {lang === "en"
                       ? "Admin moderates funded escrow refunds as either Simulated Internal Ledger or SSLCOMMERZ Sandbox API."
                       : "অ্যাডমিন সিমুলেটেড লেজার বা SSLCOMMERZ স্যান্ডবক্স এপিআই-এর মাধ্যমে রিফান্ড যাচাই করেন।"}
@@ -757,7 +757,7 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
                     setRefundError(null);
                     setRefundModalOpen(true);
                   }}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black shadow-xs transition-all cursor-pointer self-start sm:self-auto"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#5B3E96] hover:bg-[#49307A] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer self-start sm:self-auto"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>
@@ -768,14 +768,14 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
             </div>
 
             {refundSuccess && (
-              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold flex items-start gap-2">
+              <div className="p-3.5 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/25 text-xs text-[#0B3B2E] font-semibold flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{refundSuccess}</span>
               </div>
             )}
 
             {refunds.length === 0 ? (
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 text-xs text-slate-600">
+              <div className="p-4 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] text-xs text-[#3E434A]">
                 {lang === "en"
                   ? "This contract is currently Funded and unreleased. If collaboration is cancelled or deliverables cannot be fulfilled, the client may submit an admin-reviewed refund request."
                   : "এই কন্ট্রাক্টটি ফান্ডেড অবস্থায় আছে। প্রয়োজন হলে ক্লায়েন্ট অ্যাডমিন-পর্যালোচিত রিফান্ডের অনুরোধ করতে পারেন।"}
@@ -785,51 +785,51 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
                 {refunds.map((rf) => {
                   const statusTone =
                     rf.status === "COMPLETED"
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      ? "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25"
                       : rf.status === "REJECTED" || rf.status === "FAILED"
-                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                        ? "bg-[#FEF2F2] text-[#DC2626] border-[#DC2626]/20"
                         : rf.status === "GATEWAY_INITIATED"
-                          ? "bg-sky-50 text-sky-700 border-sky-200"
-                          : "bg-amber-50 text-amber-800 border-amber-200";
+                          ? "bg-[#EEF5FA] text-[#1E5B88] border-[#1E5B88]/20"
+                          : "bg-[#FEF6E6] text-[#A87224] border-[#A87224]/25";
                   return (
                     <div
                       key={rf.id}
-                      className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/70 space-y-2 text-xs"
+                      className="p-4 rounded-xl border border-[rgba(17,19,21,0.09)] bg-[#FAF9F6] space-y-2 text-xs"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-black text-slate-900 text-sm">
+                          <span className="font-bold text-[#111315] text-sm font-mono mk-tabular">
                             {formatBdt(rf.amount)}
                           </span>
                           <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border ${statusTone}`}
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusTone}`}
                           >
                             {rf.status}
                           </span>
-                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-slate-700 border border-slate-200">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-white text-[#3E434A] border border-[rgba(17,19,21,0.09)]">
                             {rf.refund_mode}
                           </span>
                           {rf.gateway_status && (
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-slate-200/70 text-slate-700">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono mk-tabular font-semibold bg-[#F4F2EC] text-[#3E434A]">
                               GW: {rf.gateway_status}
                             </span>
                           )}
                         </div>
-                        <span className="text-[11px] text-slate-400">
+                        <span className="text-[11px] text-[#949BA6] font-mono mk-tabular">
                           {formatIsoDate(rf.created_at)}
                         </span>
                       </div>
 
-                      <p className="text-slate-700 leading-relaxed">
-                        <span className="font-bold text-slate-900">
+                      <p className="text-[#3E434A] leading-relaxed">
+                        <span className="font-semibold text-[#111315]">
                           {lang === "en" ? "Client Reason: " : "কারণ: "}
                         </span>
                         {rf.reason}
                       </p>
 
                       {rf.admin_notes && (
-                        <p className="text-slate-600 bg-white px-3 py-2 rounded-xl border border-slate-200/70">
-                          <span className="font-bold text-slate-900">
+                        <p className="text-[#3E434A] bg-white px-3 py-2 rounded-xl border border-[rgba(17,19,21,0.09)]">
+                          <span className="font-semibold text-[#111315]">
                             {lang === "en" ? "Admin Decision Note: " : "অ্যাডমিন নোট: "}
                           </span>
                           {rf.admin_notes}
@@ -837,7 +837,7 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
                       )}
 
                       {rf.gateway_refund_ref_id && (
-                        <p className="text-[11px] font-mono text-indigo-700">
+                        <p className="text-[11px] font-mono mk-tabular text-[#5B3E96]">
                           Refund Reference ID: {rf.gateway_refund_ref_id}
                         </p>
                       )}
@@ -851,36 +851,36 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
 
         {/* Collaboration & Audit History */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs flex flex-col justify-between min-h-[340px]">
+          <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 shadow-xs flex flex-col justify-between min-h-[340px]">
             <div className="space-y-4">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center justify-between pb-4 border-b border-[rgba(17,19,21,0.09)]">
                 <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-emerald-600" />
-                  <h4 className="text-sm font-black text-slate-900">
+                  <MessageSquare className="w-4 h-4 text-[#0F6E50]" />
+                  <h4 className="text-sm font-semibold text-[#111315]">
                     {lang === "en" ? "Contract Discussion" : "কন্ট্রাক্ট আলোচনা"}
                   </h4>
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#0B3B2E] bg-[#EAF5F0] px-2.5 py-0.5 rounded-full border border-[#0F6E50]/25">
                   TalkJS Workspace
                 </span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/70 space-y-2 text-xs text-emerald-900">
-                <p className="font-bold">
+              <div className="p-4 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/20 space-y-2 text-xs text-[#0B3B2E]">
+                <p className="font-semibold">
                   Coordinate project milestones, revisions, and delivery handoffs
                   with your contract partner.
                 </p>
-                <p className="text-[11px] text-emerald-800">
+                <p className="text-[11px] text-[#0B3B2E]/85">
                   All financial actions remain strictly protected inside
                   verified Supabase API routes.
                 </p>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-100">
+            <div className="pt-4 border-t border-[rgba(17,19,21,0.09)]">
               <Link
                 href={`/messages?contractId=${contract.id}`}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold shadow-xs transition-colors"
               >
                 <MessageSquare className="w-4 h-4" />
                 <span>
@@ -893,17 +893,17 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xs flex flex-col min-h-[340px]">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 shadow-xs flex flex-col min-h-[340px]">
+            <div className="flex items-center justify-between pb-4 border-b border-[rgba(17,19,21,0.09)]">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <h4 className="text-sm font-black text-slate-900">
+                <ShieldCheck className="w-4 h-4 text-[#0F6E50]" />
+                <h4 className="text-sm font-semibold text-[#111315]">
                   {lang === "en"
                     ? "Gateway & Audit Event Log"
                     : "গেটওয়ে ও অডিট ইভেন্ট লগ"}
                 </h4>
               </div>
-              <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+              <span className="text-[10px] font-semibold text-[#3E434A] bg-[#F4F2EC] px-2.5 py-0.5 rounded-full border border-[rgba(17,19,21,0.09)] font-mono mk-tabular">
                 {transactions.length > 0
                   ? `${transactions.length} Gateway Events`
                   : `${contract.activityLogs.length} Events`}
@@ -913,33 +913,33 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
             <div className="flex-1 overflow-y-auto py-4 space-y-3 max-h-[280px]">
               {contract.activityLogs.map((act) => (
                 <div key={act.id} className="flex items-start gap-3 text-xs">
-                  <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center shrink-0 mt-0.5 border border-slate-200">
+                  <div className="w-7 h-7 rounded-full bg-[#F4F2EC] text-[#3E434A] flex items-center justify-center shrink-0 mt-0.5 border border-[rgba(17,19,21,0.09)]">
                     {act.badgeType === "ESCROW" ? (
-                      <Lock className="w-3.5 h-3.5 text-sky-600" />
+                      <Lock className="w-3.5 h-3.5 text-[#1E5B88]" />
                     ) : act.badgeType === "PAYOUT" ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <Check className="w-3.5 h-3.5 text-[#0F6E50]" />
                     ) : act.badgeType === "REVISION" ? (
-                      <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+                      <RotateCcw className="w-3.5 h-3.5 text-[#A87224]" />
                     ) : act.badgeType === "SUBMISSION" ? (
-                      <Upload className="w-3.5 h-3.5 text-sky-600" />
+                      <Upload className="w-3.5 h-3.5 text-[#1E5B88]" />
                     ) : (
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
+                      <Clock className="w-3.5 h-3.5 text-[#949BA6]" />
                     )}
                   </div>
                   <div className="flex-1 space-y-0.5">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-bold text-slate-900">
+                      <span className="font-semibold text-[#111315]">
                         {act.action}
                       </span>
-                      <span className="text-[10px] text-slate-400 shrink-0">
+                      <span className="text-[10px] font-mono mk-tabular text-[#949BA6] shrink-0">
                         {formatIsoDate(act.timestamp)}
                       </span>
                     </div>
-                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                    <p className="text-[#686E78] text-[11px] leading-relaxed">
                       {act.details}
                     </p>
                     {act.trxId && (
-                      <span className="inline-block text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      <span className="inline-block text-[10px] font-mono mk-tabular font-semibold text-[#0B3B2E] bg-[#EAF5F0] px-2 py-0.5 rounded border border-[#0F6E50]/25">
                         {act.trxId}
                       </span>
                     )}
@@ -948,24 +948,24 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
               ))}
 
               {transactions.length > 0 && (
-                <div className="pt-3 border-t border-slate-100 space-y-2">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                <div className="pt-3 border-t border-[rgba(17,19,21,0.09)] space-y-2">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#949BA6]">
                     Gateway Callback Telemetry
                   </p>
                   {transactions.slice(0, 6).map((tx) => (
                     <div
                       key={tx.id}
-                      className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 text-[11px] flex items-center justify-between gap-2"
+                      className="p-2.5 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] text-[11px] flex items-center justify-between gap-2"
                     >
                       <div>
-                        <span className="font-bold text-slate-800">
+                        <span className="font-semibold text-[#111315] font-mono">
                           {tx.event_type}
                         </span>{" "}
-                        <span className="text-slate-500">
+                        <span className="text-[#686E78]">
                           ({tx.gateway_status})
                         </span>
                       </div>
-                      <span className="font-mono text-slate-500">
+                      <span className="font-mono mk-tabular text-[#686E78]">
                         {tx.gateway_transaction_id}
                       </span>
                     </div>
@@ -980,23 +980,27 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
       {/* Client Refund Request Modal */}
       {refundModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#111315]/60 backdrop-blur-xs p-4"
           role="dialog"
           aria-modal="true"
+          onClick={() => setRefundModalOpen(false)}
         >
-          <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-indigo-50/70">
+          <div
+            className="bg-white border border-[rgba(17,19,21,0.12)] rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-5 border-b border-[rgba(17,19,21,0.09)] flex items-center justify-between bg-[#F3EFFA]">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-white border border-[#5B3E96]/25 text-[#5B3E96] flex items-center justify-center">
                   <RotateCcw className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-black text-slate-900">
+                  <h3 className="text-sm font-semibold text-[#111315]">
                     {lang === "en"
                       ? "Request Escrow Refund"
                       : "এসক্রো রিফান্ডের অনুরোধ"}
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] font-mono mk-tabular text-[#686E78]">
                     {formatBdt(settledPayment?.amount ?? contract.totalBdt)} ·{" "}
                     {settledPayment?.transaction_id ?? contract.contractCode}
                   </p>
@@ -1005,21 +1009,21 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
               <button
                 type="button"
                 onClick={() => setRefundModalOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 cursor-pointer"
+                className="p-1.5 rounded-xl text-[#686E78] hover:text-[#111315] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleSubmitRefundRequest} className="p-5 space-y-4">
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-[11px] text-slate-600 leading-relaxed">
+              <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] text-[11px] text-[#3E434A] leading-relaxed">
                 {lang === "en"
                   ? "Refund amount is fixed on the server to your verified funded payment. Requests enter Admin review and may be finalized via Simulated Internal Ledger Refund or SSLCOMMERZ Sandbox Refund API."
                   : "রিফান্ডের পরিমাণ সার্ভার থেকে স্বয়ংক্রিয়ভাবে নির্ধারিত হয়। অ্যাডমিন পর্যালোচনার পর সিমুলেটেড বা স্যান্ডবক্স গেটওয়ে রিফান্ড সম্পন্ন হবে।"}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-semibold text-[#111315] mb-1">
                   {lang === "en" ? "Reason for Refund *" : "রিফান্ডের কারণ *"}
                 </label>
                 <textarea
@@ -1030,29 +1034,29 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
                   value={refundReason}
                   onChange={(e) => setRefundReason(e.target.value)}
                   placeholder="Describe why this funded escrow contract requires a refund (at least 10 characters)..."
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-[rgba(17,19,21,0.12)] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#5B3E96]/25 focus:border-[#5B3E96]"
                 />
               </div>
 
               {refundError && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-start gap-2">
+                <div className="p-3 rounded-xl bg-[#FEF2F2] border border-[#DC2626]/25 text-xs text-[#DC2626] font-semibold flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{refundError}</span>
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[rgba(17,19,21,0.09)]">
                 <button
                   type="button"
                   onClick={() => setRefundModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#686E78] hover:bg-[#F4F2EC] cursor-pointer"
                 >
                   {lang === "en" ? "Cancel" : "বাতিল"}
                 </button>
                 <button
                   type="submit"
                   disabled={submittingRefund}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black cursor-pointer disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#5B3E96] hover:bg-[#49307A] text-white text-xs font-semibold cursor-pointer disabled:opacity-60"
                 >
                   <span>
                     {submittingRefund
@@ -1081,8 +1085,8 @@ export default function ContractWorkspacePage({ params }: PageProps) {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+        <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-[#0F6E50] border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

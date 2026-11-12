@@ -8,6 +8,11 @@ import CategoryGrid from "@/components/CategoryGrid";
 import JobFeed from "@/components/JobFeed";
 import FreelancerDirectory from "@/components/FreelancerDirectory";
 import EscrowTrustBanner from "@/components/EscrowTrustBanner";
+import PopularServicesSection from "@/components/home/PopularServicesSection";
+import HowItWorksSection from "@/components/home/HowItWorksSection";
+import PlatformStatsSection from "@/components/home/PlatformStatsSection";
+import WhyMuktokormoSection from "@/components/home/WhyMuktokormoSection";
+import TestimonialsSection from "@/components/home/TestimonialsSection";
 import PostJobModal from "@/components/PostJobModal";
 import BidModal from "@/components/BidModal";
 import JobBidsModal from "@/components/JobBidsModal";
@@ -49,9 +54,15 @@ export default function Home() {
   const [selectedJobForBids, setSelectedJobForBids] = useState<Job | null>(null);
   const [isMyBidsOpen, setIsMyBidsOpen] = useState(false);
   const [escrowJob, setEscrowJob] = useState<Job | null>(null);
-  const [escrowContractId, setEscrowContractId] = useState<string | undefined>(undefined);
-  const [escrowCustomAmount, setEscrowCustomAmount] = useState<number | undefined>(undefined);
-  const [escrowFreelancerName, setEscrowFreelancerName] = useState<string | undefined>(undefined);
+  const [escrowContractId, setEscrowContractId] = useState<string | undefined>(
+    undefined
+  );
+  const [escrowCustomAmount, setEscrowCustomAmount] = useState<number | undefined>(
+    undefined
+  );
+  const [escrowFreelancerName, setEscrowFreelancerName] = useState<
+    string | undefined
+  >(undefined);
 
   useEffect(() => {
     let cancelled = false;
@@ -228,10 +239,7 @@ export default function Home() {
     setSelectedJobForBids(job);
     const fetched = await fetchProposalsForJob(supabase, job.id);
     if (fetched.length === 0) return;
-    setBids((prev) => [
-      ...fetched,
-      ...prev.filter((b) => b.jobId !== job.id),
-    ]);
+    setBids((prev) => [...fetched, ...prev.filter((b) => b.jobId !== job.id)]);
   };
 
   const handleSelectSkill = (skill: string) => {
@@ -273,7 +281,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-900 flex flex-col selection:bg-emerald-600 selection:text-white">
+    <div className="min-h-screen bg-[#FAF9F6] font-sans text-[#111315] flex flex-col selection:bg-[#0F6E50] selection:text-white">
       {/* Navigation Bar */}
       <Navbar
         onOpenPostJob={() => setIsPostJobOpen(true)}
@@ -285,9 +293,8 @@ export default function Home() {
         onOpenMyBids={() => setIsMyBidsOpen(true)}
       />
 
-      {/* Main Content */}
       <main className="flex-1">
-        {/* Hero Section */}
+        {/* Hero */}
         <HeroSection
           lang={lang}
           onOpenPostJob={() => setIsPostJobOpen(true)}
@@ -300,12 +307,26 @@ export default function Home() {
           }}
         />
 
-        {/* Categories Explorer */}
+        {/* Platform Statistics Band */}
+        <PlatformStatsSection
+          lang={lang}
+          openJobsCount={jobs.length}
+          freelancersCount={freelancersCount}
+        />
+
+        {/* Specialized Categories */}
         <CategoryGrid
           selectedCategory={selectedCategory}
           onSelectCategory={(cat) => setSelectedCategory(cat)}
           lang={lang}
           jobs={jobs}
+        />
+
+        {/* Popular Services */}
+        <PopularServicesSection
+          lang={lang}
+          onSelectServiceQuery={handleSelectSkill}
+          onOpenPostJob={() => setIsPostJobOpen(true)}
         />
 
         {/* Live Marketplace Job Feed */}
@@ -336,18 +357,29 @@ export default function Home() {
           onLoadedCount={handleFreelancersLoaded}
         />
 
-        {/* Escrow Financial Safety Section */}
+        {/* How MuktoKormo Works */}
+        <HowItWorksSection lang={lang} />
+
+        {/* Why MuktoKormo */}
+        <WhyMuktokormoSection lang={lang} />
+
+        {/* Escrow Financial Safety Banner */}
         <EscrowTrustBanner
           lang={lang}
           onOpenEscrowTest={handleOpenEscrowDefault}
         />
 
+        {/* Customer Testimonials */}
+        <TestimonialsSection lang={lang} />
+
         {/* Final Conversion CTA Section */}
-        <section className="py-16 bg-slate-950 text-white border-t border-slate-900">
+        <section className="py-18 bg-[#FAF9F6] border-t border-[rgba(17,19,21,0.08)]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/60 border border-slate-800 p-8 sm:p-12 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-              <div className="max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold mb-4">
+            <div className="mk-dark-card p-8 sm:p-12 lg:p-14 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 relative overflow-hidden">
+              <div className="absolute -right-24 -bottom-24 w-72 h-72 rounded-full bg-[#0F6E50]/35 blur-3xl pointer-events-none" />
+
+              <div className="max-w-2xl relative z-10">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7CE0B8]/12 border border-[#7CE0B8]/25 text-[#7CE0B8] text-[11px] font-semibold mb-4">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   <span>
                     {lang === "en"
@@ -355,22 +387,31 @@ export default function Home() {
                       : "বাংলাদেশের ডিজিটাল অর্থনীতির জন্য নির্মিত"}
                   </span>
                 </div>
-                <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-                  {lang === "en"
-                    ? "Start your next project with full BDT escrow confidence."
-                    : "শতভাগ বিডিটি এসক্রো নিরাপত্তায় আপনার পরবর্তী প্রজেক্ট শুরু করুন।"}
+                <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white">
+                  {lang === "en" ? (
+                    <>
+                      Start your next project with full{" "}
+                      <span className="font-serif italic font-normal text-[#7CE0B8]">
+                        BDT escrow
+                      </span>{" "}
+                      confidence.
+                    </>
+                  ) : (
+                    "শতভাগ বিডিটি এসক্রো নিরাপত্তায় আপনার পরবর্তী প্রজেক্ট শুরু করুন।"
+                  )}
                 </h2>
-                <p className="mt-3 text-sm text-slate-300 leading-relaxed">
+                <p className="mt-3 text-sm text-white/75 leading-relaxed">
                   {lang === "en"
-                    ? "Whether you are hiring verified engineers and designers or offering your skills to Bangladeshi businesses, MuktoKormo keeps contracts, milestones, and payouts transparent."
+                    ? "Whether you are commissioning software and design sprints or offering specialized skills, MuktoKormo keeps contracts, milestones, and settlements structured."
                     : "দক্ষ ফ্রিল্যান্সার নিয়োগ দিন অথবা আপনার দক্ষতা দিয়ে আয় শুরু করুন — সবকিছুই এক প্ল্যাটফর্মে।"}
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0 relative z-10">
                 <button
+                  type="button"
                   onClick={() => setIsPostJobOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition-all cursor-pointer shadow-lg shadow-emerald-950/50"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#0F6E50] hover:bg-[#0B5940] text-white font-semibold text-sm transition-all cursor-pointer shadow-[0_8px_20px_-6px_rgba(15,110,80,0.5)]"
                 >
                   <Briefcase className="w-4 h-4" />
                   <span>{lang === "en" ? "Post a Project" : "কাজ পোস্ট করুন"}</span>
@@ -379,10 +420,12 @@ export default function Home() {
 
                 <Link
                   href="/signup"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-sm transition-all"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/16 border border-white/15 text-white font-semibold text-sm transition-all"
                 >
-                  <UserPlus className="w-4 h-4 text-emerald-400" />
-                  <span>{lang === "en" ? "Create Free Account" : "ফ্রি অ্যাকাউন্ট খুলুন"}</span>
+                  <UserPlus className="w-4 h-4 text-[#7CE0B8]" />
+                  <span>
+                    {lang === "en" ? "Create Free Account" : "ফ্রি অ্যাকাউন্ট খুলুন"}
+                  </span>
                 </Link>
               </div>
             </div>
@@ -390,10 +433,9 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Footer */}
       <Footer lang={lang} />
 
-      {/* Post a Job Modal (Client Flow) */}
+      {/* Modals & Drawers */}
       <PostJobModal
         isOpen={isPostJobOpen}
         onClose={() => setIsPostJobOpen(false)}
@@ -401,7 +443,6 @@ export default function Home() {
         lang={lang}
       />
 
-      {/* Freelancer Place Bid Modal */}
       <BidModal
         key={selectedBidJob?.id}
         job={selectedBidJob}
@@ -411,7 +452,6 @@ export default function Home() {
         lang={lang}
       />
 
-      {/* Job Bids Room Modal */}
       <JobBidsModal
         job={selectedJobForBids}
         bids={bids}
@@ -426,7 +466,6 @@ export default function Home() {
         lang={lang}
       />
 
-      {/* Freelancer My Bids Drawer */}
       <MyBidsDrawer
         isOpen={isMyBidsOpen}
         onClose={() => setIsMyBidsOpen(false)}
@@ -437,7 +476,6 @@ export default function Home() {
         lang={lang}
       />
 
-      {/* Escrow Milestone & Payment Modal */}
       <EscrowModal
         job={escrowJob}
         contractId={escrowContractId}

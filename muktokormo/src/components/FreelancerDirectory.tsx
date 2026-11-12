@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import {
   fetchFreelancers,
@@ -22,8 +23,17 @@ import {
   Award,
   Briefcase,
   X,
+  MessageSquare,
+  Layers,
+  Clock,
 } from "lucide-react";
-import { Badge, EmptyState, FreelancerCardSkeleton, Modal } from "@/components/ui";
+import {
+  Badge,
+  EmptyState,
+  FreelancerCardSkeleton,
+  Modal,
+  Tabs,
+} from "@/components/ui";
 
 interface FreelancerDirectoryProps {
   lang: "en" | "bn";
@@ -44,10 +54,15 @@ export default function FreelancerDirectory({
   const [freelancers, setFreelancers] = useState<Freelancer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(externalSearchQuery);
-  const [rateFilter, setRateFilter] = useState<"ALL" | "UNDER_1000" | "1000_2500" | "2500_PLUS">("ALL");
+  const [rateFilter, setRateFilter] = useState<
+    "ALL" | "UNDER_1000" | "1000_2500" | "2500_PLUS"
+  >("ALL");
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<Freelancer | null>(null);
+  const [profileModalTab, setProfileModalTab] = useState<
+    "overview" | "portfolio" | "track"
+  >("overview");
 
   useEffect(() => {
     let cancelled = false;
@@ -91,6 +106,11 @@ export default function FreelancerDirectory({
     setSavingId(null);
   };
 
+  const openProfileModal = (freelancer: Freelancer) => {
+    setProfileModalTab("overview");
+    setSelectedProfile(freelancer);
+  };
+
   const filteredFreelancers = useMemo(() => {
     return freelancers.filter((f) => {
       if (searchQuery.trim()) {
@@ -103,7 +123,11 @@ export default function FreelancerDirectory({
       }
 
       if (rateFilter === "UNDER_1000" && f.hourlyRateBdt >= 1000) return false;
-      if (rateFilter === "1000_2500" && (f.hourlyRateBdt < 1000 || f.hourlyRateBdt > 2500)) return false;
+      if (
+        rateFilter === "1000_2500" &&
+        (f.hourlyRateBdt < 1000 || f.hourlyRateBdt > 2500)
+      )
+        return false;
       if (rateFilter === "2500_PLUS" && f.hourlyRateBdt <= 2500) return false;
 
       return true;
@@ -113,22 +137,26 @@ export default function FreelancerDirectory({
   return (
     <section
       id="freelancers-section"
-      className="py-16 bg-slate-50/80 border-t border-slate-200/70 text-slate-900"
+      className="py-16 bg-[#F4F2EC]/65 border-t border-[rgba(17,19,21,0.08)] text-[#111315]"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-7">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <UserCheck className="w-5 h-5 text-emerald-600" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700">
-                {lang === "en" ? "Vetted Bangladeshi Professionals" : "যাচাইকৃত বাংলাদেশি পেশাজীবী"}
+              <UserCheck className="w-4 h-4 text-[#0F6E50]" />
+              <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#0F6E50]">
+                {lang === "en"
+                  ? "Vetted Bangladeshi Professionals"
+                  : "যাচাইকৃত বাংলাদেশি পেশাজীবী"}
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-              {lang === "en" ? "Top Verified Bangladeshi Talent" : "শীর্ষ ভেরিফাইড ফ্রিল্যান্সারগণ"}
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#111315]">
+              {lang === "en"
+                ? "Top Verified Bangladeshi Talent"
+                : "শীর্ষ ভেরিফাইড ফ্রিল্যান্সারগণ"}
             </h2>
-            <p className="mt-1 text-xs sm:text-sm text-slate-500">
+            <p className="mt-1 text-xs sm:text-sm text-[#686E78]">
               {lang === "en"
                 ? "Hire available experts with NID Smart Card verification and transparent BDT hourly rates."
                 : "জাতীয় পরিচয়পত্র যাচাইকৃত নির্ভরযোগ্য দেশীয় এক্সপার্টদের সাথে সরাসরি কাজ করুন।"}
@@ -137,16 +165,16 @@ export default function FreelancerDirectory({
 
           <div className="flex items-center gap-2">
             <Badge variant="verified" pulse>
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#0F6E50]" />
               {lang === "en" ? "Porichoy NID Verified" : "এনআইডি দ্বারা সত্যায়িত"}
             </Badge>
           </div>
         </div>
 
         {/* Search & Rate Filter Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 mb-7 border-b border-slate-200/70">
+        <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 mb-7 shadow-[0_1px_2px_rgba(17,19,21,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#949BA6] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
@@ -156,13 +184,14 @@ export default function FreelancerDirectory({
                   ? "Search by name, skill (React, UI/UX), or city..."
                   : "নাম, দক্ষতা বা শহর লিখে খুঁজুন..."
               }
-              className="w-full pl-10 pr-8 py-2 rounded-full bg-white border border-slate-200 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/15"
+              className="w-full pl-10 pr-8 py-2 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.11)] text-xs font-medium text-[#111315] placeholder:text-[#949BA6] focus:outline-none focus:bg-white focus:border-[#0F6E50]"
             />
             {searchQuery && (
               <button
+                type="button"
                 onClick={() => setSearchQuery("")}
                 aria-label="Clear search"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#949BA6] hover:text-[#111315] cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -170,8 +199,8 @@ export default function FreelancerDirectory({
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs font-semibold text-slate-400 mr-1">
-              {lang === "en" ? "Hourly Rate:" : "ঘণ্টাপ্রতি রেট:"}
+            <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#686E78] mr-1">
+              {lang === "en" ? "Rate:" : "রেট:"}
             </span>
             {[
               { id: "ALL" as const, label: lang === "en" ? "All Rates" : "সব রেট" },
@@ -181,11 +210,12 @@ export default function FreelancerDirectory({
             ].map((item) => (
               <button
                 key={item.id}
+                type="button"
                 onClick={() => setRateFilter(item.id)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   rateFilter === item.id
-                    ? "bg-slate-900 text-white shadow-2xs"
-                    : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900"
+                    ? "bg-[#0B3B2E] text-white"
+                    : "bg-[#F4F2EC] text-[#3E434A] hover:text-[#111315] hover:bg-[#EAE7DF]"
                 }`}
               >
                 {item.label}
@@ -203,8 +233,12 @@ export default function FreelancerDirectory({
           </div>
         ) : filteredFreelancers.length === 0 ? (
           <EmptyState
-            icon={<UserCheck className="w-6 h-6 text-slate-400" />}
-            title={lang === "en" ? "No matching freelancers found" : "কোনো ফ্রিল্যান্সার পাওয়া যায়নি"}
+            icon={<UserCheck className="w-6 h-6" />}
+            title={
+              lang === "en"
+                ? "No matching freelancers found"
+                : "কোনো ফ্রিল্যান্সার পাওয়া যায়নি"
+            }
             description={
               lang === "en"
                 ? "Try clearing your skill search or hourly rate filter to explore all verified professionals."
@@ -212,11 +246,12 @@ export default function FreelancerDirectory({
             }
             action={
               <button
+                type="button"
                 onClick={() => {
                   setSearchQuery("");
                   setRateFilter("ALL");
                 }}
-                className="px-4 py-2 rounded-full bg-slate-900 text-white font-bold text-xs cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#0B3B2E] text-white font-semibold text-xs cursor-pointer"
               >
                 {lang === "en" ? "Reset Talent Filters" : "ফিল্টার রিসেট করুন"}
               </button>
@@ -230,21 +265,20 @@ export default function FreelancerDirectory({
               return (
                 <div
                   key={freelancer.id}
-                  onClick={() => setSelectedProfile(freelancer)}
-                  className="bg-white border border-slate-200/85 hover:border-emerald-300 rounded-3xl p-6 transition-all duration-150 shadow-2xs hover:shadow-md flex flex-col justify-between cursor-pointer group"
+                  onClick={() => openProfileModal(freelancer)}
+                  className="bg-white border border-[rgba(17,19,21,0.09)] hover:border-[#0F6E50]/45 rounded-2xl p-6 transition-all duration-150 shadow-[0_1px_2px_rgba(17,19,21,0.03)] hover:shadow-[0_14px_30px_-8px_rgba(17,19,21,0.08)] flex flex-col justify-between cursor-pointer group"
                 >
                   <div>
-                    {/* Avatar & Header */}
                     <div className="flex items-start gap-3.5">
                       <div className="relative shrink-0">
                         <img
                           src={freelancer.avatar}
                           alt={freelancer.name}
-                          className="w-13 h-13 rounded-2xl object-cover border border-slate-200"
+                          className="w-13 h-13 rounded-xl object-cover border border-[rgba(17,19,21,0.1)]"
                         />
                         {freelancer.isNidVerified && (
                           <div
-                            className="absolute -bottom-1 -right-1 bg-emerald-600 text-white rounded-full p-0.5 ring-2 ring-white"
+                            className="absolute -bottom-1 -right-1 bg-[#0F6E50] text-white rounded-full p-0.5 ring-2 ring-white"
                             title="NID Verified"
                           >
                             <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -254,57 +288,62 @@ export default function FreelancerDirectory({
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <h3 className="font-bold text-sm text-slate-900 group-hover:text-emerald-700 transition-colors truncate">
+                          <h3 className="font-bold text-sm text-[#111315] group-hover:text-[#0F6E50] transition-colors truncate">
                             {freelancer.name}
                           </h3>
                           <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="flex items-center gap-0.5 text-amber-500 font-bold text-xs">
-                              <Star className="w-3 h-3 fill-amber-400" />
+                            <span className="flex items-center gap-0.5 text-[#A87224] font-bold text-xs mk-tabular">
+                              <Star className="w-3 h-3 fill-[#D4A24C] text-[#D4A24C]" />
                               <span>{freelancer.rating.toFixed(1)}</span>
                             </span>
                             {clientId && (
                               <button
+                                type="button"
                                 onClick={(e) => handleToggleSave(e, freelancer.id)}
                                 disabled={savingId === freelancer.id}
-                                aria-label={isSaved ? "Remove from saved talent" : "Save talent"}
-                                className={`p-1.5 rounded-full border transition-colors cursor-pointer ${
+                                aria-label={
+                                  isSaved ? "Remove from saved talent" : "Save talent"
+                                }
+                                className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
                                   isSaved
-                                    ? "bg-rose-50 border-rose-200 text-rose-600"
-                                    : "bg-slate-50 border-slate-200 text-slate-400 hover:text-rose-500"
+                                    ? "bg-[#FFF1F3] border-[#FCCDD6] text-[#BE123C]"
+                                    : "bg-[#FAF9F6] border-[rgba(17,19,21,0.1)] text-[#949BA6] hover:text-[#BE123C]"
                                 }`}
                               >
-                                <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-rose-500" : ""}`} />
+                                <Heart
+                                  className={`w-3.5 h-3.5 ${
+                                    isSaved ? "fill-[#BE123C]" : ""
+                                  }`}
+                                />
                               </button>
                             )}
                           </div>
                         </div>
-                        <p className="text-xs font-semibold text-emerald-700 truncate mt-0.5">
+                        <p className="text-xs font-semibold text-[#0F6E50] truncate mt-0.5">
                           {freelancer.title}
                         </p>
-                        <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400">
+                        <div className="flex items-center gap-2 mt-1 text-[11px] text-[#686E78]">
                           <span className="inline-flex items-center gap-1 truncate">
                             <MapPin className="w-3 h-3 shrink-0" />
                             {freelancer.location}
                           </span>
                           <span>•</span>
-                          <span className="text-emerald-600 font-semibold">
-                            {lang === "en" ? "Available" : "উপলব্ধ"}
+                          <span className="text-[#0F6E50] font-semibold">
+                            {freelancer.successRate}% {lang === "en" ? "Success" : "সাফল্য"}
                           </span>
                         </div>
                       </div>
                     </div>
 
-                    {/* Bio */}
-                    <p className="mt-3.5 text-xs text-slate-600 leading-relaxed line-clamp-3">
+                    <p className="mt-3.5 text-xs text-[#3E434A] leading-relaxed line-clamp-3">
                       {freelancer.bio}
                     </p>
 
-                    {/* Skills */}
                     <div className="mt-3.5 flex flex-wrap gap-1.5">
                       {freelancer.skills.slice(0, 5).map((skill) => (
                         <span
                           key={skill}
-                          className="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700"
+                          className="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)] text-[#3E434A]"
                         >
                           {skill}
                         </span>
@@ -312,15 +351,16 @@ export default function FreelancerDirectory({
                     </div>
                   </div>
 
-                  {/* Rate & Hire CTA */}
-                  <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-5 pt-3.5 border-t border-[rgba(17,19,21,0.07)] flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] text-slate-400 block uppercase tracking-wider font-semibold">
+                      <span className="text-[10px] text-[#686E78] block uppercase tracking-[0.07em] font-semibold">
                         {lang === "en" ? "Hourly Rate" : "প্রতি ঘণ্টা"}
                       </span>
-                      <span className="text-sm font-black text-slate-900">
+                      <span className="font-mono text-sm font-bold text-[#111315] mk-tabular">
                         ৳{freelancer.hourlyRateBdt.toLocaleString()}
-                        <span className="text-xs font-normal text-slate-400">/hr</span>
+                        <span className="font-sans text-xs font-normal text-[#686E78]">
+                          /hr
+                        </span>
                       </span>
                     </div>
 
@@ -329,9 +369,9 @@ export default function FreelancerDirectory({
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedProfile(freelancer);
+                          openProfileModal(freelancer);
                         }}
-                        className="px-3 py-2 rounded-full border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                        className="px-3 py-2 rounded-xl border border-[rgba(17,19,21,0.13)] hover:border-[rgba(17,19,21,0.25)] text-[#111315] font-semibold text-xs transition-colors cursor-pointer"
                       >
                         {lang === "en" ? "Profile" : "প্রোফাইল"}
                       </button>
@@ -341,10 +381,10 @@ export default function FreelancerDirectory({
                           e.stopPropagation();
                           onHireDirect(freelancer.name);
                         }}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all cursor-pointer shadow-2xs"
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white font-semibold text-xs transition-all cursor-pointer"
                       >
                         <span>{lang === "en" ? "Invite" : "আমন্ত্রণ"}</span>
-                        <ArrowRight className="w-3 h-3" />
+                        <ArrowRight className="w-3 h-3 text-[#7CE0B8]" />
                       </button>
                     </div>
                   </div>
@@ -355,21 +395,22 @@ export default function FreelancerDirectory({
         )}
       </div>
 
-      {/* Freelancer Quick-View Profile Modal */}
+      {/* Freelancer Full Profile Modal */}
       <Modal
         isOpen={!!selectedProfile}
         onClose={() => setSelectedProfile(null)}
         title={selectedProfile?.name || "Freelancer Profile"}
         subtitle={selectedProfile?.title}
-        maxWidthClass="max-w-lg"
+        maxWidthClass="max-w-2xl"
       >
         {selectedProfile && (
           <div className="space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 pb-4 border-b border-slate-100">
+            {/* Profile Header Block */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 pb-4 border-b border-[rgba(17,19,21,0.08)]">
               <img
                 src={selectedProfile.avatar}
                 alt={selectedProfile.name}
-                className="w-16 h-16 rounded-2xl object-cover border border-slate-200"
+                className="w-16 h-16 rounded-2xl object-cover border border-[rgba(17,19,21,0.1)]"
               />
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -382,110 +423,222 @@ export default function FreelancerDirectory({
                     Available for Work
                   </Badge>
                 </div>
-                <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-[#686E78]">
                   <span className="inline-flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                    <MapPin className="w-3.5 h-3.5 text-[#949BA6]" />
                     {selectedProfile.location}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-amber-500 font-bold">
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
-                    {selectedProfile.rating.toFixed(1)} ({selectedProfile.reviewsCount} reviews)
+                  <span className="inline-flex items-center gap-1 text-[#A87224] font-semibold mk-tabular">
+                    <Star className="w-3.5 h-3.5 fill-[#D4A24C] text-[#D4A24C]" />
+                    {selectedProfile.rating.toFixed(1)} ({selectedProfile.reviewsCount}{" "}
+                    {lang === "en" ? "reviews" : "রিভিউ"})
                   </span>
                 </div>
               </div>
-              <div className="text-left sm:text-right">
-                <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block">
-                  Rate
+              <div className="text-left sm:text-right shrink-0">
+                <span className="text-[10px] uppercase tracking-[0.07em] text-[#686E78] font-semibold block">
+                  {lang === "en" ? "Hourly Rate" : "রেট"}
                 </span>
-                <span className="text-xl font-black text-slate-900">
+                <span className="font-mono text-xl font-bold text-[#111315] mk-tabular">
                   ৳{selectedProfile.hourlyRateBdt.toLocaleString()}
-                  <span className="text-xs font-normal text-slate-400">/hr</span>
+                  <span className="font-sans text-xs font-normal text-[#686E78]">/hr</span>
                 </span>
               </div>
             </div>
 
-            {/* Key Stats */}
+            {/* Key Stats Strip */}
             <div className="grid grid-cols-3 gap-3">
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                <span className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
-                  <Award className="w-3.5 h-3.5 text-emerald-600" /> Success Rate
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)]">
+                <span className="text-[11px] text-[#686E78] font-medium flex items-center gap-1">
+                  <Award className="w-3.5 h-3.5 text-[#0F6E50]" />
+                  {lang === "en" ? "Job Success" : "সাফল্যের হার"}
                 </span>
-                <span className="text-base font-black text-slate-900 mt-1 block">
+                <span className="font-mono text-base font-bold text-[#111315] mt-1 block mk-tabular">
                   {selectedProfile.successRate}%
                 </span>
               </div>
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                <span className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
-                  <Briefcase className="w-3.5 h-3.5 text-emerald-600" /> Total Earned
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)]">
+                <span className="text-[11px] text-[#686E78] font-medium flex items-center gap-1">
+                  <Briefcase className="w-3.5 h-3.5 text-[#0F6E50]" />
+                  {lang === "en" ? "Total Earned" : "মোট আয়"}
                 </span>
-                <span className="text-base font-black text-slate-900 mt-1 block">
+                <span className="font-mono text-base font-bold text-[#111315] mt-1 block mk-tabular">
                   ৳{selectedProfile.earnedBdt.toLocaleString()}
                 </span>
               </div>
-              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                <span className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-amber-500" /> Client Reviews
+              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)]">
+                <span className="text-[11px] text-[#686E78] font-medium flex items-center gap-1">
+                  <Star className="w-3.5 h-3.5 text-[#D4A24C]" />
+                  {lang === "en" ? "Verified Reviews" : "ক্লায়েন্ট রিভিউ"}
                 </span>
-                <span className="text-base font-black text-slate-900 mt-1 block">
+                <span className="font-mono text-base font-bold text-[#111315] mt-1 block mk-tabular">
                   {selectedProfile.reviewsCount}
                 </span>
               </div>
             </div>
 
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">
-                About
-              </h4>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                {selectedProfile.bio}
-              </p>
-            </div>
+            {/* Profile Section Tabs */}
+            <Tabs
+              activeId={profileModalTab}
+              onChange={setProfileModalTab}
+              items={[
+                { id: "overview", label: lang === "en" ? "Overview & Skills" : "পরিচিতি ও দক্ষতা" },
+                { id: "portfolio", label: lang === "en" ? "Service Readiness" : "সেবাসমূহ" },
+                { id: "track", label: lang === "en" ? "Ratings & History" : "রিভিউ ও রেকর্ড" },
+              ]}
+            />
 
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                Verified Skills
-              </h4>
-              <div className="flex flex-wrap gap-1.5">
-                {selectedProfile.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/70"
-                  >
-                    {skill}
-                  </span>
-                ))}
+            {profileModalTab === "overview" && (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#686E78] mb-1.5">
+                    {lang === "en" ? "Professional Biography" : "পেশাগত পরিচিতি"}
+                  </h4>
+                  <p className="text-xs sm:text-[13px] text-[#3E434A] leading-relaxed">
+                    {selectedProfile.bio}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#686E78] mb-2">
+                    {lang === "en" ? "Verified Core Skills" : "দক্ষতাসমূহ"}
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedProfile.skills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="px-3 py-1 rounded-lg text-xs font-semibold bg-[#EAF5F0] text-[#0B3B2E] border border-[#C3E3D5]"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
-              {clientId && (
-                <button
-                  onClick={(e) => handleToggleSave(e, selectedProfile.id)}
-                  className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-bold border transition-colors cursor-pointer ${
-                    savedIds.includes(selectedProfile.id)
-                      ? "bg-rose-50 border-rose-200 text-rose-700"
-                      : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}
-                >
-                  <Heart
-                    className={`w-3.5 h-3.5 ${
-                      savedIds.includes(selectedProfile.id) ? "fill-rose-500 text-rose-500" : ""
-                    }`}
-                  />
-                  <span>{savedIds.includes(selectedProfile.id) ? "Saved" : "Save Talent"}</span>
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  const name = selectedProfile.name;
-                  setSelectedProfile(null);
-                  onHireDirect(name);
-                }}
-                className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer"
+            {profileModalTab === "portfolio" && (
+              <div className="space-y-3">
+                <div className="p-4 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#111315] flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-[#0F6E50]" />
+                      {lang === "en" ? "Core Engagement Tracks" : "প্রধান কাজের ধরন"}
+                    </span>
+                    <span className="text-[11px] text-[#0F6E50] font-semibold">
+                      BDT Escrow Ready
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#3E434A] leading-relaxed">
+                    {lang === "en"
+                      ? `${selectedProfile.name} accepts structured milestone and fixed-price contracts covering ${selectedProfile.skills.slice(0, 4).join(", ")}. Live deliverable links and repository walkthroughs are shared directly upon project invitation.`
+                      : `${selectedProfile.name} মাইলস্টোন ও নির্দিষ্ট বাজেটের প্রজেক্টে ${selectedProfile.skills.slice(0, 3).join(", ")} বিষয়ে কাজ করেন।`}
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {selectedProfile.skills.slice(0, 4).map((skill) => (
+                    <div
+                      key={skill}
+                      className="p-3 rounded-xl bg-white border border-[rgba(17,19,21,0.09)] flex items-center justify-between"
+                    >
+                      <span className="text-xs font-semibold text-[#111315]">{skill}</span>
+                      <span className="text-[10px] font-semibold text-[#0F6E50] bg-[#EAF5F0] px-2 py-0.5 rounded-full">
+                        Verified
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {profileModalTab === "track" && (
+              <div className="space-y-3">
+                <div className="p-4 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-2xl font-bold text-[#111315] mk-tabular">
+                        {selectedProfile.rating.toFixed(1)}
+                      </span>
+                      <div className="flex items-center gap-0.5 text-[#D4A24C]">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <Star
+                            key={i}
+                            className={`w-4 h-4 ${
+                              i <= Math.round(selectedProfile.rating)
+                                ? "fill-[#D4A24C]"
+                                : "text-[#E3DFD5]"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-[#686E78] mt-1">
+                      {lang === "en"
+                        ? `Across ${selectedProfile.reviewsCount} completed client evaluations`
+                        : `${selectedProfile.reviewsCount}টি ক্লায়েন্ট মূল্যায়নের ভিত্তিতে`}
+                    </p>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#0F6E50]">
+                      <Clock className="w-3.5 h-3.5" />
+                      {selectedProfile.successRate}% On-Scope Completion
+                    </span>
+                    <p className="text-[11px] text-[#686E78] mt-0.5">
+                      {selectedProfile.isNidVerified
+                        ? "Porichoy Smart NID Verified"
+                        : "Standard Account"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Footer CTAs */}
+            <div className="pt-3.5 border-t border-[rgba(17,19,21,0.08)] flex flex-wrap items-center justify-between gap-2.5">
+              <Link
+                href="/messages"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[rgba(17,19,21,0.13)] hover:bg-[#FAF9F6] text-xs font-semibold text-[#111315]"
               >
-                <span>{lang === "en" ? "Post Job & Invite" : "কাজ পোস্ট ও আমন্ত্রণ"}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+                <MessageSquare className="w-3.5 h-3.5 text-[#0F6E50]" />
+                <span>{lang === "en" ? "Open Messages" : "মেসেজ করুন"}</span>
+              </Link>
+
+              <div className="flex items-center gap-2">
+                {clientId && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleToggleSave(e, selectedProfile.id)}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
+                      savedIds.includes(selectedProfile.id)
+                        ? "bg-[#FFF1F3] border-[#FCCDD6] text-[#BE123C]"
+                        : "bg-white border-[rgba(17,19,21,0.13)] text-[#3E434A] hover:bg-[#FAF9F6]"
+                    }`}
+                  >
+                    <Heart
+                      className={`w-3.5 h-3.5 ${
+                        savedIds.includes(selectedProfile.id) ? "fill-[#BE123C]" : ""
+                      }`}
+                    />
+                    <span>
+                      {savedIds.includes(selectedProfile.id) ? "Saved" : "Save Talent"}
+                    </span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const name = selectedProfile.name;
+                    setSelectedProfile(null);
+                    onHireDirect(name);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white font-semibold text-xs cursor-pointer"
+                >
+                  <span>
+                    {lang === "en" ? "Post Job & Invite" : "কাজ পোস্ট ও আমন্ত্রণ"}
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5 text-[#7CE0B8]" />
+                </button>
+              </div>
             </div>
           </div>
         )}

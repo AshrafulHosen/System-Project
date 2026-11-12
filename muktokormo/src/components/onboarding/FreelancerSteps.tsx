@@ -13,6 +13,8 @@ import {
   Mail,
   MapPin,
   ChevronRight,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { PROFILE_CATEGORIES, POPULAR_SKILLS, PROFICIENCY_OPTIONS } from "@/data/dashboardData";
 import { EmploymentEntry, EducationEntry, LanguageEntry } from "@/types";
@@ -37,13 +39,17 @@ export function FreelancerAccountStep({
   onNext,
   onSwitchToClient,
   isLoading,
+  lang = "en",
 }: {
   value: FreelancerAccount;
   onChange: (v: FreelancerAccount) => void;
   onNext: () => void;
   onSwitchToClient: () => void;
   isLoading: boolean;
+  lang?: "en" | "bn";
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+
   const set = <K extends keyof FreelancerAccount>(k: K, v: FreelancerAccount[K]) =>
     onChange({ ...value, [k]: v });
 
@@ -57,67 +63,77 @@ export function FreelancerAccountStep({
   return (
     <div className="space-y-5">
       <div className="text-center space-y-1">
-        <h2 className="text-lg font-black tracking-tight text-slate-900">
-          Sign up to find work you love
+        <h2 className="text-lg font-bold tracking-tight text-[#111315]">
+          {lang === "bn" ? "আপনার পছন্দের কাজ খুঁজতে সাইন আপ করুন" : "Sign up to find work you love"}
         </h2>
-        <p className="text-xs text-slate-500">
-          Create your free MuktoKormo freelancer account
+        <p className="text-xs text-[#686E78]">
+          {lang === "bn"
+            ? "আপনার ফ্রি মুক্তকর্ম ফ্রিল্যান্সার অ্যাকাউন্ট তৈরি করুন"
+            : "Create your free MuktoKormo freelancer account"}
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-900">First name</label>
+          <label className="block text-xs font-semibold text-[#111315]">First name</label>
           <input
             type="text"
             value={value.firstName}
             onChange={(e) => set("firstName", e.target.value)}
             placeholder="Ahad"
-            className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
           />
         </div>
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-900">Last name</label>
+          <label className="block text-xs font-semibold text-[#111315]">Last name</label>
           <input
             type="text"
             value={value.lastName}
             onChange={(e) => set("lastName", e.target.value)}
             placeholder="Abdul"
-            className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
           />
         </div>
       </div>
 
       <div className="space-y-1.5">
-        <label className="block text-xs font-bold text-slate-900">Email</label>
+        <label className="block text-xs font-semibold text-[#111315]">Email</label>
         <div className="relative">
-          <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Mail className="w-4 h-4 text-[#686E78] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="email"
             value={value.email}
             onChange={(e) => set("email", e.target.value)}
-            placeholder="aahadakid@gmail.com"
-            className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            placeholder="name@example.com"
+            className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
           />
         </div>
       </div>
 
       <div className="space-y-1.5">
-        <label className="block text-xs font-bold text-slate-900">
-          Password <span className="text-slate-400 font-semibold">(8 or more characters)</span>
+        <label className="block text-xs font-semibold text-[#111315]">
+          Password <span className="text-[#686E78] font-normal">(8 or more characters)</span>
         </label>
         <div className="relative">
-          <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Lock className="w-4 h-4 text-[#686E78] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={value.password}
             onChange={(e) => set("password", e.target.value)}
             placeholder="••••••••"
-            className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pl-10 pr-10 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#686E78] hover:text-[#111315] cursor-pointer"
+          >
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          </button>
         </div>
         {value.password.length > 0 && value.password.length < 8 && (
-          <p className="text-[11px] text-amber-600">
+          <p className="text-[11px] font-medium text-[#A87224]">
             {8 - value.password.length} more character
             {8 - value.password.length === 1 ? "" : "s"} needed
           </p>
@@ -125,13 +141,13 @@ export function FreelancerAccountStep({
       </div>
 
       <div className="space-y-1.5">
-        <label className="block text-xs font-bold text-slate-900">Country</label>
+        <label className="block text-xs font-semibold text-[#111315]">Country</label>
         <div className="relative">
-          <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <MapPin className="w-4 h-4 text-[#686E78] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <select
             value={value.country}
             onChange={(e) => set("country", e.target.value)}
-            className="w-full pl-10 pr-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pl-10 pr-3 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
           >
             <option>Bangladesh</option>
             <option>India</option>
@@ -145,26 +161,26 @@ export function FreelancerAccountStep({
       </div>
 
       <div className="space-y-2.5 pt-1">
-        <label className="flex items-start gap-2 cursor-pointer">
+        <label className="flex items-start gap-2.5 cursor-pointer">
           <input
             type="checkbox"
             checked={value.marketingOptIn}
             onChange={(e) => set("marketingOptIn", e.target.checked)}
-            className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+            className="mt-0.5 rounded border-[rgba(17,19,21,0.25)] accent-[#0B3B2E]"
           />
-          <span className="text-[11px] text-slate-600 leading-relaxed">
+          <span className="text-[11px] text-[#3E434A] leading-relaxed">
             Send me helpful emails to find rewarding work and job leads.
           </span>
         </label>
 
-        <label className="flex items-start gap-2 cursor-pointer">
+        <label className="flex items-start gap-2.5 cursor-pointer">
           <input
             type="checkbox"
             checked={value.agreedTerms}
             onChange={(e) => set("agreedTerms", e.target.checked)}
-            className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+            className="mt-0.5 rounded border-[rgba(17,19,21,0.25)] accent-[#0B3B2E]"
           />
-          <span className="text-[11px] text-slate-600 leading-relaxed">
+          <span className="text-[11px] text-[#3E434A] leading-relaxed">
             Yes, I understand and agree to the MuktoKormo Terms of Service, including the User
             Agreement and Privacy Policy.
           </span>
@@ -175,7 +191,7 @@ export function FreelancerAccountStep({
         type="button"
         onClick={onNext}
         disabled={!valid || isLoading}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] disabled:opacity-40 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
       >
         {isLoading
           ? "Creating account..."
@@ -186,11 +202,11 @@ export function FreelancerAccountStep({
       </button>
 
       <div className="flex items-center justify-center gap-1.5 pt-1">
-        <span className="text-[11px] text-slate-500">Here to hire talent?</span>
+        <span className="text-[11px] text-[#686E78]">Here to hire talent?</span>
         <button
           type="button"
           onClick={onSwitchToClient}
-          className="text-[11px] font-bold text-emerald-600 hover:underline cursor-pointer"
+          className="text-[11px] font-semibold text-[#0F6E50] hover:text-[#0B3B2E] hover:underline cursor-pointer"
         >
           Join as a Client
         </button>
@@ -225,10 +241,10 @@ export function ResumeImportStep({
   return (
     <div className="space-y-5">
       <div className="text-center space-y-1">
-        <h2 className="text-lg font-black tracking-tight text-slate-900">
+        <h2 className="text-lg font-bold tracking-tight text-[#111315]">
           How would you like to start building your profile?
         </h2>
-        <p className="text-xs text-slate-500 leading-relaxed">
+        <p className="text-xs text-[#686E78] leading-relaxed">
           A strong, complete profile helps clients find you and increases your chances of getting
           hired.
         </p>
@@ -239,22 +255,22 @@ export function ResumeImportStep({
         <button
           type="button"
           onClick={() => setMode("upload")}
-          className={`p-5 rounded-2xl border-2 text-left transition-all cursor-pointer relative ${
+          className={`p-5 rounded-xl border text-left transition-all cursor-pointer relative ${
             mode === "upload"
-              ? "border-emerald-600 bg-emerald-50/50"
-              : "border-slate-200 bg-white hover:border-slate-300"
+              ? "border-[#0B3B2E] bg-[#EAF5F0] shadow-xs"
+              : "border-[rgba(17,19,21,0.12)] bg-white hover:border-[rgba(17,19,21,0.25)]"
           }`}
         >
           {mode === "upload" && (
-            <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+            <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-[#0B3B2E] text-white flex items-center justify-center">
               <Check className="w-2.5 h-2.5 stroke-[3]" />
             </span>
           )}
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
+          <div className="w-10 h-10 rounded-xl bg-white border border-[rgba(17,19,21,0.09)] text-[#0F6E50] flex items-center justify-center mb-3">
             <Upload className="w-5 h-5" />
           </div>
-          <p className="text-xs font-black text-slate-900">Upload resume</p>
-          <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+          <p className="text-xs font-bold text-[#111315]">Upload resume</p>
+          <p className="text-[11px] text-[#686E78] mt-1 leading-relaxed">
             We&apos;ll pre-fill your profile from your CV in seconds.
           </p>
         </button>
@@ -262,22 +278,22 @@ export function ResumeImportStep({
         <button
           type="button"
           onClick={onManual}
-          className={`p-5 rounded-2xl border-2 text-left transition-all cursor-pointer relative ${
+          className={`p-5 rounded-xl border text-left transition-all cursor-pointer relative ${
             mode === "manual"
-              ? "border-emerald-600 bg-emerald-50/50"
-              : "border-slate-200 bg-white hover:border-slate-300"
+              ? "border-[#0B3B2E] bg-[#EAF5F0] shadow-xs"
+              : "border-[rgba(17,19,21,0.12)] bg-white hover:border-[rgba(17,19,21,0.25)]"
           }`}
         >
           {mode === "manual" && (
-            <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+            <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-[#0B3B2E] text-white flex items-center justify-center">
               <Check className="w-2.5 h-2.5 stroke-[3]" />
             </span>
           )}
-          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center mb-3">
+          <div className="w-10 h-10 rounded-xl bg-[#F4F2EC] text-[#3E434A] flex items-center justify-center mb-3">
             <PenLine className="w-5 h-5" />
           </div>
-          <p className="text-xs font-black text-slate-900">Fill out manually</p>
-          <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+          <p className="text-xs font-bold text-[#111315]">Fill out manually</p>
+          <p className="text-[11px] text-[#686E78] mt-1 leading-relaxed">
             Answer a few questions and build it from scratch.
           </p>
         </button>
@@ -296,12 +312,12 @@ export function ResumeImportStep({
             setDragging(false);
             acceptFile(e.dataTransfer.files?.[0]);
           }}
-          className={`block border-2 border-dashed rounded-2xl p-7 text-center transition-all cursor-pointer ${
+          className={`block border-2 border-dashed rounded-xl p-7 text-center transition-all cursor-pointer ${
             dragging
-              ? "border-emerald-500 bg-emerald-50"
+              ? "border-[#0F6E50] bg-[#EAF5F0]"
               : fileName
-                ? "border-emerald-300 bg-emerald-50/40"
-                : "border-slate-300 bg-slate-50/50 hover:border-slate-400"
+                ? "border-[#0F6E50]/40 bg-[#EAF5F0]/50"
+                : "border-[rgba(17,19,21,0.18)] bg-[#FAF9F6] hover:border-[#0F6E50]/50"
           }`}
         >
           <input
@@ -313,33 +329,33 @@ export function ResumeImportStep({
 
           {fileName ? (
             <>
-              <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+              <div className="w-11 h-11 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/20 text-[#0F6E50] flex items-center justify-center mx-auto mb-3">
                 <FileText className="w-5 h-5" />
               </div>
-              <p className="text-xs font-black text-slate-900">{fileName}</p>
-              <p className="text-[11px] text-emerald-600 font-semibold mt-1">
+              <p className="text-xs font-bold text-[#111315]">{fileName}</p>
+              <p className="text-[11px] text-[#0F6E50] font-semibold mt-1">
                 Resume ready to parse
               </p>
             </>
           ) : (
             <>
-              <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 text-slate-400 flex items-center justify-center mx-auto mb-3">
+              <div className="w-11 h-11 rounded-xl bg-white border border-[rgba(17,19,21,0.1)] text-[#686E78] flex items-center justify-center mx-auto mb-3">
                 <Upload className="w-5 h-5" />
               </div>
-              <p className="text-xs font-bold text-slate-700">
-                Drag & drop your resume here, or click to browse
+              <p className="text-xs font-semibold text-[#111315]">
+                Drag &amp; drop your resume here, or click to browse
               </p>
-              <p className="text-[11px] text-slate-400 mt-1">PDF or DOCX · max 5MB</p>
+              <p className="text-[11px] text-[#686E78] mt-1">PDF or DOCX · max 5MB</p>
             </>
           )}
         </label>
       )}
 
-      <div className="flex items-center justify-between gap-3 pt-1">
+      <div className="flex items-center justify-between gap-3 pt-2 border-t border-[rgba(17,19,21,0.08)]">
         <button
           type="button"
           onClick={onBack}
-          className="text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+          className="px-4 py-2 rounded-xl text-xs font-semibold text-[#3E434A] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
         >
           Back
         </button>
@@ -348,7 +364,7 @@ export function ResumeImportStep({
           type="button"
           onClick={onNext}
           disabled={mode === "upload" && !fileName}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] disabled:opacity-40 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
         >
           Next
           <ArrowRight className="w-3.5 h-3.5" />
@@ -405,10 +421,12 @@ export function CategoriesSkillsStep({
   return (
     <div className="space-y-5">
       <div className="space-y-1">
-        <h2 className="text-base font-black tracking-tight text-slate-900">
-          What are the main skills required for your work?
+        <h2 className="text-base font-bold tracking-tight text-[#111315]">
+          {lang === "bn"
+            ? "আপনার কাজের জন্য প্রধান দক্ষতাগুলো কী?"
+            : "What are the main skills required for your work?"}
         </h2>
-        <p className="text-xs text-slate-500 leading-relaxed">
+        <p className="text-xs text-[#686E78] leading-relaxed">
           Choose the category that best describes your work. It&apos;s OK if it&apos;s not a perfect
           match.
         </p>
@@ -416,27 +434,27 @@ export function CategoriesSkillsStep({
 
       {/* Search */}
       <div className="relative">
-        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <Search className="w-4 h-4 text-[#686E78] absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search skills or add your own"
-          className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
         />
       </div>
 
       {/* Selected skills */}
       {skills.length > 0 && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-3.5">
+        <div className="rounded-xl border border-[#0F6E50]/20 bg-[#EAF5F0] p-3.5">
           <div className="flex items-center justify-between mb-2.5">
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#0B3B2E] font-mono mk-tabular">
               Selected skills ({skills.length}/15)
             </span>
             <button
               type="button"
               onClick={() => onSkillsChange([])}
-              className="text-[10px] font-bold text-emerald-700 hover:underline cursor-pointer"
+              className="text-[11px] font-semibold text-[#0F6E50] hover:underline cursor-pointer"
             >
               Clear all
             </button>
@@ -445,13 +463,13 @@ export function CategoriesSkillsStep({
             {skills.map((s) => (
               <span
                 key={s}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-emerald-200 text-[11px] font-bold text-emerald-800"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-[#0F6E50]/20 text-[11px] font-semibold text-[#0B3B2E]"
               >
                 {s}
                 <button
                   type="button"
                   onClick={() => toggleSkill(s)}
-                  className="text-emerald-500 hover:text-emerald-800 cursor-pointer"
+                  className="text-[#0F6E50] hover:text-[#0B3B2E] cursor-pointer"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -463,7 +481,9 @@ export function CategoriesSkillsStep({
 
       {/* Category groups */}
       <div className="space-y-2.5">
-        <span className="block text-xs font-bold text-slate-900">{lang === "bn" ? "আপনি যে ধরণের কাজ করেন" : "Type of work you do"}</span>
+        <span className="block text-xs font-semibold text-[#111315]">
+          {lang === "bn" ? "আপনি যে ধরণের কাজ করেন" : "Type of work you do"}
+        </span>
         <div className="flex flex-wrap gap-1.5">
           {PROFILE_CATEGORIES.map((g) => (
             <button
@@ -474,10 +494,10 @@ export function CategoriesSkillsStep({
                 setQuery("");
                 onCategoryChange(g.group);
               }}
-              className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
                 g.group === category && !query
-                  ? "bg-emerald-600 border-emerald-600 text-white"
-                  : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+                  ? "bg-[#0B3B2E] border-[#0B3B2E] text-white"
+                  : "bg-white border-[rgba(17,19,21,0.12)] text-[#3E434A] hover:border-[rgba(17,19,21,0.25)]"
               }`}
             >
               {lang === "bn" ? g.groupBn : g.group}
@@ -489,11 +509,11 @@ export function CategoriesSkillsStep({
       {/* Sub categories / search results */}
       {query ? (
         <div className="space-y-2">
-          <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+          <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#686E78] font-mono mk-tabular">
             {searchResults.length} result{searchResults.length === 1 ? "" : "s"}
           </span>
           {searchResults.length === 0 ? (
-            <p className="text-[11px] text-slate-400 py-4 text-center bg-slate-50 rounded-xl">
+            <p className="text-[11px] text-[#686E78] py-4 text-center bg-[#F4F2EC] rounded-xl">
               No matches for &quot;{query}&quot;. Try a different keyword.
             </p>
           ) : (
@@ -505,10 +525,10 @@ export function CategoriesSkillsStep({
                     key={en}
                     type="button"
                     onClick={() => toggleSkill(en)}
-                    className={`px-3 py-2 rounded-lg text-[11px] font-bold text-left transition-all cursor-pointer ${
+                    className={`px-3 py-2 rounded-lg text-[11px] font-semibold border text-left transition-all cursor-pointer ${
                       isSelected
-                        ? "bg-emerald-50 border-emerald-300 text-emerald-800"
-                        : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-slate-300"
+                        ? "bg-[#EAF5F0] border-[#0F6E50] text-[#0B3B2E]"
+                        : "bg-[#FAF9F6] border-[rgba(17,19,21,0.1)] text-[#3E434A] hover:border-[rgba(17,19,21,0.22)]"
                     }`}
                   >
                     {lang === "bn" ? bn : en}
@@ -528,10 +548,10 @@ export function CategoriesSkillsStep({
                 key={en}
                 type="button"
                 onClick={() => toggleSkill(en)}
-                className={`px-3 py-2 rounded-lg text-[11px] font-bold text-left transition-all cursor-pointer ${
+                className={`px-3 py-2 rounded-lg text-[11px] font-semibold border text-left transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-emerald-50 border-emerald-300 text-emerald-800"
-                    : "bg-slate-50 border border-slate-200 text-slate-600 hover:border-slate-300"
+                    ? "bg-[#EAF5F0] border-[#0F6E50] text-[#0B3B2E]"
+                    : "bg-[#FAF9F6] border-[rgba(17,19,21,0.1)] text-[#3E434A] hover:border-[rgba(17,19,21,0.22)]"
                 }`}
               >
                 {label}
@@ -543,7 +563,7 @@ export function CategoriesSkillsStep({
 
       {/* Popular skills */}
       <div className="space-y-2">
-        <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+        <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#686E78]">
           Popular skills
         </span>
         <div className="flex flex-wrap gap-1.5">
@@ -554,10 +574,10 @@ export function CategoriesSkillsStep({
                 key={s}
                 type="button"
                 onClick={() => toggleSkill(s)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-emerald-600 border-emerald-600 text-white"
-                    : "bg-white border-slate-200 text-slate-600 hover:border-emerald-300"
+                    ? "bg-[#0B3B2E] border-[#0B3B2E] text-white"
+                    : "bg-white border-[rgba(17,19,21,0.12)] text-[#3E434A] hover:border-[#0F6E50]"
                 }`}
               >
                 {s}
@@ -565,16 +585,16 @@ export function CategoriesSkillsStep({
             );
           })}
         </div>
-        <p className="text-[10px] text-slate-400">
-          For the best results, add 3-5 skills
+        <p className="text-[10px] text-[#686E78]">
+          For the best results, add 3–5 skills
         </p>
       </div>
 
-      <div className="flex items-center justify-between gap-3 pt-1">
+      <div className="flex items-center justify-between gap-3 pt-2 border-t border-[rgba(17,19,21,0.08)]">
         <button
           type="button"
           onClick={onBack}
-          className="text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+          className="px-4 py-2 rounded-xl text-xs font-semibold text-[#3E434A] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
         >
           Back
         </button>
@@ -583,7 +603,7 @@ export function CategoriesSkillsStep({
           type="button"
           onClick={onNext}
           disabled={skills.length === 0}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] disabled:opacity-40 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
         >
           Next
           <ArrowRight className="w-3.5 h-3.5" />
@@ -641,29 +661,29 @@ export function ProfileInfoSteps({
   return (
     <div className="space-y-5">
       <div className="space-y-1">
-        <h2 className="text-base font-black tracking-tight text-slate-900">
-          Next, fill out your profile
+        <h2 className="text-base font-bold tracking-tight text-[#111315]">
+          {lang === "bn" ? "এরপর, আপনার প্রোফাইল সম্পূর্ণ করুন" : "Next, fill out your profile"}
         </h2>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-[#686E78]">
           Highlight what you&apos;re good at and how you can help clients.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 overflow-x-auto pb-1 border-b border-slate-200 -mx-1 px-1">
+      <div className="flex gap-1 overflow-x-auto pb-1 border-b border-[rgba(17,19,21,0.09)] -mx-1 px-1">
         {PROFILE_TABS.map((t, i) => (
           <button
             key={t.id}
             type="button"
             onClick={() => setTab(t.id)}
-            className={`shrink-0 px-3.5 py-2.5 text-xs font-bold border-b-2 transition-all cursor-pointer ${
+            className={`shrink-0 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
               tab === t.id
-                ? "border-emerald-600 text-emerald-700"
-                : "border-transparent text-slate-500 hover:text-slate-900"
+                ? "border-[#0B3B2E] text-[#0B3B2E]"
+                : "border-transparent text-[#686E78] hover:text-[#111315]"
             }`}
           >
             {lang === "bn" ? t.labelBn : t.label}
-            <span className="ml-1.5 text-[9px] text-slate-400">{i + 1}</span>
+            <span className="ml-1.5 text-[10px] font-mono mk-tabular text-[#949BA6]">{i + 1}</span>
           </button>
         ))}
       </div>
@@ -671,37 +691,37 @@ export function ProfileInfoSteps({
       {/* About */}
       {tab === "about" && (
         <div className="space-y-4 animate-in fade-in duration-200">
-          <p className="text-[11px] text-slate-500 leading-relaxed">
+          <p className="text-[11px] text-[#686E78] leading-relaxed">
             What you share here will be visible to clients.
           </p>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-900">Title *</label>
+            <label className="block text-xs font-semibold text-[#111315]">Title *</label>
             <input
               type="text"
               value={value.title}
               onChange={(e) => set("title", e.target.value)}
               placeholder="e.g. Senior Full-Stack Developer"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
             />
-            <p className="text-[10px] text-slate-400">Example: Web, Mobile &amp; Software Dev</p>
+            <p className="text-[10px] text-[#686E78]">Example: Web, Mobile &amp; Software Dev</p>
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-900">Introduction *</label>
+            <label className="block text-xs font-semibold text-[#111315]">Introduction *</label>
             <textarea
               rows={5}
               value={value.intro}
               onChange={(e) => set("intro", e.target.value)}
               placeholder="Enter your top skills, experiences, and interests."
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
             />
             <div className="flex items-center justify-between">
               <p
-                className={`text-[10px] ${
+                className={`text-[10px] font-medium ${
                   value.intro.length > 0 && value.intro.length < 100
-                    ? "text-amber-600"
-                    : "text-emerald-600"
+                    ? "text-[#A87224]"
+                    : "text-[#0F6E50]"
                 }`}
               >
                 {value.intro.length === 0
@@ -710,12 +730,14 @@ export function ProfileInfoSteps({
                     ? `At least 100 characters (${value.intro.length}/100)`
                     : "Looks good"}
               </p>
-              <span className="text-[10px] text-slate-400">{value.intro.length} chars</span>
+              <span className="text-[10px] font-mono mk-tabular text-[#686E78]">
+                {value.intro.length} chars
+              </span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-900">Portfolio links</label>
+            <label className="block text-xs font-semibold text-[#111315]">Portfolio links</label>
             {value.portfolioUrls.map((url, i) => (
               <div key={i} className="flex items-center gap-2">
                 <input
@@ -727,7 +749,7 @@ export function ProfileInfoSteps({
                     set("portfolioUrls", next);
                   }}
                   placeholder="https://"
-                  className="flex-1 px-3.5 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="flex-1 px-3.5 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
                 />
                 <button
                   type="button"
@@ -737,7 +759,7 @@ export function ProfileInfoSteps({
                       value.portfolioUrls.filter((_, idx) => idx !== i)
                     )
                   }
-                  className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                  className="p-2 rounded-lg text-[#686E78] hover:text-[#DC2626] hover:bg-[#FEF2F2] transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -746,7 +768,7 @@ export function ProfileInfoSteps({
             <button
               type="button"
               onClick={() => set("portfolioUrls", [...value.portfolioUrls, ""])}
-              className="text-[11px] font-bold text-emerald-600 hover:underline cursor-pointer"
+              className="text-[11px] font-semibold text-[#0F6E50] hover:underline cursor-pointer"
             >
               + Add link
             </button>
@@ -758,13 +780,13 @@ export function ProfileInfoSteps({
       {tab === "rate" && (
         <div className="space-y-4 animate-in fade-in duration-200">
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-900">Hourly rate</label>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
+            <label className="block text-xs font-semibold text-[#111315]">Hourly rate</label>
+            <p className="text-[11px] text-[#686E78] leading-relaxed">
               Clients will see your rate on your profile and in search results. You can adjust it
               for each job.
             </p>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#686E78]">
                 ৳
               </span>
               <input
@@ -773,20 +795,22 @@ export function ProfileInfoSteps({
                 step={50}
                 value={value.hourlyRate}
                 onChange={(e) => set("hourlyRate", Number(e.target.value))}
-                className="w-full pl-8 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full pl-8 pr-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-sm font-bold font-mono mk-tabular text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
               />
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
+          <div className="rounded-xl border border-[rgba(17,19,21,0.09)] divide-y divide-[rgba(17,19,21,0.06)] overflow-hidden">
             {[
-              { label: "Hourly rate", value: value.hourlyRate, cls: "text-slate-900" },
-              { label: "MuktoKormo service fee (7%)", value: fee, cls: "text-amber-600" },
-              { label: "Total earnings", value: earnings, cls: "text-emerald-600" },
+              { label: "Hourly rate", value: value.hourlyRate, cls: "text-[#111315]" },
+              { label: "MuktoKormo service fee (7%)", value: fee, cls: "text-[#A87224]" },
+              { label: "Estimated take-home", value: earnings, cls: "text-[#0F6E50]" },
             ].map((row) => (
               <div key={row.label} className="px-4 py-3 flex items-center justify-between bg-white">
-                <span className="text-xs font-semibold text-slate-600">{row.label}</span>
-                <span className={`text-xs font-black ${row.cls}`}>৳{row.value.toLocaleString()}</span>
+                <span className="text-xs font-medium text-[#3E434A]">{row.label}</span>
+                <span className={`text-xs font-bold font-mono mk-tabular ${row.cls}`}>
+                  ৳{row.value.toLocaleString()}
+                </span>
               </div>
             ))}
           </div>
@@ -796,15 +820,18 @@ export function ProfileInfoSteps({
       {/* Employment */}
       {tab === "employment" && (
         <div className="space-y-3 animate-in fade-in duration-200">
-          <p className="text-[11px] text-slate-500 leading-relaxed">
+          <p className="text-[11px] text-[#686E78] leading-relaxed">
             Add any experience that shows your skills. Freelance projects, past jobs, internships,
             and volunteer work all count.
           </p>
 
           {value.employment.map((emp) => (
-            <div key={emp.id} className="rounded-2xl border border-slate-200 p-4 space-y-2.5">
+            <div
+              key={emp.id}
+              className="rounded-xl border border-[rgba(17,19,21,0.1)] bg-[#FAF9F6]/60 p-4 space-y-2.5"
+            >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78]">
                   {emp.company || "New role"}
                 </span>
                 <button
@@ -815,7 +842,7 @@ export function ProfileInfoSteps({
                       value.employment.filter((e) => e.id !== emp.id)
                     )
                   }
-                  className="p-1 text-slate-400 hover:text-red-500 cursor-pointer"
+                  className="p-1 text-[#686E78] hover:text-[#DC2626] cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -833,7 +860,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="Company"
-                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs font-medium text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
                 />
                 <input
                   value={emp.title}
@@ -846,7 +873,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="Job title"
-                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs font-medium text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
                 />
               </div>
 
@@ -862,7 +889,7 @@ export function ProfileInfoSteps({
                       )
                     )
                   }
-                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900"
+                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] font-mono mk-tabular"
                 />
                 <input
                   type="month"
@@ -875,7 +902,7 @@ export function ProfileInfoSteps({
                       )
                     )
                   }
-                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900"
+                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] font-mono mk-tabular"
                 />
               </div>
 
@@ -891,7 +918,7 @@ export function ProfileInfoSteps({
                   )
                 }
                 placeholder="What did you do there?"
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
               />
             </div>
           ))}
@@ -911,7 +938,7 @@ export function ProfileInfoSteps({
                 },
               ])
             }
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-slate-300 text-xs font-bold text-emerald-600 hover:bg-emerald-50 transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-[rgba(17,19,21,0.2)] text-xs font-semibold text-[#0F6E50] hover:bg-[#EAF5F0] transition-all cursor-pointer"
           >
             + Add employment
           </button>
@@ -921,15 +948,18 @@ export function ProfileInfoSteps({
       {/* Education */}
       {tab === "education" && (
         <div className="space-y-3 animate-in fade-in duration-200">
-          <p className="text-[11px] text-slate-500 leading-relaxed">
+          <p className="text-[11px] text-[#686E78] leading-relaxed">
             This doesn&apos;t just have to be a degree. Adding any relevant education helps clients
             understand your expertise.
           </p>
 
           {value.education.map((edu) => (
-            <div key={edu.id} className="rounded-2xl border border-slate-200 p-4 space-y-2.5">
+            <div
+              key={edu.id}
+              className="rounded-xl border border-[rgba(17,19,21,0.1)] bg-[#FAF9F6]/60 p-4 space-y-2.5"
+            >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78]">
                   {edu.school || "New school"}
                 </span>
                 <button
@@ -940,7 +970,7 @@ export function ProfileInfoSteps({
                       value.education.filter((e) => e.id !== edu.id)
                     )
                   }
-                  className="p-1 text-slate-400 hover:text-red-500 cursor-pointer"
+                  className="p-1 text-[#686E78] hover:text-[#DC2626] cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -958,7 +988,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="School / University"
-                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs font-medium text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
                 />
                 <input
                   value={edu.degree}
@@ -971,7 +1001,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="Degree"
-                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs font-medium text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
                 />
               </div>
 
@@ -987,7 +1017,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="Field of study"
-                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
                 />
                 <input
                   value={edu.start}
@@ -1000,7 +1030,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="Start"
-                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900"
+                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] font-mono mk-tabular"
                 />
                 <input
                   value={edu.end}
@@ -1013,7 +1043,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="End"
-                  className="px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900"
+                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] font-mono mk-tabular"
                 />
               </div>
             </div>
@@ -1034,7 +1064,7 @@ export function ProfileInfoSteps({
                 },
               ])
             }
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-slate-300 text-xs font-bold text-emerald-600 hover:bg-emerald-50 transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-[rgba(17,19,21,0.2)] text-xs font-semibold text-[#0F6E50] hover:bg-[#EAF5F0] transition-all cursor-pointer"
           >
             + Add education
           </button>
@@ -1044,7 +1074,7 @@ export function ProfileInfoSteps({
       {/* Language */}
       {tab === "language" && (
         <div className="space-y-3 animate-in fade-in duration-200">
-          <p className="text-[11px] text-slate-500 leading-relaxed">
+          <p className="text-[11px] text-[#686E78] leading-relaxed">
             Help clients connect with you more easily. English is required, but any level is welcome.
           </p>
 
@@ -1061,7 +1091,7 @@ export function ProfileInfoSteps({
                   )
                 }
                 placeholder="Language"
-                className="flex-1 px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="flex-1 px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
               />
               <select
                 value={langEntry.proficiency}
@@ -1073,7 +1103,7 @@ export function ProfileInfoSteps({
                     )
                   )
                 }
-                className="px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900"
+                className="px-3 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315]"
               >
                 {PROFICIENCY_OPTIONS.map((p) => (
                   <option key={p} value={p}>
@@ -1089,7 +1119,7 @@ export function ProfileInfoSteps({
                     value.languages.filter((l) => l.id !== langEntry.id)
                   )
                 }
-                className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+                className="p-2 rounded-lg text-[#686E78] hover:text-[#DC2626] hover:bg-[#FEF2F2] transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1109,7 +1139,7 @@ export function ProfileInfoSteps({
                   },
                 ])
               }
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-dashed border-slate-300 text-xs font-bold text-emerald-600 hover:bg-emerald-50 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-dashed border-[rgba(17,19,21,0.2)] text-xs font-semibold text-[#0F6E50] hover:bg-[#EAF5F0] transition-all cursor-pointer"
             >
               + Add language
             </button>
@@ -1123,7 +1153,7 @@ export function ProfileInfoSteps({
                     { id: `lang-en-${Date.now()}`, name: "English", proficiency: "Fluent" },
                   ])
                 }
-                className="flex items-center gap-1 text-[11px] font-bold text-amber-600 hover:underline cursor-pointer"
+                className="flex items-center gap-1 text-[11px] font-semibold text-[#A87224] hover:underline cursor-pointer"
               >
                 English is required
                 <ChevronRight className="w-3 h-3" />
@@ -1134,11 +1164,11 @@ export function ProfileInfoSteps({
       )}
 
       {/* Tab nav */}
-      <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+      <div className="flex items-center justify-between gap-3 pt-3 border-t border-[rgba(17,19,21,0.08)]">
         <button
           type="button"
           onClick={tabIndex > 0 ? () => setTab(PROFILE_TABS[tabIndex - 1].id) : onBack}
-          className="text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+          className="px-4 py-2 rounded-xl text-xs font-semibold text-[#3E434A] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
         >
           Back
         </button>
@@ -1147,7 +1177,7 @@ export function ProfileInfoSteps({
           <button
             type="button"
             onClick={() => setTab(PROFILE_TABS[tabIndex + 1].id)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#111315] hover:bg-[#0B3B2E] text-white text-xs font-semibold transition-all cursor-pointer"
           >
             Next
             <ArrowRight className="w-3.5 h-3.5" />
@@ -1156,7 +1186,7 @@ export function ProfileInfoSteps({
           <button
             type="button"
             onClick={onFinish}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
           >
             {isFinal ? "Save & go to dashboard" : "Save profile"}
             <ArrowRight className="w-3.5 h-3.5" />

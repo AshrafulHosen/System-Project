@@ -56,34 +56,34 @@ const USER_TYPE_STYLES: Record<
   { cls: string; label: string; labelBn: string }
 > = {
   client: {
-    cls: "bg-sky-50 text-sky-700 border-sky-200",
+    cls: "bg-[#EEF5FA] text-[#1E5B88] border-[#1E5B88]/20",
     label: "Client",
     labelBn: "ক্লায়েন্ট",
   },
   freelancer: {
-    cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    cls: "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25",
     label: "Freelancer",
     labelBn: "ফ্রিল্যান্সার",
   },
   none: {
-    cls: "bg-slate-100 text-slate-600 border-slate-200",
+    cls: "bg-[#F4F2EC] text-[#686E78] border-[rgba(17,19,21,0.12)]",
     label: "None",
     labelBn: "কিছুই নয়",
   },
 };
 
 const PROJECT_STATUS_STYLES: Record<string, string> = {
-  OPEN: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  CLOSED: "bg-slate-50 text-slate-600 border-slate-200",
-  IN_PROGRESS: "bg-sky-50 text-sky-700 border-sky-200",
+  OPEN: "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25",
+  CLOSED: "bg-[#F4F2EC] text-[#686E78] border-[rgba(17,19,21,0.12)]",
+  IN_PROGRESS: "bg-[#EEF5FA] text-[#1E5B88] border-[#1E5B88]/20",
 };
 
 const PROPOSAL_STATUS_STYLES: Record<string, string> = {
-  PENDING: "bg-slate-50 text-slate-700 border-slate-200",
-  SHORTLISTED: "bg-amber-50 text-amber-700 border-amber-200",
-  INTERVIEW: "bg-violet-50 text-violet-700 border-violet-200",
-  ACCEPTED: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  REJECTED: "bg-red-50 text-red-600 border-red-200",
+  PENDING: "bg-[#F4F2EC] text-[#3E434A] border-[rgba(17,19,21,0.12)]",
+  SHORTLISTED: "bg-[#FEF6E6] text-[#A87224] border-[#A87224]/25",
+  INTERVIEW: "bg-[#F3EFFA] text-[#5B3E96] border-[#5B3E96]/20",
+  ACCEPTED: "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25",
+  REJECTED: "bg-[#FEF2F2] text-[#DC2626] border-[#DC2626]/20",
 };
 
 function AdminDashboardContent() {
@@ -364,7 +364,7 @@ function AdminDashboardContent() {
 
   if (userLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-400">
+      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center text-xs font-semibold text-[#686E78]">
         {lang === "en" ? "Loading…" : "লোড হচ্ছে…"}
       </div>
     );
@@ -381,36 +381,39 @@ function AdminDashboardContent() {
       onTabChange={setActiveTab}
       lang={lang}
       onToggleLang={() => setLang((prev) => (prev === "en" ? "bn" : "en"))}
+      searchValue={search}
+      onSearchChange={setSearch}
     >
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Welcome Header */}
         <div id="overview" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-900 text-white border border-slate-900">
+            <div className="flex flex-wrap items-center gap-2 mb-1.5">
+              <span className="px-2.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider bg-[#0B3B2E] text-white">
                 {lang === "en" ? "Platform Administration" : "প্ল্যাটফর্ম অ্যাডমিন"}
               </span>
-              <span className="text-slate-300">•</span>
-              <span className="text-xs font-bold text-slate-400 flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="text-[rgba(17,19,21,0.2)]">•</span>
+              <span className="text-xs font-medium text-[#686E78] flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#0F6E50]" />
                 {lang === "en" ? "Ops & moderation console" : "অপস ও মডারেশন কনসোল"}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#111315]">
               {lang === "en" ? (
                 <>
-                  Welcome back, <span className="text-emerald-600">{firstName}</span>
+                  Welcome back,{" "}
+                  <span className="font-serif italic font-medium text-[#0F6E50]">{firstName}</span>
                 </>
               ) : (
                 <>
-                  স্বাগতম, <span className="text-emerald-600">{firstName}</span>
+                  স্বাগতম, <span className="text-[#0F6E50]">{firstName}</span>
                 </>
               )}
             </h1>
-            <p className="text-xs font-semibold text-emerald-700 mt-1">
+            <p className="text-xs font-semibold text-[#0F6E50] mt-1 font-mono mk-tabular">
               {email || (lang === "en" ? "Admin Account" : "অ্যাডমিন অ্যাকাউন্ট")}
             </p>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            <p className="text-xs sm:text-sm text-[#686E78] mt-1">
               {lang === "en"
                 ? "Monitor platform health, review user signups, and moderate live job posts and proposals."
                 : "প্ল্যাটফর্মের স্বাস্থ্য পর্যবেক্ষণ করুন, নতুন ইউজার যাচাই করুন এবং চলমান কাজ ও আবেদন মডারেট করুন।"}
@@ -418,44 +421,20 @@ function AdminDashboardContent() {
           </div>
 
           <button
+            type="button"
             onClick={() => setRefreshTick((t) => t + 1)}
             disabled={loading}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-all shadow-xs cursor-pointer self-start sm:self-auto disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[rgba(17,19,21,0.1)] text-[#111315] text-xs font-semibold hover:bg-[#F4F2EC] transition-all shadow-2xs cursor-pointer self-start sm:self-auto disabled:opacity-50"
           >
-            <RefreshCw className={`w-3.5 h-3.5 text-emerald-600 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-[#0F6E50] ${loading ? "animate-spin" : ""}`} />
             <span>{lang === "en" ? "Refresh data" : "ডেটা রিফ্রেশ"}</span>
           </button>
         </div>
 
-        {/* Tab Quick Selector Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-          {[
-            { id: "overview", label: "Overview", labelBn: "সংক্ষিপ্ত বিবরণ" },
-            { id: "payments", label: "Payments & Escrow", labelBn: "পেমেন্ট ও এসক্রো" },
-            { id: "users", label: "User Management", labelBn: "ইউজার ব্যবস্থাপনা" },
-            { id: "jobs", label: "Job Moderation", labelBn: "কাজের মডারেশন" },
-            { id: "proposals", label: "Proposals", labelBn: "আবেদন" },
-            { id: "contracts", label: "Contracts & Escrow", labelBn: "চুক্তি ও এসক্রো" },
-            { id: "disputes", label: "Dispute Queue", labelBn: "বিরোধ তালিকা" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all cursor-pointer ${
-                activeTab === tab.id
-                  ? "bg-slate-900 text-white shadow-xs"
-                  : "bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              }`}
-            >
-              {lang === "en" ? tab.label : tab.labelBn}
-            </button>
-          ))}
-        </div>
-
         {/* Loading indicator */}
         {loading && (
-          <div className="flex items-center justify-center gap-2 py-10 text-[11px] font-bold text-slate-400">
-            <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+          <div className="flex items-center justify-center gap-2 py-10 text-[11px] font-semibold text-[#686E78]">
+            <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#0F6E50]" />
             {lang === "en" ? "Syncing platform data…" : "প্ল্যাটফর্ম ডেটা সিঙ্ক হচ্ছে…"}
           </div>
         )}
@@ -514,30 +493,32 @@ function AdminDashboardContent() {
                 />
 
                 {overview.totalUsers > 0 && (
-                  <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs space-y-2.5">
-                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
+                  <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 shadow-2xs space-y-2.5">
+                    <div className="flex items-center justify-between text-[11px] font-semibold text-[#3E434A]">
                       <span>{lang === "en" ? "Marketplace Composition" : "মার্কেটপ্লেস গঠন"}</span>
-                      <span>{overview.totalUsers} {lang === "en" ? "registered accounts" : "নিবন্ধিত অ্যাকাউন্ট"}</span>
+                      <span className="font-mono mk-tabular">
+                        {overview.totalUsers} {lang === "en" ? "registered accounts" : "নিবন্ধিত অ্যাকাউন্ট"}
+                      </span>
                     </div>
-                    <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden flex">
+                    <div className="h-2.5 w-full rounded-full bg-[#F4F2EC] overflow-hidden flex">
                       <div
                         style={{ width: `${Math.round((overview.clients / overview.totalUsers) * 100)}%` }}
-                        className="bg-sky-500 h-full transition-all"
+                        className="bg-[#1E5B88] h-full transition-all"
                         title={`Clients: ${overview.clients}`}
                       />
                       <div
                         style={{ width: `${Math.round((overview.freelancers / overview.totalUsers) * 100)}%` }}
-                        className="bg-emerald-600 h-full transition-all"
+                        className="bg-[#0F6E50] h-full transition-all"
                         title={`Freelancers: ${overview.freelancers}`}
                       />
                       <div
                         style={{ width: `${Math.round((overview.admins / overview.totalUsers) * 100)}%` }}
-                        className="bg-slate-900 h-full transition-all"
+                        className="bg-[#0B3B2E] h-full transition-all"
                         title={`Admins: ${overview.admins}`}
                       />
                       <div
                         style={{ width: `${Math.round((overview.profilesMissing / overview.totalUsers) * 100)}%` }}
-                        className="bg-amber-400 h-full transition-all"
+                        className="bg-[#A87224] h-full transition-all"
                         title={`Incomplete Profiles: ${overview.profilesMissing}`}
                       />
                     </div>
@@ -546,17 +527,17 @@ function AdminDashboardContent() {
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
                   {[
-                    { label: "Clients", labelBn: "ক্লায়েন্ট", value: overview.clients, cls: "bg-sky-50 text-sky-700 border-sky-200" },
-                    { label: "Freelancers", labelBn: "ফ্রিল্যান্সার", value: overview.freelancers, cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-                    { label: "Administrators", labelBn: "অ্যাডমিন", value: overview.admins, cls: "bg-slate-900 text-white border-slate-900" },
-                    { label: "No profile", labelBn: "প্রোফাইল নেই", value: overview.profilesMissing, cls: "bg-amber-50 text-amber-700 border-amber-200" },
+                    { label: "Clients", labelBn: "ক্লায়েন্ট", value: overview.clients, cls: "bg-[#EEF5FA] text-[#1E5B88] border-[#1E5B88]/20" },
+                    { label: "Freelancers", labelBn: "ফ্রিল্যান্সার", value: overview.freelancers, cls: "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25" },
+                    { label: "Administrators", labelBn: "অ্যাডমিন", value: overview.admins, cls: "mk-dark-card text-white border-[#0B3B2E]" },
+                    { label: "No profile", labelBn: "প্রোফাইল নেই", value: overview.profilesMissing, cls: "bg-[#FEF6E6] text-[#A87224] border-[#A87224]/25" },
                   ].map((c) => (
                     <div
                       key={c.label}
                       className={`rounded-2xl border px-4 py-4 ${c.cls}`}
                     >
-                      <p className="text-xl font-black">{c.value}</p>
-                      <p className={`text-[10px] font-bold uppercase tracking-wider ${c.cls.includes("text-white") ? "text-slate-300" : "opacity-70"}`}>
+                      <p className="text-xl font-bold font-mono mk-tabular">{c.value}</p>
+                      <p className={`text-[10px] font-semibold uppercase tracking-wider mt-0.5 ${c.cls.includes("text-white") ? "text-[#A7E6CE]" : "opacity-80"}`}>
                         {lang === "en" ? c.label : c.labelBn}
                       </p>
                     </div>
@@ -578,23 +559,23 @@ function AdminDashboardContent() {
               lang={lang}
               action={
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Search className="w-3.5 h-3.5 text-[#686E78] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="search"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder={lang === "en" ? "Search name or email" : "নাম বা ইমেইল খুঁজুন"}
-                    className="pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all w-full sm:w-56"
+                    className="pl-9 pr-3 py-2 bg-white border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:ring-2 focus:ring-[#0F6E50]/20 focus:border-[#0F6E50] transition-all w-full sm:w-56"
                   />
                 </div>
               }
             />
 
-            <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+            <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-[0_1px_2px_rgba(17,19,21,0.04)] overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[720px]">
                   <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50">
+                    <tr className="border-b border-[rgba(17,19,21,0.08)] bg-[#FAF9F6]">
                       {[
                         { en: "User", bn: "ইউজার" },
                         { en: "Email", bn: "ইমেইল" },
@@ -604,17 +585,17 @@ function AdminDashboardContent() {
                       ].map((h) => (
                         <th
                           key={h.en}
-                          className="px-4 sm:px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-slate-500"
+                          className="px-4 sm:px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#686E78]"
                         >
                           {lang === "en" ? h.en : h.bn}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-[rgba(17,19,21,0.06)]">
                     {filteredUsers.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="px-5 py-10 text-center text-xs text-slate-400">
+                        <td colSpan={5} className="px-5 py-10 text-center text-xs text-[#686E78]">
                           {lang === "en" ? "No users match your search." : "আপনার অনুসন্ধানে কোনো ইউজার নেই।"}
                         </td>
                       </tr>
@@ -622,37 +603,37 @@ function AdminDashboardContent() {
                     {filteredUsers.map((user) => {
                       const type = USER_TYPE_STYLES[user.type];
                       return (
-                        <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
+                        <tr key={user.id} className="hover:bg-[#FAF9F6] transition-colors">
                           <td className="px-4 sm:px-5 py-3.5">
                             <div className="flex items-center gap-3">
-                              <span className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
+                              <span className="w-8 h-8 rounded-full bg-[#F4F2EC] text-[#3E434A] flex items-center justify-center shrink-0">
                                 <UserCircle className="w-4 h-4" />
                               </span>
                               <div className="min-w-0">
-                                <p className="text-xs font-bold text-slate-900 truncate flex items-center gap-1.5">
+                                <p className="text-xs font-semibold text-[#111315] truncate flex items-center gap-1.5">
                                   {user.name}
                                   {user.isAdmin && (
-                                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wide bg-slate-900 text-white">
+                                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wide bg-[#0B3B2E] text-white">
                                       Admin
                                     </span>
                                   )}
                                 </p>
-                                <p className="text-[10px] text-slate-400 truncate max-w-[160px]">{user.id.slice(0, 8)}</p>
+                                <p className="text-[10px] font-mono mk-tabular text-[#949BA6] truncate max-w-[160px]">{user.id.slice(0, 8)}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 sm:px-5 py-3.5 text-[11px] text-slate-600">{user.email}</td>
+                          <td className="px-4 sm:px-5 py-3.5 text-[11px] text-[#3E434A]">{user.email}</td>
                           <td className="px-4 sm:px-5 py-3.5 whitespace-nowrap">
-                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${type.cls}`}>
+                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-semibold border ${type.cls}`}>
                               {lang === "en" ? type.label : type.labelBn}
                             </span>
                           </td>
-                          <td className="px-4 sm:px-5 py-3.5 text-[11px] text-slate-500">
+                          <td className="px-4 sm:px-5 py-3.5 text-[11px] text-[#686E78]">
                             {user.isAdmin
                               ? lang === "en" ? "Platform staff" : "প্ল্যাটফর্ম স্টাফ"
                               : lang === "en" ? "Member" : "সদস্য"}
                           </td>
-                          <td className="px-4 sm:px-5 py-3.5 text-[11px] text-slate-500 whitespace-nowrap">
+                          <td className="px-4 sm:px-5 py-3.5 text-[11px] text-[#686E78] whitespace-nowrap font-mono mk-tabular">
                             {user.joinedLabel}
                           </td>
                         </tr>
@@ -676,11 +657,11 @@ function AdminDashboardContent() {
               lang={lang}
             />
 
-            <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+            <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-[0_1px_2px_rgba(17,19,21,0.04)] overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[740px]">
                   <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50">
+                    <tr className="border-b border-[rgba(17,19,21,0.08)] bg-[#FAF9F6]">
                       {[
                         { en: "Job", bn: "কাজ" },
                         { en: "Client", bn: "ক্লায়েন্ট" },
@@ -692,53 +673,53 @@ function AdminDashboardContent() {
                       ].map((h) => (
                         <th
                           key={h.en}
-                          className="px-4 sm:px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-slate-500"
+                          className="px-4 sm:px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#686E78]"
                         >
                           {lang === "en" ? h.en : h.bn}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-[rgba(17,19,21,0.06)]">
                     {projects.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="px-5 py-10 text-center text-xs text-slate-400">
+                        <td colSpan={7} className="px-5 py-10 text-center text-xs text-[#686E78]">
                           {lang === "en" ? "No job posts found yet." : "এখনও কোনো কাজ পোস্ট করা হয়নি।"}
                         </td>
                       </tr>
                     )}
                     {projects.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr key={row.id} className="hover:bg-[#FAF9F6] transition-colors">
                         <td className="px-4 sm:px-5 py-3.5">
                           <Link
                             href={`/jobs/${row.id}`}
-                            className="text-xs font-bold text-slate-900 hover:text-emerald-700 leading-snug truncate max-w-[240px] block"
+                            className="text-xs font-semibold text-[#111315] hover:text-[#0F6E50] leading-snug truncate max-w-[240px] block"
                           >
                             {row.title}
                           </Link>
-                          <p className="text-[10px] text-slate-400 mt-0.5">{row.id.slice(0, 8)}</p>
+                          <p className="text-[10px] font-mono mk-tabular text-[#949BA6] mt-0.5">{row.id.slice(0, 8)}</p>
                         </td>
-                        <td className="px-4 sm:px-5 py-3.5 text-[11px] text-slate-600">{row.clientName}</td>
-                        <td className="px-4 sm:px-5 py-3.5 text-xs font-black text-slate-900 whitespace-nowrap">
+                        <td className="px-4 sm:px-5 py-3.5 text-[11px] text-[#3E434A]">{row.clientName}</td>
+                        <td className="px-4 sm:px-5 py-3.5 text-xs font-bold font-mono mk-tabular text-[#111315] whitespace-nowrap">
                           {formatBdt(row.budgetBdt)}
                         </td>
-                        <td className="px-4 sm:px-5 py-3.5 text-xs font-black text-emerald-600">{row.proposalsCount}</td>
+                        <td className="px-4 sm:px-5 py-3.5 text-xs font-bold font-mono mk-tabular text-[#0F6E50]">{row.proposalsCount}</td>
                         <td className="px-4 sm:px-5 py-3.5 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${PROJECT_STATUS_STYLES[row.status] ?? "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
+                          <span className={`px-2.5 py-1 rounded-md text-[10px] font-semibold border ${PROJECT_STATUS_STYLES[row.status] ?? PROJECT_STATUS_STYLES.OPEN}`}>
                             {row.status}
                           </span>
                         </td>
-                        <td className="px-4 sm:px-5 py-3.5 text-[11px] text-slate-500 whitespace-nowrap">{row.postedLabel}</td>
+                        <td className="px-4 sm:px-5 py-3.5 text-[11px] text-[#686E78] whitespace-nowrap font-mono mk-tabular">{row.postedLabel}</td>
                         <td className="px-4 sm:px-5 py-3.5 whitespace-nowrap">
                           {(row.status === "OPEN" || row.status === "CLOSED") && (
                             <button
                               type="button"
                               disabled={moderatingProjectId === row.id}
                               onClick={() => handleToggleProjectStatus(row.id, row.status)}
-                              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-colors cursor-pointer disabled:opacity-50 ${
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
                                 row.status === "OPEN"
-                                  ? "bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-200"
-                                  : "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200"
+                                  ? "bg-[#FEF6E6] hover:bg-[#FCEACA] text-[#A87224] border-[#A87224]/25"
+                                  : "bg-[#EAF5F0] hover:bg-[#DDF0E6] text-[#0B3B2E] border-[#0F6E50]/25"
                               }`}
                             >
                               {row.status === "OPEN"
@@ -771,11 +752,11 @@ function AdminDashboardContent() {
               lang={lang}
             />
 
-            <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+            <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-[0_1px_2px_rgba(17,19,21,0.04)] overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[680px]">
                   <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50">
+                    <tr className="border-b border-[rgba(17,19,21,0.08)] bg-[#FAF9F6]">
                       {[
                         { en: "Proposal", bn: "আবেদন" },
                         { en: "Job", bn: "কাজ" },
@@ -785,30 +766,30 @@ function AdminDashboardContent() {
                       ].map((h) => (
                         <th
                           key={h.en}
-                          className="px-4 sm:px-5 py-3 text-left text-[10px] font-black uppercase tracking-wider text-slate-500"
+                          className="px-4 sm:px-5 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#686E78]"
                         >
                           {lang === "en" ? h.en : h.bn}
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-[rgba(17,19,21,0.06)]">
                     {proposals.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr key={row.id} className="hover:bg-[#FAF9F6] transition-colors">
                         <td className="px-4 sm:px-5 py-3.5">
-                          <p className="text-xs font-bold text-slate-900 truncate max-w-[200px]">{row.freelancerName}</p>
-                          <p className="text-[10px] text-slate-400 mt-0.5">{row.id.slice(0, 8)}</p>
+                          <p className="text-xs font-semibold text-[#111315] truncate max-w-[200px]">{row.freelancerName}</p>
+                          <p className="text-[10px] font-mono mk-tabular text-[#949BA6] mt-0.5">{row.id.slice(0, 8)}</p>
                         </td>
-                        <td className="px-4 sm:px-5 py-3.5 text-[11px] text-slate-600 truncate max-w-[220px]">{row.jobTitle}</td>
-                        <td className="px-4 sm:px-5 py-3.5 text-xs font-black text-slate-900 whitespace-nowrap">
+                        <td className="px-4 sm:px-5 py-3.5 text-[11px] text-[#3E434A] truncate max-w-[220px]">{row.jobTitle}</td>
+                        <td className="px-4 sm:px-5 py-3.5 text-xs font-bold font-mono mk-tabular text-[#111315] whitespace-nowrap">
                           {formatBdt(row.bidBdt)}
                         </td>
                         <td className="px-4 sm:px-5 py-3.5 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold border ${PROPOSAL_STATUS_STYLES[row.status] ?? "bg-slate-50 text-slate-700 border-slate-200"}`}>
+                          <span className={`px-2.5 py-1 rounded-md text-[10px] font-semibold border ${PROPOSAL_STATUS_STYLES[row.status] ?? PROPOSAL_STATUS_STYLES.PENDING}`}>
                             {row.status}
                           </span>
                         </td>
-                        <td className="px-4 sm:px-5 py-3.5 text-[11px] text-slate-500 whitespace-nowrap">{row.submittedLabel}</td>
+                        <td className="px-4 sm:px-5 py-3.5 text-[11px] text-[#686E78] whitespace-nowrap font-mono mk-tabular">{row.submittedLabel}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -830,8 +811,8 @@ function AdminDashboardContent() {
             />
 
             {/* Academic Simulation Disclosure */}
-            <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900">
-              <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#FEF6E6] border border-[#A87224]/25 text-xs text-[#6B4713]">
+              <Info className="w-4 h-4 text-[#A87224] shrink-0 mt-0.5" />
               <p className="leading-relaxed">
                 {lang === "en"
                   ? ESCROW_SIMULATION_DISCLAIMER
@@ -840,8 +821,8 @@ function AdminDashboardContent() {
             </div>
 
             {paymentsError && (
-              <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-700 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0" />
+              <div className="p-3.5 rounded-2xl bg-[#FEF2F2] border border-[#DC2626]/20 text-xs font-semibold text-[#991B1B] flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 text-[#DC2626]" />
                 <span>{paymentsError}</span>
               </div>
             )}
@@ -906,46 +887,46 @@ function AdminDashboardContent() {
 
             {/* Operational Queue Counters */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-              <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-amber-700">
+              <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 shadow-2xs">
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-[#A87224]">
                   <Clock className="w-3.5 h-3.5" />
                   <span>{lang === "en" ? "Pending Payments" : "অপেক্ষমান পেমেন্ট"}</span>
                 </div>
-                <p className="text-xl font-black text-slate-900 mt-1">
+                <p className="text-xl font-bold font-mono mk-tabular text-[#111315] mt-1">
                   {paymentDashboard?.summary.pendingPaymentsCount ?? 0}
                 </p>
               </div>
-              <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-rose-700">
+              <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 shadow-2xs">
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-[#DC2626]">
                   <AlertTriangle className="w-3.5 h-3.5" />
                   <span>{lang === "en" ? "Failed / Cancelled" : "ব্যর্থ / বাতিল"}</span>
                 </div>
-                <p className="text-xl font-black text-slate-900 mt-1">
+                <p className="text-xl font-bold font-mono mk-tabular text-[#111315] mt-1">
                   {(paymentDashboard?.summary.failedPaymentsCount ?? 0) +
                     (paymentDashboard?.summary.cancelledPaymentsCount ?? 0)}
-                  <span className="text-[11px] font-semibold text-slate-400 ml-1.5">
+                  <span className="text-[11px] font-medium text-[#686E78] ml-1.5">
                     ({paymentDashboard?.summary.failedPaymentsCount ?? 0} failed)
                   </span>
                 </p>
               </div>
-              <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-indigo-700">
+              <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 shadow-2xs">
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-[#5B3E96]">
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>{lang === "en" ? "Refund Requests" : "রিফান্ড অনুরোধ"}</span>
                 </div>
-                <p className="text-xl font-black text-slate-900 mt-1">
+                <p className="text-xl font-bold font-mono mk-tabular text-[#111315] mt-1">
                   {paymentDashboard?.summary.refundRequestsCount ?? 0}
-                  <span className="text-[11px] font-semibold text-indigo-600 ml-1.5">
+                  <span className="text-[11px] font-medium text-[#5B3E96] ml-1.5">
                     ({paymentDashboard?.summary.pendingRefundRequestsCount ?? 0} pending)
                   </span>
                 </p>
               </div>
-              <div className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs">
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-slate-500">
+              <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 shadow-2xs">
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-[#686E78]">
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>{lang === "en" ? "Refunded Total" : "মোট রিফান্ড"}</span>
                 </div>
-                <p className="text-xl font-black text-slate-900 mt-1">
+                <p className="text-xl font-bold font-mono mk-tabular text-[#111315] mt-1">
                   {formatBdt(paymentDashboard?.summary.refundedAmountBdt ?? 0)}
                 </p>
               </div>
@@ -954,28 +935,28 @@ function AdminDashboardContent() {
             {/* Search & Filter Toolbar */}
             <form
               onSubmit={handleApplyPaymentFilters}
-              className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end"
+              className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 shadow-2xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end"
             >
               <div className="lg:col-span-4">
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                <label className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78] block mb-1">
                   {lang === "en"
                     ? "Search Transaction ID / Contract / Party"
                     : "ট্রানজেকশন আইডি বা চুক্তি খুঁজুন"}
                 </label>
                 <div className="relative">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Search className="w-3.5 h-3.5 text-[#686E78] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="search"
                     value={txQuery}
                     onChange={(e) => setTxQuery(e.target.value)}
                     placeholder="e.g. MK-... or val_id or contract code"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
+                    className="w-full pl-9 pr-3 py-2 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0F6E50]/20 focus:border-[#0F6E50]"
                   />
                 </div>
               </div>
 
               <div className="lg:col-span-2">
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                <label className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78] block mb-1">
                   {lang === "en" ? "Payment Status" : "স্ট্যাটাস"}
                 </label>
                 <select
@@ -986,7 +967,7 @@ function AdminDashboardContent() {
                     setPaymentsLoading(true);
                     setAppliedFilters((prev) => ({ ...prev, status: nextStatus }));
                   }}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                  className="w-full px-3 py-2 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-semibold text-[#111315] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0F6E50]/20"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="PENDING">Pending</option>
@@ -1000,7 +981,7 @@ function AdminDashboardContent() {
               </div>
 
               <div className="lg:col-span-2">
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                <label className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78] block mb-1">
                   {lang === "en" ? "From Date" : "শুরুর তারিখ"}
                 </label>
                 <input
@@ -1012,12 +993,12 @@ function AdminDashboardContent() {
                     setPaymentsLoading(true);
                     setAppliedFilters((prev) => ({ ...prev, from: nextFrom }));
                   }}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                  className="w-full px-3 py-2 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-medium text-[#111315] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0F6E50]/20 font-mono mk-tabular"
                 />
               </div>
 
               <div className="lg:col-span-2">
-                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                <label className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78] block mb-1">
                   {lang === "en" ? "To Date" : "শেষ তারিখ"}
                 </label>
                 <input
@@ -1029,14 +1010,14 @@ function AdminDashboardContent() {
                     setPaymentsLoading(true);
                     setAppliedFilters((prev) => ({ ...prev, to: nextTo }));
                   }}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                  className="w-full px-3 py-2 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-medium text-[#111315] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0F6E50]/20 font-mono mk-tabular"
                 />
               </div>
 
               <div className="lg:col-span-2 flex items-center gap-2">
                 <button
                   type="submit"
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors cursor-pointer"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white text-xs font-semibold transition-colors cursor-pointer"
                 >
                   <Filter className="w-3.5 h-3.5" />
                   <span>{lang === "en" ? "Apply" : "ফিল্টার"}</span>
@@ -1044,7 +1025,7 @@ function AdminDashboardContent() {
                 <button
                   type="button"
                   onClick={handleResetPaymentFilters}
-                  className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                  className="px-3 py-2 rounded-xl bg-[#F4F2EC] hover:bg-[#EAE7DE] text-[#111315] text-xs font-semibold transition-colors cursor-pointer"
                 >
                   {lang === "en" ? "Reset" : "রিসেট"}
                 </button>
@@ -1073,15 +1054,15 @@ function AdminDashboardContent() {
             {/* Refund Requests Queue & Admin Moderation Controls */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                  <RotateCcw className="w-4 h-4 text-indigo-600" />
+                <h3 className="text-sm font-bold text-[#111315] flex items-center gap-2">
+                  <RotateCcw className="w-4 h-4 text-[#5B3E96]" />
                   <span>
                     {lang === "en"
                       ? `Refund Request Queue (${paymentDashboard?.refundRequests.length ?? 0})`
                       : `রিফান্ড অনুরোধ তালিকা (${paymentDashboard?.refundRequests.length ?? 0})`}
                   </span>
                 </h3>
-                <span className="text-[11px] font-semibold text-slate-500">
+                <span className="text-[11px] font-semibold font-mono mk-tabular text-[#686E78]">
                   {paymentDashboard?.summary.pendingRefundRequestsCount ?? 0}{" "}
                   {lang === "en" ? "pending review" : "পর্যালোচনার অপেক্ষায়"}
                 </span>
@@ -1091,10 +1072,10 @@ function AdminDashboardContent() {
                 <div
                   className={`p-3.5 rounded-2xl border text-xs font-semibold flex items-start justify-between gap-2 ${
                     refundActionNotice.tone === "emerald"
-                      ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                      ? "bg-[#EAF5F0] border-[#0F6E50]/25 text-[#0B3B2E]"
                       : refundActionNotice.tone === "amber"
-                        ? "bg-amber-50 border-amber-200 text-amber-900"
-                        : "bg-rose-50 border-rose-200 text-rose-700"
+                        ? "bg-[#FEF6E6] border-[#A87224]/25 text-[#6B4713]"
+                        : "bg-[#FEF2F2] border-[#DC2626]/20 text-[#991B1B]"
                   }`}
                 >
                   <span>{refundActionNotice.text}</span>
@@ -1109,60 +1090,60 @@ function AdminDashboardContent() {
               )}
 
               {!paymentDashboard || paymentDashboard.refundRequests.length === 0 ? (
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 text-center text-xs text-slate-500">
+                <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 text-center text-xs text-[#686E78]">
                   {lang === "en"
                     ? "No client refund requests recorded yet."
                     : "এখনো কোনো রিফান্ড অনুরোধ জমা পড়েনি।"}
                 </div>
               ) : (
-                <div className="bg-white border border-slate-200/90 rounded-2xl divide-y divide-slate-100 overflow-hidden shadow-xs">
+                <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl divide-y divide-[rgba(17,19,21,0.06)] overflow-hidden shadow-2xs">
                   {paymentDashboard.refundRequests.map((rf) => {
                     const isBusy = moderatingRefundId === rf.id;
                     const statusStyle =
                       rf.status === "COMPLETED"
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        ? "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25"
                         : rf.status === "REJECTED" || rf.status === "FAILED"
-                          ? "bg-rose-50 text-rose-700 border-rose-200"
+                          ? "bg-[#FEF2F2] text-[#DC2626] border-[#DC2626]/20"
                           : rf.status === "GATEWAY_INITIATED"
-                            ? "bg-sky-50 text-sky-700 border-sky-200"
-                            : "bg-amber-50 text-amber-800 border-amber-200";
+                            ? "bg-[#EEF5FA] text-[#1E5B88] border-[#1E5B88]/20"
+                            : "bg-[#FEF6E6] text-[#A87224] border-[#A87224]/25";
                     return (
                       <div
                         key={rf.id}
-                        className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors"
+                        className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-[#FAF9F6] transition-colors"
                       >
                         <div className="space-y-1 min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-mono text-xs font-bold text-slate-900">
+                            <span className="font-mono mk-tabular text-xs font-bold text-[#111315]">
                               {rf.transaction_id}
                             </span>
                             <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${statusStyle}`}
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${statusStyle}`}
                             >
                               {rf.status}
                             </span>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#F4F2EC] text-[#3E434A] border border-[rgba(17,19,21,0.1)]">
                               {rf.refund_mode}
                             </span>
                             {rf.gateway_status && (
-                              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-100 text-slate-600">
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-[#F4F2EC] text-[#3E434A]">
                                 GW: {rf.gateway_status}
                               </span>
                             )}
                           </div>
-                          <p className="text-xs font-bold text-slate-800 truncate">
+                          <p className="text-xs font-semibold text-[#111315] truncate">
                             {rf.contract_title} ({rf.contract_code})
                           </p>
-                          <p className="text-[11px] text-slate-500 leading-relaxed">
+                          <p className="text-[11px] text-[#686E78] leading-relaxed">
                             {rf.client_name} → {rf.freelancer_name} · Reason: {rf.reason}
                           </p>
                           {rf.gateway_refund_ref_id && (
-                            <p className="text-[10px] font-mono text-indigo-700">
+                            <p className="text-[10px] font-mono mk-tabular text-[#5B3E96]">
                               Refund Ref: {rf.gateway_refund_ref_id}
                             </p>
                           )}
                           {rf.admin_notes && (
-                            <p className="text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/70 inline-block">
+                            <p className="text-[11px] text-[#3E434A] bg-[#FAF9F6] px-2.5 py-1 rounded-lg border border-[rgba(17,19,21,0.08)] inline-block">
                               Note: {rf.admin_notes}
                             </p>
                           )}
@@ -1170,12 +1151,12 @@ function AdminDashboardContent() {
 
                         <div className="flex flex-col sm:flex-row lg:flex-col sm:items-center lg:items-end justify-between gap-2.5 shrink-0">
                           <div className="flex items-center gap-3">
-                            <p className="text-sm font-black text-slate-900">
+                            <p className="text-sm font-bold font-mono mk-tabular text-[#111315]">
                               {formatBdt(rf.amount)}
                             </p>
                             <Link
                               href={`/contracts/${rf.contract_id}`}
-                              className="text-[11px] font-bold text-emerald-700 hover:underline"
+                              className="text-[11px] font-semibold text-[#0F6E50] hover:underline"
                             >
                               {lang === "en" ? "Open Contract" : "চুক্তি দেখুন"}
                             </Link>
@@ -1193,7 +1174,7 @@ function AdminDashboardContent() {
                                     mode: "APPROVE_SIMULATED",
                                   });
                                 }}
-                                className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                                className="px-2.5 py-1.5 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white text-[11px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
                               >
                                 {lang === "en" ? "Simulated Refund" : "সিমুলেটেড রিফান্ড"}
                               </button>
@@ -1207,7 +1188,7 @@ function AdminDashboardContent() {
                                     mode: "APPROVE_GATEWAY",
                                   });
                                 }}
-                                className="px-2.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                                className="px-2.5 py-1.5 rounded-xl bg-[#1E5B88] hover:bg-[#17486B] text-white text-[11px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
                               >
                                 {lang === "en" ? "SSLCOMMERZ API" : "স্যান্ডবক্স এপিআই"}
                               </button>
@@ -1221,7 +1202,7 @@ function AdminDashboardContent() {
                                     mode: "REJECT",
                                   });
                                 }}
-                                className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                                className="px-2.5 py-1.5 rounded-xl bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] border border-[#DC2626]/20 text-[11px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
                               >
                                 {lang === "en" ? "Reject" : "বাতিল"}
                               </button>
@@ -1239,7 +1220,7 @@ function AdminDashboardContent() {
                                     action: "CHECK_GATEWAY_STATUS",
                                   })
                                 }
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#1E5B88] hover:bg-[#17486B] text-white text-[11px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
                               >
                                 {isBusy ? (
                                   <Loader2 className="w-3 h-3 animate-spin" />
@@ -1262,7 +1243,7 @@ function AdminDashboardContent() {
                                     mode: "REJECT",
                                   });
                                 }}
-                                className="px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-bold transition-colors cursor-pointer disabled:opacity-50"
+                                className="px-2.5 py-1.5 rounded-xl bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] border border-[#DC2626]/20 text-[11px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
                               >
                                 {lang === "en" ? "Reject" : "বাতিল"}
                               </button>
@@ -1289,35 +1270,37 @@ function AdminDashboardContent() {
               lang={lang}
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+              <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-5 shadow-2xs">
                 <div className="flex items-center gap-2 mb-2">
-                  <Handshake className="w-4 h-4 text-emerald-600" />
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  <Handshake className="w-4 h-4 text-[#0F6E50]" />
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78]">
                     {lang === "en" ? "Total contracts" : "মোট চুক্তি"}
                   </p>
                 </div>
-                <p className="text-2xl font-black text-slate-900">{overview?.totalContracts ?? 0}</p>
+                <p className="text-2xl font-bold font-mono mk-tabular text-[#111315]">
+                  {overview?.totalContracts ?? 0}
+                </p>
               </div>
-              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+              <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-5 shadow-2xs">
                 <div className="flex items-center gap-2 mb-2">
-                  <Gavel className="w-4 h-4 text-amber-600" />
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  <Gavel className="w-4 h-4 text-[#A87224]" />
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78]">
                     {lang === "en" ? "Open disputes / Pending refunds" : "বিরোধ ও অপেক্ষমাণ রিফান্ড"}
                   </p>
                 </div>
-                <p className="text-2xl font-black text-slate-900">
+                <p className="text-2xl font-bold font-mono mk-tabular text-[#111315]">
                   {(paymentDashboard?.summary.openDisputesCount ?? 0) +
                     (paymentDashboard?.summary.pendingRefundRequestsCount ?? 0)}
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 text-white shadow-sm">
+              <div className="mk-dark-card rounded-2xl p-5 text-white shadow-sm">
                 <div className="flex items-center gap-2 mb-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-300">
+                  <ShieldCheck className="w-4 h-4 text-[#6EE7B7]" />
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#A7E6CE]">
                     {lang === "en" ? "Escrow protection" : "এসক্রো সুরক্ষা"}
                   </p>
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-white/75 leading-relaxed">
                   {lang === "en"
                     ? "Contracts settle via SSLCOMMERZ Sandbox verification and internal simulated escrow ledger entries."
                     : "চুক্তিসমূহ SSLCOMMERZ স্যান্ডবক্স যাচাই ও অভ্যন্তরীণ সিমুলেটেড এসক্রো লেজারের মাধ্যমে পরিচালিত।"}
@@ -1337,13 +1320,13 @@ function AdminDashboardContent() {
               subtitleBn="চলমান বিরোধ দেখুন এবং রায় দিন"
               lang={lang}
             />
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-2xl bg-[#EAF5F0] text-[#0F6E50] flex items-center justify-center shrink-0">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-900">
+                  <h4 className="text-sm font-bold text-[#111315]">
                     {(paymentDashboard?.summary.openDisputesCount ?? 0) === 0
                       ? lang === "en"
                         ? "Zero Active Contract Disputes"
@@ -1352,7 +1335,7 @@ function AdminDashboardContent() {
                         ? `${paymentDashboard?.summary.openDisputesCount} Disputed Contract(s)`
                         : `${paymentDashboard?.summary.openDisputesCount}টি বিরোধপূর্ণ চুক্তি`}
                   </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-[#686E78] mt-0.5">
                     {(paymentDashboard?.summary.pendingRefundRequestsCount ?? 0) > 0
                       ? lang === "en"
                         ? `${paymentDashboard?.summary.pendingRefundRequestsCount} pending refund request(s) awaiting admin decision.`
@@ -1367,7 +1350,7 @@ function AdminDashboardContent() {
               <button
                 type="button"
                 onClick={() => setActiveTab("payments")}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#F4F2EC] hover:bg-[#EAE7DE] text-[#111315] text-xs font-semibold transition-colors cursor-pointer"
               >
                 {lang === "en" ? "Open Payments & Refunds" : "পেমেন্ট ও রিফান্ড দেখুন"}
               </button>
@@ -1376,15 +1359,15 @@ function AdminDashboardContent() {
         )}
 
         {/* System notice */}
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
-          <Info className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
-          <p className="text-[11px] text-amber-800 leading-relaxed">
+        <div className="rounded-2xl border border-[#A87224]/25 bg-[#FEF6E6] p-4 flex items-start gap-3">
+          <Info className="w-4 h-4 text-[#A87224] mt-0.5 shrink-0" />
+          <p className="text-[11px] text-[#6B4713] leading-relaxed">
             {lang === "en"
               ? "Admin accounts are provisioned directly in the database. An admin has no client or freelancer profile — "
               : "অ্যাডমিন অ্যাকাউন্ট সরাসরি ডেটাবেসে তৈরি হয়। অ্যাডমিনের কোনো ক্লায়েন্ট বা ফ্রিল্যান্সার প্রোফাইল নেই — "}
             <Link
               href="/login"
-              className="font-black underline underline-offset-2 hover:text-amber-900"
+              className="font-bold underline underline-offset-2 hover:text-[#111315]"
             >
               {lang === "en" ? "Route to the login page" : "লগইন পেজে যান"}
             </Link>
@@ -1402,14 +1385,18 @@ function AdminDashboardContent() {
       {/* Admin Refund Decision Modal */}
       {activeRefundModal && (
         <div
-          className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-[#111315]/55 backdrop-blur-xs flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
+          onClick={() => setActiveRefundModal(null)}
         >
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[rgba(17,19,21,0.1)] space-y-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 pb-3 border-b border-[rgba(17,19,21,0.08)]">
               <div>
-                <h3 className="text-sm font-black text-slate-900">
+                <h3 className="text-sm font-bold text-[#111315]">
                   {activeRefundModal.mode === "APPROVE_SIMULATED"
                     ? lang === "en"
                       ? "Approve Simulated Internal Refund"
@@ -1422,7 +1409,7 @@ function AdminDashboardContent() {
                         ? "Reject Refund Request"
                         : "রিফান্ড অনুরোধ বাতিল করুন"}
                 </h3>
-                <p className="text-[11px] font-mono text-slate-500 mt-0.5">
+                <p className="text-[11px] font-mono mk-tabular text-[#686E78] mt-0.5">
                   {activeRefundModal.refund.transaction_id} ·{" "}
                   {formatBdt(activeRefundModal.refund.amount)}
                 </p>
@@ -1430,29 +1417,29 @@ function AdminDashboardContent() {
               <button
                 type="button"
                 onClick={() => setActiveRefundModal(null)}
-                className="p-1 text-slate-400 hover:text-slate-700 cursor-pointer"
+                className="p-1 text-[#686E78] hover:text-[#111315] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs space-y-1">
-              <p className="font-bold text-slate-900">
+            <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)] text-xs space-y-1">
+              <p className="font-semibold text-[#111315]">
                 {activeRefundModal.refund.contract_title} (
                 {activeRefundModal.refund.contract_code})
               </p>
-              <p className="text-slate-600 text-[11px]">
+              <p className="text-[#3E434A] text-[11px]">
                 Client reason: {activeRefundModal.refund.reason}
               </p>
             </div>
 
             <div
-              className={`p-3 rounded-2xl border text-[11px] leading-relaxed ${
+              className={`p-3 rounded-xl border text-[11px] leading-relaxed ${
                 activeRefundModal.mode === "APPROVE_SIMULATED"
-                  ? "bg-emerald-50/80 border-emerald-200 text-emerald-900"
+                  ? "bg-[#EAF5F0] border-[#0F6E50]/25 text-[#0B3B2E]"
                   : activeRefundModal.mode === "APPROVE_GATEWAY"
-                    ? "bg-sky-50/80 border-sky-200 text-sky-900"
-                    : "bg-rose-50/80 border-rose-200 text-rose-900"
+                    ? "bg-[#EEF5FA] border-[#1E5B88]/20 text-[#1E5B88]"
+                    : "bg-[#FEF2F2] border-[#DC2626]/20 text-[#991B1B]"
               }`}
             >
               {activeRefundModal.mode === "APPROVE_SIMULATED"
@@ -1463,7 +1450,7 @@ function AdminDashboardContent() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[#111315] mb-1">
                 {lang === "en" ? "Admin Notes (Optional)" : "অ্যাডমিন নোট (ঐচ্ছিক)"}
               </label>
               <textarea
@@ -1472,15 +1459,15 @@ function AdminDashboardContent() {
                 value={refundAdminNotes}
                 onChange={(e) => setRefundAdminNotes(e.target.value)}
                 placeholder="Add moderation notes recorded for audit & client notification..."
-                className="w-full px-3.5 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3.5 py-2 text-xs bg-white border border-[rgba(17,19,21,0.14)] rounded-xl focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
               />
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[rgba(17,19,21,0.08)]">
               <button
                 type="button"
                 onClick={() => setActiveRefundModal(null)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#3E434A] hover:bg-[#F4F2EC] cursor-pointer"
               >
                 {lang === "en" ? "Cancel" : "বাতিল"}
               </button>
@@ -1503,12 +1490,12 @@ function AdminDashboardContent() {
                     adminNotes: refundAdminNotes,
                   })
                 }
-                className={`inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-white text-xs font-black cursor-pointer disabled:opacity-60 ${
+                className={`inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-white text-xs font-semibold cursor-pointer disabled:opacity-60 ${
                   activeRefundModal.mode === "REJECT"
-                    ? "bg-rose-600 hover:bg-rose-700"
+                    ? "bg-[#DC2626] hover:bg-[#B91C1C]"
                     : activeRefundModal.mode === "APPROVE_GATEWAY"
-                      ? "bg-sky-600 hover:bg-sky-700"
-                      : "bg-emerald-600 hover:bg-emerald-700"
+                      ? "bg-[#1E5B88] hover:bg-[#17486B]"
+                      : "bg-[#0B3B2E] hover:bg-[#07281F]"
                 }`}
               >
                 {moderatingRefundId === activeRefundModal.refund.id && (
@@ -1534,7 +1521,7 @@ export default function AdminDashboardPage() {
   return (
     <React.Suspense
       fallback={
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-400">
+        <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center text-xs font-semibold text-[#686E78]">
           Loading Admin Console...
         </div>
       }

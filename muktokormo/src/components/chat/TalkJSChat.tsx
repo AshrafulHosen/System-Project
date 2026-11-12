@@ -228,24 +228,24 @@ export default function TalkJSChat({
         }
       `}</style>
 
-      {/* Minimalist Upwork-Style Loading Overlay */}
+      {/* Minimalist Pine-Ivory Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white p-6 text-center">
-          <div className="w-8 h-8 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-medium text-slate-500">Loading conversation...</p>
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#FAF9F6] p-6 text-center">
+          <div className="w-8 h-8 border-2 border-[#0F6E50] border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-xs font-medium text-[#6B7278]">Loading conversation...</p>
         </div>
       )}
 
       {/* Error State */}
       {error && !loading && (
-        <div className="p-8 text-center bg-rose-50/50 border border-rose-200 rounded-2xl m-4">
-          <AlertCircle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
-          <h4 className="text-sm font-bold text-rose-900 mb-1">TalkJS Connection Notice</h4>
-          <p className="text-xs text-rose-700 mb-4">{error}</p>
+        <div className="p-8 text-center bg-[#FEF2F2] border border-[#DC2626]/20 rounded-2xl m-4">
+          <AlertCircle className="w-8 h-8 text-[#DC2626] mx-auto mb-2" />
+          <h4 className="text-sm font-bold text-[#111315] mb-1">TalkJS Connection Notice</h4>
+          <p className="text-xs text-[#DC2626] mb-4">{error}</p>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+            className="px-4 py-2 bg-[#0B3B2E] hover:bg-[#0F6E50] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
             Retry Connection
           </button>

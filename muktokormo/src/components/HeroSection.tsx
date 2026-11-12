@@ -6,11 +6,11 @@ import {
   Search,
   ArrowRight,
   Lock,
-  Star,
   CheckCircle2,
   ShieldCheck,
   Briefcase,
   Users,
+  Layers,
 } from "lucide-react";
 
 interface HeroSectionProps {
@@ -51,262 +51,314 @@ export default function HeroSection({
   };
 
   const quickSkills = [
-    { name: "Website Development", query: "Next.js" },
-    { name: "UI/UX & Figma Design", query: "Figma" },
-    { name: "Meta & TikTok Ads", query: "Meta Ads" },
+    { name: "Next.js & React", query: "Next.js" },
+    { name: "UI/UX & Figma", query: "Figma" },
+    { name: "Meta Ads & SEO", query: "Meta Ads" },
     { name: "Video Editing", query: "Video Editing" },
-    { name: "Bangla & English Content", query: "Content Writing" },
+    { name: "Bangla Copywriting", query: "Content Writing" },
   ];
 
-  const openJobsLabel =
+  const openJobsDisplay =
     liveStats && liveStats.openJobsCount > 0
-      ? `${liveStats.openJobsCount} Open`
+      ? `${liveStats.openJobsCount}`
       : lang === "en"
-        ? "Live Feed"
-        : "সক্রিয় কাজ";
+      ? "Live"
+      : "সক্রিয়";
 
-  const verifiedTalentLabel =
+  const verifiedTalentDisplay =
     liveStats && liveStats.freelancersCount > 0
-      ? `${liveStats.freelancersCount} Verified`
+      ? `${liveStats.freelancersCount}`
       : lang === "en"
-        ? "NID Checked"
-        : "এনআইডি যাচাইকৃত";
+      ? "NID"
+      : "যাচাইকৃত";
 
   return (
-    <section className="bg-white pt-5 pb-14 lg:pt-7 lg:pb-18">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Top Announcement Strip */}
-        <div className="mb-5">
-          <div className="bg-emerald-50/75 border border-emerald-200/80 rounded-2xl px-4 sm:px-5 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <div className="flex items-center gap-2.5">
-              <span className="bg-emerald-700 text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md shrink-0">
-                BDT ESCROW
-              </span>
-              <span className="text-xs sm:text-[13px] font-semibold text-slate-800">
-                {lang === "en"
-                  ? "Hire top Bangladeshi experts directly in Taka with 100% bKash & Nagad milestone protection"
-                  : "বিকাশ ও নগদ নিরাপদ এসক্রোর মাধ্যমে সরাসরি দেশীয় মুদ্রায় সেরা ট্যালেন্ট নিয়োগ দিন"}
-              </span>
-            </div>
+    <section className="relative bg-[#0B3B2E] text-[#FAF9F6] pt-6 pb-16 lg:pt-10 lg:pb-24 overflow-hidden">
+      {/* Velvety emerald radial spotlight backdrop */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(124,224,184,0.18),transparent)] pointer-events-none" />
+      <div className="absolute -bottom-24 right-0 w-[640px] h-[520px] bg-[radial-gradient(circle_at_70%_45%,rgba(15,110,80,0.28),transparent_65%)] pointer-events-none" />
 
-            <button
-              type="button"
-              onClick={onOpenPostJob}
-              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1 group shrink-0 cursor-pointer"
-            >
-              <span>{lang === "en" ? "Post a project in 2 minutes" : "২ মিনিটে কাজ পোস্ট করুন"}</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-            </button>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Top Announcement Bar */}
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/8 border border-white/12 rounded-2xl px-4 sm:px-5 py-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="bg-[#7CE0B8]/15 border border-[#7CE0B8]/30 text-[#7CE0B8] text-[10px] font-bold uppercase tracking-[0.09em] px-2.5 py-1 rounded-md shrink-0">
+              BDT ESCROW
+            </span>
+            <span className="text-xs sm:text-[13px] font-medium text-white/80 truncate">
+              {lang === "en"
+                ? "Direct Bangladeshi Taka contracts with bKash, Nagad & SSLCOMMERZ milestone protection."
+                : "বিকাশ, নগদ ও এসএসএলকমার্জ এসক্রোর মাধ্যমে সরাসরি দেশীয় মুদ্রায় সেরা ট্যালেন্ট নিয়োগ দিন।"}
+            </span>
           </div>
+
+          <button
+            type="button"
+            onClick={onOpenPostJob}
+            className="text-xs font-semibold text-[#7CE0B8] hover:text-white inline-flex items-center gap-1 group shrink-0 cursor-pointer transition-colors"
+          >
+            <span>
+              {lang === "en" ? "Post a brief in 2 minutes" : "২ মিনিটে কাজ পোস্ট করুন"}
+            </span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </button>
         </div>
 
-        {/* Hero Stage Container */}
-        <div className="relative rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/90 text-white overflow-hidden p-7 sm:p-11 lg:p-14 border border-slate-800 shadow-xl">
-          {/* Subtle ambient radial glow */}
-          <div className="absolute -top-24 -right-24 w-[480px] h-[480px] bg-emerald-500/12 rounded-full blur-[120px] pointer-events-none" />
-          <div className="absolute -bottom-24 left-1/4 w-[360px] h-[360px] bg-teal-500/10 rounded-full blur-[100px] pointer-events-none" />
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center relative z-10">
-            {/* Left / Center Content */}
-            <div className="lg:col-span-8 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-emerald-300 text-[11px] font-bold tracking-wide">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                <span>
-                  {lang === "en"
-                    ? "Bangladesh's Verified Freelance Marketplace"
-                    : "বাংলাদেশের বিশ্বস্ত ফ্রিল্যান্সিং মার্কেটপ্লেস"}
-                </span>
-              </div>
-
-              <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-black tracking-tight leading-[1.1] text-white">
-                {lang === "en" ? (
-                  <>
-                    You have the vision.
-                    <br />
-                    <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-200 bg-clip-text text-transparent">
-                      Our freelancers take it from here.
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    আপনার স্বপ্ন ও লক্ষ্য।
-                    <br />
-                    <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-200 bg-clip-text text-transparent">
-                      বাস্তবায়নে দেশের শীর্ষ ফ্রিল্যান্সাররা।
-                    </span>
-                  </>
-                )}
-              </h1>
-
-              <p className="text-sm sm:text-base text-slate-300 max-w-2xl leading-relaxed font-normal">
+        {/* Main Editorial Split Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          {/* Left Column: Typography, Search & Action */}
+          <div className="lg:col-span-7 space-y-6 mk-fade-up">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-[#7CE0B8] text-[11px] font-semibold tracking-wider">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#7CE0B8]" />
+              <span>
                 {lang === "en"
-                  ? "Scale your business with NID-verified developers, designers, and marketers across Bangladesh. Guaranteed milestone escrow in BDT with a transparent flat 7% platform fee."
-                  : "ডলার কনভার্সন ফি ছাড়া সরাসরি দেশীয় মুদ্রায় এনআইডি ভেরিফাইড ফ্রিল্যান্সারদের দিয়ে কাজ করান। সম্পূর্ণ কাজ বুঝে পাওয়ার পর টাকা রিলিজ করুন।"}
-              </p>
-
-              {/* Dual Mode Switcher */}
-              <div className="inline-flex items-center bg-slate-800/85 p-1 rounded-full border border-slate-700/80">
-                <button
-                  type="button"
-                  onClick={() => setHeroMode("hire")}
-                  className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    heroMode === "hire"
-                      ? "bg-emerald-500 text-slate-950 shadow-sm"
-                      : "text-slate-300 hover:text-white"
-                  }`}
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>{lang === "en" ? "I want to hire" : "আমি নিয়োগ দিতে চাই"}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setHeroMode("work")}
-                  className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    heroMode === "work"
-                      ? "bg-emerald-500 text-slate-950 shadow-sm"
-                      : "text-slate-300 hover:text-white"
-                  }`}
-                >
-                  <Briefcase className="w-3.5 h-3.5" />
-                  <span>{lang === "en" ? "I want to work" : "আমি কাজ করতে চাই"}</span>
-                </button>
-              </div>
-
-              {/* Search Bar */}
-              <form onSubmit={handleSearchSubmit} className="max-w-2xl">
-                <div className="relative flex items-center bg-white rounded-2xl sm:rounded-full p-1.5 shadow-xl border border-white/20 focus-within:ring-2 focus-within:ring-emerald-400 transition-all">
-                  <Search className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 ml-3.5 shrink-0" />
-                  <input
-                    type="text"
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    placeholder={
-                      heroMode === "hire"
-                        ? lang === "en"
-                          ? "Search verified talent by skill (e.g. Next.js, Figma, SEO)..."
-                          : "কী ধরনের কাজের লোক প্রয়োজন লিখে খুঁজুন..."
-                        : lang === "en"
-                          ? "Search open jobs matching your skill (e.g. React, Logo, Video)..."
-                          : "আপনার স্কিল লিখে চলমান কাজ খুঁজুন..."
-                    }
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none bg-transparent"
-                  />
-                  <button
-                    type="submit"
-                    className="px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-full bg-slate-950 hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm transition-colors shrink-0 cursor-pointer inline-flex items-center gap-1.5"
-                  >
-                    <span>{lang === "en" ? "Search" : "খুঁজুন"}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </form>
-
-              {/* Quick Skill Pills */}
-              <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                <span className="text-xs font-semibold text-slate-400 mr-1">
-                  {lang === "en" ? "Popular:" : "জনপ্রিয়:"}
-                </span>
-                {quickSkills.map((item) => (
-                  <button
-                    key={item.name}
-                    type="button"
-                    onClick={() => {
-                      if (heroMode === "hire" && onSearchTalent) {
-                        onSearchTalent(item.query);
-                      } else {
-                        onSelectSkill(item.query);
-                      }
-                    }}
-                    className="group inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white/5 hover:bg-emerald-500/20 text-slate-200 hover:text-emerald-300 border border-white/10 hover:border-emerald-500/40 text-xs transition-all cursor-pointer font-medium"
-                  >
-                    <span>{item.name}</span>
-                    <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-emerald-300 group-hover:translate-x-0.5 transition-all" />
-                  </button>
-                ))}
-              </div>
+                  ? "Porichoy NID Verified Marketplace • Built for Bangladesh"
+                  : "পরিচয় এনআইডি যাচাইকৃত মার্কেটপ্লেস • বাংলাদেশ"}
+              </span>
             </div>
 
-            {/* Right Column: Trust & Live Platform Snapshot */}
-            <div className="lg:col-span-4 flex flex-col gap-3.5">
-              {/* Escrow Protection Card */}
-              <Link
-                href="/escrow"
-                className="bg-slate-900/90 border border-slate-800 hover:border-emerald-500/40 rounded-2xl p-4 shadow-lg flex items-center gap-3.5 transition-all group"
-              >
-                <div className="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                  <Lock className="w-5 h-5 text-emerald-400" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                      100% Escrow Protected
-                    </span>
-                  </div>
-                  <span className="text-sm font-bold text-white block mt-1 group-hover:text-emerald-300 transition-colors">
-                    {lang === "en" ? "bKash, Nagad & Bank Custody" : "বিকাশ, নগদ ও ব্যাংক এসক্রো"}
+            <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-bold tracking-[-0.03em] leading-[1.08] text-white">
+              {lang === "en" ? (
+                <>
+                  <span className="block">You have the vision.</span>
+                  <span className="block font-serif italic font-normal text-[#7CE0B8]">
+                    Our freelancers take it from here.
                   </span>
-                  <span className="text-[11px] text-slate-400 block">
-                    {lang === "en" ? "Funds released only on approval →" : "কাজ অনুমোদনেই পেমেন্ট ছাড় →"}
+                </>
+              ) : (
+                <>
+                  <span className="block">আপনার আছে স্বপ্ন ও লক্ষ্য।</span>
+                  <span className="block text-[#7CE0B8]">
+                    বাকিটা সামলে নেবে আমাদের ফ্রিল্যান্সাররা।
                   </span>
-                </div>
-              </Link>
+                </>
+              )}
+            </h1>
 
-              {/* Workspace Delivery Card */}
-              <Link
-                href="/workspaces"
-                className="bg-slate-900/90 border border-slate-800 hover:border-emerald-500/40 rounded-2xl p-4 shadow-lg space-y-2.5 transition-all group"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded-full border border-teal-500/20">
-                    Contract Workspaces
-                  </span>
-                  <div className="flex items-center gap-1 text-amber-400 font-bold text-xs">
-                    <Star className="w-3 h-3 fill-amber-400" />
-                    <span>Milestone Tracked</span>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  {lang === "en"
-                    ? "Submit live demo URLs, review deliverables, request revisions, and chat 1-to-1 in real time."
-                    : "লাইভ ডেমো লিংক জমা দিন, রিভিশন রিভিউ করুন এবং ১-টু-১ চ্যাটে যুক্ত থাকুন।"}
-                </p>
-                <div className="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
-                  <span className="inline-flex items-center gap-1.5 text-emerald-400 font-semibold">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>{lang === "en" ? "Porichoy NID Verified" : "এনআইডি যাচাইকৃত"}</span>
-                  </span>
-                  <span className="font-bold text-slate-300 group-hover:text-emerald-300 transition-colors">
-                    {lang === "en" ? "How it works →" : "বিস্তারিত →"}
-                  </span>
-                </div>
-              </Link>
+            <p className="text-sm sm:text-base text-white/75 max-w-xl leading-relaxed">
+              {lang === "en"
+                ? "Hire NID-verified software engineers, product designers, and growth specialists across Bangladesh — with structured contract workspaces and zero foreign exchange loss."
+                : "ডলার কনভার্সন ফি ছাড়াই সরাসরি টাকায় এনআইডি-যাচাইকৃত ডেভেলপার, ডিজাইনার ও ডিজিটাল মার্কেটার নিয়োগ দিন।"}
+            </p>
 
-              {/* Genuine Platform Metrics */}
-              <div className="bg-slate-900/75 border border-slate-800 rounded-2xl p-4 grid grid-cols-3 gap-2 text-center">
+            {/* Dual Mode Switcher */}
+            <div className="inline-flex items-center bg-white/8 p-1 rounded-xl border border-white/12">
+              <button
+                type="button"
+                onClick={() => setHeroMode("hire")}
+                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  heroMode === "hire"
+                    ? "bg-[#0F6E50] text-white border border-[#7CE0B8]/30 shadow-sm"
+                    : "text-white/75 hover:text-white border border-transparent"
+                }`}
+              >
+                <Users className="w-3.5 h-3.5 text-[#7CE0B8]" />
+                <span>{lang === "en" ? "I want to hire" : "আমি নিয়োগ দিতে চাই"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setHeroMode("work")}
+                className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  heroMode === "work"
+                    ? "bg-[#0F6E50] text-white border border-[#7CE0B8]/30 shadow-sm"
+                    : "text-white/75 hover:text-white border border-transparent"
+                }`}
+              >
+                <Briefcase className="w-3.5 h-3.5 text-[#7CE0B8]" />
+                <span>{lang === "en" ? "I want to work" : "আমি কাজ করতে চাই"}</span>
+              </button>
+            </div>
+
+            {/* Search Bar */}
+            <form onSubmit={handleSearchSubmit} className="max-w-xl">
+              <div className="flex items-center bg-white/10 rounded-2xl p-1.5 border border-white/18 shadow-[0_12px_30px_-8px_rgba(0,0,0,0.28)] focus-within:border-[#7CE0B8]/70 focus-within:ring-3 focus-within:ring-[#7CE0B8]/15 transition-all">
+                <Search className="w-4 h-4 text-[#7CE0B8] ml-3 shrink-0" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder={
+                    heroMode === "hire"
+                      ? lang === "en"
+                        ? "Search verified talent (e.g. Next.js, Figma, SEO)..."
+                        : "কী ধরনের কাজের লোক প্রয়োজন লিখুন..."
+                      : lang === "en"
+                      ? "Search open BDT projects (e.g. React, Logo, Ads)..."
+                      : "আপনার স্কিল লিখে চলমান কাজ খুঁজুন..."
+                  }
+                  className="w-full px-3 py-2.5 text-xs sm:text-sm text-white placeholder-white/55 focus:outline-none bg-transparent"
+                />
+                <button
+                  type="submit"
+                  className="px-4 sm:px-5 py-2.5 rounded-xl bg-[#0F6E50] hover:bg-[#0B5940] text-white font-semibold text-xs sm:text-sm border border-white/10 transition-colors shrink-0 cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <span>{lang === "en" ? "Search" : "খুঁজুন"}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </form>
+
+            {/* Quick Skill Pills */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-white/60 mr-1">
+                {lang === "en" ? "In demand:" : "জনপ্রিয়:"}
+              </span>
+              {quickSkills.map((item) => (
+                <button
+                  key={item.name}
+                  type="button"
+                  onClick={() => {
+                    if (heroMode === "hire" && onSearchTalent) {
+                      onSearchTalent(item.query);
+                    } else {
+                      onSelectSkill(item.query);
+                    }
+                  }}
+                  className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-white/8 hover:bg-white/15 text-white/85 hover:text-[#7CE0B8] border border-white/12 hover:border-[#7CE0B8]/35 text-xs font-medium transition-colors cursor-pointer"
+                >
+                  <span>{item.name}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Dual CTA Links */}
+            <div className="pt-2 flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={onOpenPostJob}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#0F6E50] hover:bg-[#0B5940] text-white text-xs sm:text-sm font-semibold shadow-lg border border-white/10 transition-all cursor-pointer"
+              >
+                <Briefcase className="w-4 h-4" />
+                <span>{lang === "en" ? "Post a Project Free" : "ফ্রি কাজ পোস্ট করুন"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={onExploreJobs}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs sm:text-sm font-semibold transition-all cursor-pointer"
+              >
+                <span>{lang === "en" ? "Browse Live Jobs" : "সক্রিয় কাজ দেখুন"}</span>
+                <ArrowRight className="w-3.5 h-3.5 text-[#7CE0B8]" />
+              </button>
+            </div>
+          </div>
+
+          {/* Right Column: Fintech Financial Workspace Preview Card */}
+          <div className="lg:col-span-5 mk-fade-up">
+            <div className="rounded-2xl bg-white text-[#111315] border border-[rgba(17,19,21,0.08)] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.35)] p-6 sm:p-7 space-y-5 relative overflow-hidden">
+              <div className="absolute -right-14 -top-14 w-48 h-48 rounded-full bg-[#EAF5F0] opacity-75 blur-2xl pointer-events-none" />
+
+              {/* Ledger Header */}
+              <div className="flex items-center justify-between border-b border-[rgba(17,19,21,0.08)] pb-4 relative z-10">
                 <div>
-                  <span className="text-sm sm:text-base font-black text-white block">
-                    {openJobsLabel}
+                  <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#0F6E50] block">
+                    {lang === "en" ? "Escrow Custody Ledger" : "এসক্রো কাস্টডি লেজার"}
                   </span>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                    {lang === "en" ? "Projects" : "প্রজেক্ট"}
+                  <p className="font-mono text-xs text-[#686E78] mt-0.5">
+                    MK-CTR-2026 • SSLCOMMERZ MFS
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#EAF5F0] border border-[#C3E3D5] text-[#0B3B2E] text-[10px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0F6E50] animate-pulse" />
+                  PROTECTED
+                </span>
+              </div>
+
+              {/* Milestone Pipeline Preview */}
+              <div className="space-y-3 relative z-10">
+                <Link
+                  href="/escrow"
+                  className="block p-3.5 rounded-xl bg-[#FAF9F6] hover:bg-[#EAF5F0]/65 border border-[rgba(17,19,21,0.08)] hover:border-[#C3E3D5] transition-colors group"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-lg bg-[#EAF5F0] border border-[#C3E3D5] flex items-center justify-center shrink-0">
+                        <Lock className="w-4 h-4 text-[#0F6E50]" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-[#111315] group-hover:text-[#0F6E50] transition-colors truncate">
+                          {lang === "en"
+                            ? "bKash, Nagad & Card Vault"
+                            : "বিকাশ, নগদ ও ব্যাংক কার্ড ভল্ট"}
+                        </p>
+                        <p className="text-[11px] text-[#686E78] truncate">
+                          {lang === "en"
+                            ? "Funds held safely until deliverable approval"
+                            : "কাজ অনুমোদনের আগ পর্যন্ত সুরক্ষিত"}
+                        </p>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#686E78] group-hover:text-[#0F6E50] group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </div>
+                </Link>
+
+                <Link
+                  href="/workspaces"
+                  className="block p-3.5 rounded-xl bg-[#FAF9F6] hover:bg-[#EAF5F0]/65 border border-[rgba(17,19,21,0.08)] hover:border-[#C3E3D5] transition-colors group"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-lg bg-[#FBF5EA] border border-[#EADAB8] flex items-center justify-center shrink-0">
+                        <Layers className="w-4 h-4 text-[#A87224]" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-[#111315] group-hover:text-[#0F6E50] transition-colors truncate">
+                          {lang === "en"
+                            ? "Milestone Delivery Workspaces"
+                            : "মাইলস্টোন ডেলিভারি ওয়ার্কস্পেস"}
+                        </p>
+                        <p className="text-[11px] text-[#686E78] truncate">
+                          {lang === "en"
+                            ? "Live demo inspection, revisions & 1-to-1 chat"
+                            : "লাইভ ডেমো যাচাই, রিভিশন ও ১-টু-১ চ্যাট"}
+                        </p>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#686E78] group-hover:text-[#0F6E50] group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </div>
+                </Link>
+              </div>
+
+              {/* Live Marketplace Snapshot Counters */}
+              <div className="pt-3 border-t border-[rgba(17,19,21,0.08)] grid grid-cols-3 gap-3 relative z-10">
+                <div className="p-2.5 rounded-xl bg-[#F4F2EC] border border-[rgba(17,19,21,0.07)]">
+                  <span className="font-mono text-base sm:text-lg font-bold text-[#111315] block mk-tabular">
+                    {openJobsDisplay}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-wider text-[#686E78] font-semibold">
+                    {lang === "en" ? "Open Jobs" : "সক্রিয় কাজ"}
                   </span>
                 </div>
-                <div className="border-x border-slate-800">
-                  <span className="text-sm sm:text-base font-black text-emerald-400 block">
-                    {verifiedTalentLabel}
+                <div className="p-2.5 rounded-xl bg-[#F4F2EC] border border-[rgba(17,19,21,0.07)]">
+                  <span className="font-mono text-base sm:text-lg font-bold text-[#0F6E50] block mk-tabular">
+                    {verifiedTalentDisplay}
                   </span>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                    {lang === "en" ? "Talent" : "ট্যালেন্ট"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-sm sm:text-base font-black text-white block">
-                    7% Flat
-                  </span>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
-                    {lang === "en" ? "Fee Only" : "প্ল্যাটফর্ম ফি"}
+                  <span className="text-[10px] uppercase tracking-wider text-[#686E78] font-semibold">
+                    {lang === "en" ? "Verified Pro" : "ভেরিফাইড"}
                   </span>
                 </div>
+                <div className="p-2.5 rounded-xl bg-[#F4F2EC] border border-[rgba(17,19,21,0.07)]">
+                  <span className="font-mono text-base sm:text-lg font-bold text-[#A87224] block mk-tabular">
+                    0% FX
+                  </span>
+                  <span className="text-[10px] uppercase tracking-wider text-[#686E78] font-semibold">
+                    {lang === "en" ? "BDT Direct" : "সরাসরি টাকা"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-[#3E434A] pt-1 relative z-10">
+                <span className="inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#0F6E50]" />
+                  <span>
+                    {lang === "en" ? "Porichoy NID Verification" : "পরিচয় এনআইডি যাচাইকৃত"}
+                  </span>
+                </span>
+                <Link
+                  href="/escrow"
+                  className="font-semibold text-[#0F6E50] hover:text-[#0B3B2E] hover:underline"
+                >
+                  {lang === "en" ? "Fee Calculator →" : "ফি ক্যালকুলেটর →"}
+                </Link>
               </div>
             </div>
           </div>

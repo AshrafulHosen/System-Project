@@ -18,6 +18,8 @@ import {
   TrendingDown,
   TrendingUp,
   Check,
+  Zap,
+  Star,
 } from "lucide-react";
 
 interface BidModalProps {
@@ -153,28 +155,35 @@ export default function BidModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-200">
-      <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl relative text-slate-900 flex flex-col max-h-[92vh]">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#111315]/55 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-200"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white border border-[rgba(17,19,21,0.12)] rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl relative text-[#111315] flex flex-col max-h-[90vh]"
+      >
         
         {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-slate-100 flex items-start justify-between bg-slate-50/70 shrink-0">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+        <div className="p-5 sm:p-6 border-b border-[rgba(17,19,21,0.08)] flex items-start justify-between bg-[#FAF9F6] shrink-0">
+          <div className="min-w-0 pr-3">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#EAF5F0] text-[#0B3B2E] border border-[#0F6E50]/20">
                 {lang === "en" ? "Freelancer Bidding Portal" : "ফ্রিল্যান্সার বিডিং পোর্টাল"}
               </span>
-              <span className="text-xs text-slate-400">•</span>
-              <span className="text-xs font-semibold text-slate-500">
+              <span className="text-xs text-[#8B9094]">•</span>
+              <span className="text-xs font-semibold text-[#6B7278]">
                 {job.clientName} ({job.clientLocation})
               </span>
             </div>
-            <h3 className="text-base sm:text-lg font-black text-slate-900 line-clamp-1">
+            <h3 className="text-base sm:text-lg font-bold text-[#111315] line-clamp-1">
               {lang === "en" ? job.title : (job.titleBn || job.title)}
             </h3>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+            className="p-2 rounded-xl text-[#6B7278] hover:text-[#111315] hover:bg-[#F4F2EC] transition-colors cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -182,20 +191,20 @@ export default function BidModal({
 
         {/* Content / Form */}
         {isSuccess ? (
-          <div className="p-12 text-center space-y-4 my-auto">
-            <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border-2 border-emerald-200 shadow-inner animate-bounce">
-              <CheckCircle2 className="w-10 h-10" />
+          <div className="p-12 text-center space-y-4 my-auto overflow-y-auto">
+            <div className="w-16 h-16 rounded-full bg-[#EAF5F0] text-[#0F6E50] flex items-center justify-center mx-auto border border-[#0F6E50]/25">
+              <CheckCircle2 className="w-9 h-9" />
             </div>
-            <h4 className="text-2xl font-black text-slate-900">
+            <h4 className="text-2xl font-bold text-[#111315]">
               {lang === "en" ? "Bid Successfully Placed!" : "আপনার বিড সফলভাবে জমা হয়েছে!"}
             </h4>
-            <p className="text-sm text-slate-600 max-w-md mx-auto">
+            <p className="text-sm text-[#3F4448] max-w-md mx-auto font-mono mk-tabular leading-relaxed">
               {lang === "en"
                 ? `Your proposal of ৳${bidAmount.toLocaleString()} BDT has been sent to ${job.clientName}. You will receive an SMS alert at ${phone} when the client reviews your bid.`
                 : `আপনার ৳${bidAmount.toLocaleString()} টাকার প্রস্তাবনা ক্লায়েন্টের কাছে পাঠানো হয়েছে। ক্লায়েন্ট দেখলে ${phone} নম্বরে SMS নোটিফিকেশন পাবেন।`}
             </p>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] text-[#0B3B2E] text-xs font-bold">
+              <ShieldCheck className="w-4 h-4 text-[#0F6E50]" />
               <span>{lang === "en" ? "Secured by MuktoKormo BDT Escrow" : "মুক্তকর্ম BDT এসক্রো দ্বারা সুরক্ষিত"}</span>
             </div>
           </div>
@@ -203,38 +212,38 @@ export default function BidModal({
           <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-5 overflow-y-auto flex-1">
             
             {/* Job Context & Budget Benchmark */}
-            <div className="bg-gradient-to-r from-slate-50 to-emerald-50/30 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7278] block">
                   {lang === "en" ? "Client's Stated Budget" : "ক্লায়েন্টের নির্ধারিত বাজেট"}
                 </span>
-                <span className="text-xl font-black text-slate-900 tracking-tight">
+                <span className="text-xl font-mono mk-tabular font-bold text-[#111315] tracking-tight">
                   ৳{job.budgetBdt.toLocaleString()} BDT
                 </span>
-                <span className="text-xs text-slate-500 block mt-0.5">
+                <span className="text-xs font-mono mk-tabular text-[#6B7278] block mt-0.5">
                   Est. Delivery: {job.deadlineDays} days • {job.experienceLevel}
                 </span>
               </div>
 
               {/* Real-time Bid Competitiveness Indicator */}
               <div className="text-left sm:text-right">
-                <span className="text-[11px] font-bold text-slate-500 block">
-                  {lang === "en" ? "Bid Competitiveness:" : "বিড রেটিং:"}
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7278] block mb-1">
+                  {lang === "en" ? "Bid Competitiveness" : "বিড রেটিং"}
                 </span>
                 {isBelowBudget && (
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100/80 px-2.5 py-1 rounded-lg">
-                    <TrendingDown className="w-3.5 h-3.5" />
+                  <span className="inline-flex items-center gap-1 text-xs font-mono mk-tabular font-bold text-[#0B3B2E] bg-[#EAF5F0] border border-[#0F6E50]/20 px-2.5 py-1 rounded-lg">
+                    <TrendingDown className="w-3.5 h-3.5 text-[#0F6E50]" />
                     ৳{Math.abs(budgetDiff).toLocaleString()} below budget (Competitive)
                   </span>
                 )}
                 {isExactBudget && (
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-sky-700 bg-sky-100/80 px-2.5 py-1 rounded-lg">
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-[#1E5B88] bg-[#EEF5FA] border border-[#1E5B88]/20 px-2.5 py-1 rounded-lg">
                     <Check className="w-3.5 h-3.5" />
                     Exact Match with Client Budget
                   </span>
                 )}
                 {isAboveBudget && (
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-700 bg-amber-100/80 px-2.5 py-1 rounded-lg">
+                  <span className="inline-flex items-center gap-1 text-xs font-mono mk-tabular font-bold text-[#A87224] bg-[#FEF6E6] border border-[#A87224]/25 px-2.5 py-1 rounded-lg">
                     <TrendingUp className="w-3.5 h-3.5" />
                     ৳{budgetDiff.toLocaleString()} above budget (Premium)
                   </span>
@@ -244,39 +253,39 @@ export default function BidModal({
 
             {/* Bidding Mode Switcher: By Project vs By Milestone */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">
+              <label className="block text-xs font-bold text-[#3F4448] mb-2">
                 {lang === "en" ? "How do you want to be paid?" : "আপনি কীভাবে পেমেন্ট নিতে চান?"}
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setBiddingType("PROJECT")}
-                  className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
+                  className={`p-3.5 rounded-xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 ${
                     biddingType === "PROJECT"
-                      ? "border-emerald-600 bg-emerald-50/50 shadow-xs"
-                      : "border-slate-200 bg-white hover:bg-slate-50"
+                      ? "border-[#0F6E50] bg-[#EAF5F0]/65 shadow-2xs"
+                      : "border-[rgba(17,19,21,0.10)] bg-white hover:bg-[#FAF9F6]"
                   }`}
                 >
-                  <Briefcase className={`w-5 h-5 shrink-0 mt-0.5 ${biddingType === "PROJECT" ? "text-emerald-600" : "text-slate-400"}`} />
+                  <Briefcase className={`w-5 h-5 shrink-0 mt-0.5 ${biddingType === "PROJECT" ? "text-[#0F6E50]" : "text-[#8B9094]"}`} />
                   <div>
-                    <span className="text-xs font-bold text-slate-900 block">By Project</span>
-                    <span className="text-[11px] text-slate-500">Single escrow release upon 100% completion</span>
+                    <span className="text-xs font-bold text-[#111315] block">By Project</span>
+                    <span className="text-[11px] text-[#6B7278]">Single escrow release upon 100% completion</span>
                   </div>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setBiddingType("MILESTONES")}
-                  className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-start gap-3 ${
+                  className={`p-3.5 rounded-xl border-2 text-left transition-all cursor-pointer flex items-start gap-3 ${
                     biddingType === "MILESTONES"
-                      ? "border-emerald-600 bg-emerald-50/50 shadow-xs"
-                      : "border-slate-200 bg-white hover:bg-slate-50"
+                      ? "border-[#0F6E50] bg-[#EAF5F0]/65 shadow-2xs"
+                      : "border-[rgba(17,19,21,0.10)] bg-white hover:bg-[#FAF9F6]"
                   }`}
                 >
-                  <Layers className={`w-5 h-5 shrink-0 mt-0.5 ${biddingType === "MILESTONES" ? "text-emerald-600" : "text-slate-400"}`} />
+                  <Layers className={`w-5 h-5 shrink-0 mt-0.5 ${biddingType === "MILESTONES" ? "text-[#0F6E50]" : "text-[#8B9094]"}`} />
                   <div>
-                    <span className="text-xs font-bold text-slate-900 block">By Milestones</span>
-                    <span className="text-[11px] text-slate-500">Split into smaller deliverables & phased payouts</span>
+                    <span className="text-xs font-bold text-[#111315] block">By Milestones</span>
+                    <span className="text-[11px] text-[#6B7278]">Split into smaller deliverables & phased payouts</span>
                   </div>
                 </button>
               </div>
@@ -285,11 +294,11 @@ export default function BidModal({
             {/* Bid Amount & Timeline Inputs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-[#3F4448] mb-1">
                   {lang === "en" ? "Total Bid Amount (৳ BDT)" : "মোট বিড অ্যামাউন্ট (৳ টাকা)"}
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-2.5 text-sm font-bold text-slate-400">৳</span>
+                  <span className="absolute left-3.5 top-2.5 text-sm font-mono font-bold text-[#6B7278]">৳</span>
                   <input
                     type="number"
                     required
@@ -297,17 +306,17 @@ export default function BidModal({
                     step={500}
                     value={bidAmount}
                     onChange={(e) => setBidAmount(Number(e.target.value))}
-                    className="w-full pl-8 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+                    className="w-full pl-8 pr-3.5 py-2.5 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-sm font-mono mk-tabular font-bold text-[#111315] focus:outline-hidden focus:ring-2 focus:ring-[#0F6E50] focus:bg-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-[#3F4448] mb-1">
                   {lang === "en" ? "Estimated Delivery Time (Days)" : "প্রজেক্ট ডেলিভারি সময় (দিন)"}
                 </label>
                 <div className="relative">
-                  <Clock className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+                  <Clock className="w-4 h-4 absolute left-3.5 top-3 text-[#6B7278]" />
                   <input
                     type="number"
                     required
@@ -315,7 +324,7 @@ export default function BidModal({
                     max={120}
                     value={deliveryDays}
                     onChange={(e) => setDeliveryDays(Number(e.target.value))}
-                    className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+                    className="w-full pl-10 pr-3.5 py-2.5 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-sm font-mono mk-tabular font-bold text-[#111315] focus:outline-hidden focus:ring-2 focus:ring-[#0F6E50] focus:bg-white"
                   />
                 </div>
               </div>
@@ -323,51 +332,51 @@ export default function BidModal({
 
             {/* Milestone Builder (Visible if By Milestones selected) */}
             {biddingType === "MILESTONES" && (
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                    <Layers className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] rounded-xl p-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-bold text-[#111315] flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-[#0F6E50]" />
                     Milestone Deliverables Breakdown
                   </span>
-                  <span className={`text-[11px] font-bold ${isMilestoneMismatched ? "text-amber-600" : "text-emerald-700"}`}>
+                  <span className={`text-[11px] font-mono mk-tabular font-bold ${isMilestoneMismatched ? "text-[#A87224]" : "text-[#0F6E50]"}`}>
                     Sum: ৳{totalMilestonesAmount.toLocaleString()} / ৳{bidAmount.toLocaleString()}
                   </span>
                 </div>
 
                 <div className="space-y-2">
                   {milestones.map((m, idx) => (
-                    <div key={m.id} className="flex items-center gap-2 bg-white p-2.5 rounded-xl border border-slate-200">
-                      <span className="text-[11px] font-black text-slate-400 w-5 text-center">#{idx + 1}</span>
+                    <div key={m.id} className="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-white p-2.5 rounded-xl border border-[rgba(17,19,21,0.10)]">
+                      <span className="text-[11px] font-mono mk-tabular font-bold text-[#6B7278] w-6 text-center shrink-0">#{idx + 1}</span>
                       <input
                         type="text"
                         placeholder="Milestone description"
                         value={m.title}
                         onChange={(e) => handleUpdateMilestone(m.id, "title", e.target.value)}
-                        className="flex-1 text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg text-slate-800 focus:outline-hidden"
+                        className="flex-1 min-w-[160px] text-xs px-2.5 py-1.5 bg-[#FAF9F6] border border-[rgba(17,19,21,0.10)] rounded-lg text-[#111315] focus:outline-hidden focus:ring-1 focus:ring-[#0F6E50]"
                       />
-                      <div className="relative w-28">
-                        <span className="absolute left-2 top-1.5 text-xs text-slate-400">৳</span>
+                      <div className="relative w-28 shrink-0">
+                        <span className="absolute left-2 top-1.5 text-xs font-mono text-[#6B7278]">৳</span>
                         <input
                           type="number"
                           value={m.amountBdt}
                           onChange={(e) => handleUpdateMilestone(m.id, "amountBdt", Number(e.target.value))}
-                          className="w-full pl-5 pr-2 py-1.5 text-xs font-bold border border-slate-200 rounded-lg text-slate-900 text-right"
+                          className="w-full pl-5 pr-2 py-1.5 text-xs font-mono mk-tabular font-bold bg-[#FAF9F6] border border-[rgba(17,19,21,0.10)] rounded-lg text-[#111315] text-right focus:outline-hidden focus:ring-1 focus:ring-[#0F6E50]"
                         />
                       </div>
-                      <div className="relative w-20">
+                      <div className="relative w-20 shrink-0">
                         <input
                           type="number"
                           placeholder="Days"
                           value={m.deliveryDays}
                           onChange={(e) => handleUpdateMilestone(m.id, "deliveryDays", Number(e.target.value))}
-                          className="w-full px-2 py-1.5 text-xs font-bold border border-slate-200 rounded-lg text-slate-900 text-right"
+                          className="w-full px-2 py-1.5 text-xs font-mono mk-tabular font-bold bg-[#FAF9F6] border border-[rgba(17,19,21,0.10)] rounded-lg text-[#111315] text-right focus:outline-hidden focus:ring-1 focus:ring-[#0F6E50]"
                         />
                       </div>
                       <button
                         type="button"
                         onClick={() => handleRemoveMilestone(m.id)}
                         disabled={milestones.length <= 1}
-                        className="p-1 text-slate-400 hover:text-rose-500 disabled:opacity-30 cursor-pointer"
+                        className="p-1.5 text-[#6B7278] hover:text-[#DC2626] disabled:opacity-30 cursor-pointer shrink-0"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -378,7 +387,7 @@ export default function BidModal({
                 <button
                   type="button"
                   onClick={handleAddMilestone}
-                  className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-800 cursor-pointer pt-1"
+                  className="flex items-center gap-1.5 text-xs font-bold text-[#0F6E50] hover:text-[#0B3B2E] cursor-pointer pt-1"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Another Milestone</span>
@@ -387,43 +396,43 @@ export default function BidModal({
             )}
 
             {/* Financial Calculator: Platform Fee & Net Payout */}
-            <div className="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-4 space-y-3">
-              <div className="flex items-center justify-between text-xs font-bold text-emerald-900">
+            <div className="bg-[#EAF5F0] border border-[#0F6E50]/20 rounded-2xl p-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-[#0B3B2E]">
                 <span className="flex items-center gap-1.5">
-                  <Calculator className="w-4 h-4 text-emerald-700" />
+                  <Calculator className="w-4 h-4 text-[#0F6E50]" />
                   Net Take-Home Earnings (7% Flat Platform Fee)
                 </span>
-                <span className="text-[11px] font-semibold text-emerald-700">Bangladesh MFS Direct</span>
+                <span className="text-[11px] font-semibold text-[#0F6E50]">Bangladesh MFS Direct</span>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-emerald-200/80 text-center">
-                <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
-                  <span className="text-[10px] text-slate-400 block font-semibold">Your Gross Bid</span>
-                  <span className="text-sm font-black text-slate-900">৳{bidAmount.toLocaleString()}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-[#0F6E50]/15 text-center">
+                <div className="bg-white p-2.5 rounded-xl border border-[#0F6E50]/15">
+                  <span className="text-[10px] text-[#6B7278] block font-semibold">Your Gross Bid</span>
+                  <span className="text-sm font-mono mk-tabular font-bold text-[#111315]">৳{bidAmount.toLocaleString()}</span>
                 </div>
-                <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
-                  <span className="text-[10px] text-slate-400 block font-semibold">Platform Fee (7%)</span>
-                  <span className="text-sm font-black text-rose-500">-৳{platformFee.toLocaleString()}</span>
+                <div className="bg-white p-2.5 rounded-xl border border-[#0F6E50]/15">
+                  <span className="text-[10px] text-[#6B7278] block font-semibold">Platform Fee (7%)</span>
+                  <span className="text-sm font-mono mk-tabular font-bold text-[#DC2626]">-৳{platformFee.toLocaleString()}</span>
                 </div>
-                <div className="bg-emerald-600 p-2.5 rounded-xl text-white shadow-xs">
-                  <span className="text-[10px] text-emerald-100 block font-semibold">You Receive (Net)</span>
-                  <span className="text-sm font-black text-white">৳{netEarnings.toLocaleString()}</span>
+                <div className="bg-[#0B3B2E] p-2.5 rounded-xl text-white shadow-2xs">
+                  <span className="text-[10px] text-white/75 block font-semibold">You Receive (Net)</span>
+                  <span className="text-sm font-mono mk-tabular font-bold text-white">৳{netEarnings.toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Payout Channel Selector */}
               <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                <span className="font-semibold text-slate-700">Receiving Wallet:</span>
-                <div className="flex items-center gap-2">
+                <span className="font-semibold text-[#0B3B2E]">Receiving Wallet:</span>
+                <div className="flex flex-wrap items-center gap-2">
                   {(["BKASH", "NAGAD", "ROCKET", "BANK"] as const).map((method) => (
                     <button
                       key={method}
                       type="button"
                       onClick={() => setPayoutMethod(method)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                         payoutMethod === method
-                          ? "bg-slate-900 text-white"
-                          : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                          ? "bg-[#0B3B2E] text-white"
+                          : "bg-white text-[#3F4448] border border-[rgba(17,19,21,0.12)] hover:bg-[#FAF9F6]"
                       }`}
                     >
                       {method}
@@ -434,7 +443,7 @@ export default function BidModal({
                     value={payoutAccount}
                     onChange={(e) => setPayoutAccount(e.target.value)}
                     placeholder="Mobile / Account"
-                    className="w-32 px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800"
+                    className="w-36 px-2.5 py-1 bg-white border border-[rgba(17,19,21,0.12)] rounded-lg text-xs font-mono mk-tabular font-semibold text-[#111315] focus:outline-hidden focus:ring-1 focus:ring-[#0F6E50]"
                   />
                 </div>
               </div>
@@ -442,28 +451,30 @@ export default function BidModal({
 
             {/* Quick Pitch Presets */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-bold text-slate-700">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                <label className="text-xs font-bold text-[#3F4448]">
                   {lang === "en" ? "Cover Letter & Proposal Pitch" : "কভার লেটার ও প্রস্তাবনার বিবরণ"}
                 </label>
-                <div className="flex items-center gap-1.5 text-[11px]">
-                  <span className="text-slate-400 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-amber-500" />
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                  <span className="text-[#6B7278] flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-[#A87224]" />
                     Quick Presets:
                   </span>
                   <button
                     type="button"
                     onClick={() => applyPitchPreset("speed")}
-                    className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F4F2EC] hover:bg-[#EAF5F0] text-[#3F4448] hover:text-[#0B3B2E] font-semibold cursor-pointer transition-colors"
                   >
-                    ⚡ Fast Delivery
+                    <Zap className="w-3 h-3 text-[#A87224]" />
+                    <span>Fast Delivery</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPitchPreset("quality")}
-                    className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F4F2EC] hover:bg-[#EAF5F0] text-[#3F4448] hover:text-[#0B3B2E] font-semibold cursor-pointer transition-colors"
                   >
-                    ⭐ Senior Quality
+                    <Star className="w-3 h-3 text-[#A87224]" />
+                    <span>Senior Quality</span>
                   </button>
                 </div>
               </div>
@@ -474,30 +485,30 @@ export default function BidModal({
                 value={coverLetter}
                 onChange={(e) => setCoverLetter(e.target.value)}
                 placeholder="Explain why you are the best fit for this project..."
-                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 leading-relaxed focus:outline-hidden focus:ring-2 focus:ring-emerald-500 resize-none"
+                className="w-full px-3.5 py-2.5 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-xs text-[#111315] leading-relaxed focus:outline-hidden focus:ring-2 focus:ring-[#0F6E50] focus:bg-white resize-none"
               />
             </div>
 
             {/* Portfolio Link & Freelancer Info */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-[#3F4448] mb-1">
                   Relevant Portfolio / Demo Link
                 </label>
                 <div className="relative">
-                  <LinkIcon className="w-3.5 h-3.5 absolute left-3 top-3 text-slate-400" />
+                  <LinkIcon className="w-3.5 h-3.5 absolute left-3 top-3 text-[#6B7278]" />
                   <input
                     type="url"
                     value={portfolioLink}
                     onChange={(e) => setPortfolioLink(e.target.value)}
                     placeholder="https://github.com/your-work"
-                    className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+                    className="w-full pl-9 pr-3 py-2 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-xs text-[#111315] focus:outline-hidden focus:ring-2 focus:ring-[#0F6E50] focus:bg-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-[#3F4448] mb-1">
                   SMS Notification Phone (+880)
                 </label>
                 <input
@@ -505,26 +516,26 @@ export default function BidModal({
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-mono mk-tabular text-[#111315] focus:outline-hidden focus:ring-2 focus:ring-[#0F6E50] focus:bg-white"
                 />
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+            <div className="pt-3 border-t border-[rgba(17,19,21,0.08)] flex items-center justify-between">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-[#6B7278] hover:text-[#111315] cursor-pointer"
               >
                 {lang === "en" ? "Cancel" : "বাতিল"}
               </button>
 
               <button
                 type="submit"
-                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-7 py-2.5 rounded-full shadow-md shadow-emerald-600/20 hover:scale-105 active:scale-95 transition-all text-xs cursor-pointer"
+                className="flex items-center gap-2 bg-[#0B3B2E] hover:bg-[#0F6E50] text-white font-bold px-7 py-2.5 rounded-xl shadow-xs transition-all text-xs cursor-pointer"
               >
-                <Send className="w-3.5 h-3.5 stroke-[2.5]" />
+                <Send className="w-3.5 h-3.5" />
                 <span>{lang === "en" ? "Submit Bid Now" : "বিড জমা দিন"}</span>
               </button>
             </div>
