@@ -6,6 +6,8 @@ export type BadgeVariant =
   | "escrow"
   | "warning"
   | "danger"
+  | "info"
+  | "accent"
   | "neutral"
   | "dark";
 
@@ -14,17 +16,20 @@ interface BadgeProps {
   variant?: BadgeVariant;
   icon?: React.ReactNode;
   pulse?: boolean;
+  dotColor?: string;
   className?: string;
 }
 
 const VARIANT_CLASSES: Record<BadgeVariant, string> = {
-  brand: "bg-emerald-50 text-emerald-800 border-emerald-200/80",
-  verified: "bg-emerald-50/90 text-emerald-700 border-emerald-200",
-  escrow: "bg-teal-50 text-teal-800 border-teal-200/80",
-  warning: "bg-amber-50 text-amber-800 border-amber-200/80",
-  danger: "bg-rose-50 text-rose-700 border-rose-200/80",
-  neutral: "bg-slate-100 text-slate-700 border-slate-200/80",
-  dark: "bg-slate-900 text-white border-slate-800",
+  brand: "bg-[#EAF5F0] text-[#0B3B2E] border-[#C3E3D5]",
+  verified: "bg-[#EAF5F0] text-[#0F6E50] border-[#BBE0D1]",
+  escrow: "bg-[#EDF4FC] text-[#1D5A96] border-[#C9DCF2]",
+  info: "bg-[#EDF4FC] text-[#1D5A96] border-[#C9DCF2]",
+  accent: "bg-[#FBF5EA] text-[#9A661A] border-[#EADAB8]",
+  warning: "bg-[#FEF8EA] text-[#9A6008] border-[#F0DDA8]",
+  danger: "bg-[#FFF1F3] text-[#BE123C] border-[#FCCDD6]",
+  neutral: "bg-[#F4F2EC] text-[#3E434A] border-[#E3DFD5]",
+  dark: "bg-[#0B3B2E] text-[#FAF9F6] border-[#165745]",
 };
 
 export function Badge({
@@ -32,18 +37,22 @@ export function Badge({
   variant = "neutral",
   icon,
   pulse = false,
+  dotColor,
   className = "",
 }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-tight border ${VARIANT_CLASSES[variant]} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-[-0.01em] border leading-snug ${VARIANT_CLASSES[variant]} ${className}`}
     >
       {pulse && (
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+        <span
+          className={`w-1.5 h-1.5 rounded-full animate-pulse shrink-0 ${
+            dotColor ?? "bg-[#0F6E50]"
+          }`}
+        />
       )}
-      {icon && <span className="shrink-0">{icon}</span>}
+      {icon && <span className="shrink-0 flex items-center">{icon}</span>}
       <span>{children}</span>
     </span>
   );
 }
-

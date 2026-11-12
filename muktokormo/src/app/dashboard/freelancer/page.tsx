@@ -465,16 +465,16 @@ function FreelancerDashboardContent() {
     >
       <div className="max-w-6xl mx-auto space-y-8">
         {deniedFrom === "client" && (
-          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold flex items-center justify-between gap-3 shadow-xs animate-in fade-in">
+          <div className="p-4 rounded-2xl bg-[#FEF6E6] border border-[#A87224]/25 text-[#6B4712] text-xs font-semibold flex items-center justify-between gap-3 shadow-xs animate-in fade-in">
             <div className="flex items-center gap-2.5">
-              <span className="w-5 h-5 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center font-black">!</span>
+              <span className="w-5 h-5 rounded-full bg-[#A87224]/20 text-[#A87224] flex items-center justify-center font-bold">!</span>
               <span>
                 {lang === "en"
                   ? "Access Restricted: You are signed in as a Freelancer. Only Employer / Client accounts can access the Client Hiring dashboard."
                   : "অ্যাক্সেস সংরক্ষিত: আপনি ফ্রিল্যান্সার হিসেবে লগইন করেছেন। শুধুমাত্র নিয়োগদাতা অ্যাকাউন্টই ক্লায়েন্ট ড্যাশবোর্ডে প্রবেশ করতে পারে।"}
               </span>
             </div>
-            <button onClick={() => router.replace("/dashboard/freelancer")} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+            <button onClick={() => router.replace("/dashboard/freelancer")} className="text-[#8E9599] hover:text-[#111315] cursor-pointer">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -483,35 +483,39 @@ function FreelancerDashboardContent() {
         {activeTab === "overview" && (
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <div className="flex items-center gap-2 mb-1.5">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#EAF5F0] text-[#0B3B2E] border border-[#0F6E50]/20">
                   {lang === "en" ? "Freelancer Command Center" : "ফ্রিল্যান্সার ড্যাশবোর্ড"}
                 </span>
-                <span className="text-slate-300">•</span>
+                <span className="text-[#8E9599]">•</span>
                 <button
                   type="button"
                   onClick={() => setActiveTab("workspace")}
-                  className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
+                  className="text-xs font-semibold text-[#0F6E50] hover:text-[#0B3B2E] hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <span>{lang === "en" ? "Active Workspaces" : "চলতি ওয়ার্কস্পেস"}</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-[-0.02em] text-[#111315]">
                 {lang === "en" ? (
                   <>
-                    Welcome back, <span className="text-emerald-600">{firstName}</span>
+                    Welcome back,{" "}
+                    <span className="font-serif italic font-semibold text-[#0F6E50]">
+                      {firstName}
+                    </span>
                   </>
                 ) : (
                   <>
-                    স্বাগতম, <span className="text-emerald-600">{firstName}</span>
+                    স্বাগতম,{" "}
+                    <span className="font-semibold text-[#0F6E50]">{firstName}</span>
                   </>
                 )}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1 flex flex-wrap items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <p className="text-xs sm:text-sm text-[#61676B] mt-1 flex flex-wrap items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#0F6E50]" />
                 {email || (lang === "en" ? "Freelancer Account" : "ফ্রিল্যান্সার অ্যাকাউন্ট")}
-                <span className="text-slate-300">•</span>
+                <span className="text-[#8E9599]">•</span>
                 {lang === "en"
                   ? "NID verified · 4.98 rating · Dhaka, Bangladesh"
                   : "এনআইডি যাচাইকৃত · ৪.৯৮ রেটিং · ঢাকা, বাংলাদেশ"}
@@ -519,17 +523,17 @@ function FreelancerDashboardContent() {
             </div>
 
             {/* Live Availability Status Toggle */}
-            <div className="flex items-center gap-2.5 self-start sm:self-auto bg-white border border-slate-200/90 rounded-2xl px-3.5 py-2.5 shadow-2xs">
+            <div className="flex items-center gap-2.5 self-start sm:self-auto bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl px-3.5 py-2.5 shadow-2xs">
               <span
                 className={`w-2.5 h-2.5 rounded-full ${
-                  isAvailableForWork ? "bg-emerald-500 animate-pulse" : "bg-amber-400"
+                  isAvailableForWork ? "bg-[#0F6E50] animate-pulse" : "bg-[#A87224]"
                 }`}
               />
               <div className="text-left">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#61676B] block">
                   {lang === "en" ? "Directory Status" : "ডিরেক্টরি স্ট্যাটাস"}
                 </span>
-                <span className="text-xs font-bold text-slate-800">
+                <span className="text-xs font-bold text-[#111315]">
                   {isAvailableForWork
                     ? lang === "en"
                       ? "Available for Work"
@@ -546,7 +550,7 @@ function FreelancerDashboardContent() {
                 disabled={updatingAvailability}
                 onClick={handleToggleAvailability}
                 className={`ml-2 relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  isAvailableForWork ? "bg-emerald-600" : "bg-slate-200"
+                  isAvailableForWork ? "bg-[#0F6E50]" : "bg-[#D5D1C8]"
                 }`}
               >
                 <span
@@ -620,18 +624,18 @@ function FreelancerDashboardContent() {
             </div>
 
             {activeFundedContracts.length > 0 && (
-              <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-3">
+              <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-5 shadow-xs space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    <h3 className="text-sm font-bold text-[#111315] flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-[#0F6E50]" />
                       <span>
                         {lang === "en"
                           ? "Active Funded Contracts"
                           : "সক্রিয় ফান্ডেড চুক্তিসমূহ"}
                       </span>
                     </h3>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-[#61676B]">
                       {lang === "en"
                         ? "Escrow-funded milestones ready for work submission and client approval."
                         : "কাজ জমা ও ক্লায়েন্ট অনুমোদনের জন্য প্রস্তুত ফান্ডেড চুক্তি।"}
@@ -640,7 +644,7 @@ function FreelancerDashboardContent() {
                   <button
                     type="button"
                     onClick={() => setActiveTab("wallet")}
-                    className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-semibold text-[#0F6E50] hover:text-[#0B3B2E] hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <span>
                       {lang === "en" ? "Open Earnings & Escrow" : "আয় ও এসক্রো দেখুন"}
@@ -655,33 +659,33 @@ function FreelancerDashboardContent() {
                     return (
                       <div
                         key={ct.id}
-                        className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/60 flex items-center justify-between gap-3"
+                        className="p-3.5 rounded-xl border border-[rgba(17,19,21,0.08)] bg-[#FAF9F6] flex items-center justify-between gap-3"
                       >
                         <div className="min-w-0">
                           <Link
                             href={`/contracts/${ct.id}`}
-                            className="text-xs font-bold text-slate-900 hover:text-emerald-700 hover:underline line-clamp-1"
+                            className="text-xs font-bold text-[#111315] hover:text-[#0F6E50] hover:underline line-clamp-1"
                           >
                             {ct.title}
                           </Link>
-                          <p className="text-[11px] text-slate-500 truncate mt-0.5">
+                          <p className="text-[11px] text-[#61676B] font-mono mk-tabular truncate mt-0.5">
                             {ct.counterpartyName} · {ct.contractCode}
                           </p>
-                          <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                          <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EEF5FA] text-[#1E5B88] border border-[#1E5B88]/20">
                             {lang === "en" ? workMeta.label : workMeta.labelBn}
                           </span>
                         </div>
 
                         <div className="text-right shrink-0">
-                          <p className="text-xs font-black text-emerald-700">
+                          <p className="text-xs font-bold font-mono mk-tabular text-[#0B3B2E]">
                             {formatBdt(ct.netEarningsBdt)}
                           </p>
-                          <p className="text-[10px] text-slate-400">
+                          <p className="text-[10px] font-mono mk-tabular text-[#61676B]">
                             Net 90% of {formatBdt(ct.totalBdt)}
                           </p>
                           <Link
                             href={`/contracts/${ct.id}`}
-                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:underline"
+                            className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-[#0F6E50] hover:underline"
                           >
                             <span>{lang === "en" ? "Workspace" : "ওয়ার্কস্পেস"}</span>
                             <ExternalLink className="w-3 h-3" />
@@ -721,7 +725,7 @@ function FreelancerDashboardContent() {
                 action={
                   <button
                     onClick={() => setActiveTab("find-work")}
-                    className="text-[11px] font-bold text-emerald-600 hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-[11px] font-semibold text-[#0F6E50] hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <span>{lang === "en" ? "Browse All Jobs" : "মার্কেটপ্লেস দেখুন"}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -730,29 +734,29 @@ function FreelancerDashboardContent() {
               />
               <div className="space-y-2.5">
                 {recommendedJobs.length === 0 ? (
-                  <div className="bg-white border border-slate-200/90 rounded-2xl p-8 text-center">
-                    <Search className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-                    <p className="text-xs font-bold text-slate-500">
+                  <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-8 text-center">
+                    <Search className="w-8 h-8 text-[#8E9599] mx-auto mb-3" />
+                    <p className="text-xs font-semibold text-[#61676B]">
                       {lang === "en" ? "No open jobs yet. Check back soon!" : "এখনো কোনো কাজ নেই, শীঘ্রই যোগ হবে!"}
                     </p>
                   </div>
                 ) : recommendedJobs.map((job) => (
                   <div
                     key={job.id}
-                    className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs hover:border-emerald-300 transition-all"
+                    className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 shadow-xs hover:border-[#0F6E50]/40 transition-all"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <span className="text-[10px] font-bold text-slate-400 mb-1 block">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#61676B] mb-1 block">
                           {job.category}
                         </span>
-                        <h4 className="text-xs font-bold text-slate-900 leading-snug">
-                          <Link href={`/jobs/${job.id}`} className="hover:text-emerald-700 hover:underline transition-colors">
+                        <h4 className="text-xs font-bold text-[#111315] leading-snug">
+                          <Link href={`/jobs/${job.id}`} className="hover:text-[#0F6E50] hover:underline transition-colors">
                             {lang === "en" ? job.title : (job.titleBn || job.title)}
                           </Link>
                         </h4>
-                        <div className="flex flex-wrap items-center gap-3 mt-2 text-[10px] text-slate-500">
-                          <span className="font-bold text-slate-800">
+                        <div className="flex flex-wrap items-center gap-3 mt-2 text-[11px] font-mono mk-tabular text-[#61676B]">
+                          <span className="font-bold text-[#111315]">
                             {formatBdt(job.budgetBdt)}
                           </span>
                           <span className="flex items-center gap-1">
@@ -763,7 +767,7 @@ function FreelancerDashboardContent() {
                             <Send className="w-2.5 h-2.5" />
                             {job.proposalsCount} bids
                           </span>
-                          <span className="font-bold text-emerald-600">
+                          <span className="font-sans font-semibold text-[#0F6E50]">
                             {job.clientVerified ? "✓ Verified Client" : "Client"}
                           </span>
                         </div>
@@ -775,7 +779,7 @@ function FreelancerDashboardContent() {
                           setApplyBidAmount(job.budgetBdt);
                           setApplyDays(job.deadlineDays);
                         }}
-                        className="shrink-0 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                        className="shrink-0 px-3.5 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold transition-all cursor-pointer shadow-xs"
                       >
                         {lang === "en" ? "Quick Bid" : "বিড করুন"}
                       </button>
@@ -789,15 +793,15 @@ function FreelancerDashboardContent() {
               <RecommendedSkills lang={lang} onPick={handlePickSkill} />
 
               {pickedSkills.length > 0 && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 animate-in fade-in duration-200">
-                  <h4 className="text-xs font-black text-emerald-900">
+                <div className="bg-[#EAF5F0] border border-[#0F6E50]/20 rounded-2xl p-5 animate-in fade-in duration-200">
+                  <h4 className="text-xs font-bold text-[#0B3B2E]">
                     {lang === "en" ? "Ready to add to profile" : "প্রোফাইলে যোগ করার জন্য প্রস্তুত"}
                   </h4>
                   <div className="flex flex-wrap gap-1.5 mt-2.5">
                     {pickedSkills.map((s) => (
                       <span
                         key={s}
-                        className="px-2.5 py-1 rounded-lg bg-white border border-emerald-200 text-[11px] font-bold text-emerald-800"
+                        className="px-2.5 py-1 rounded-lg bg-white border border-[#0F6E50]/20 text-[11px] font-semibold text-[#0B3B2E]"
                       >
                         {s}
                       </span>
@@ -805,7 +809,7 @@ function FreelancerDashboardContent() {
                   </div>
                   <Link
                     href="/signup?step=profile"
-                    className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 hover:underline"
+                    className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#0F6E50] hover:underline"
                   >
                     {lang === "en" ? "Save to Freelancer Profile" : "প্রোফাইলে সেভ করুন"}
                     <ArrowRight className="w-3 h-3" />
@@ -829,7 +833,7 @@ function FreelancerDashboardContent() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("find-work")}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#F4F2EC] hover:bg-[#EAE7DF] text-[#111315] text-xs font-semibold border border-[rgba(17,19,21,0.08)] transition-all cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>{lang === "en" ? "Bid on Jobs" : "নতুন আবেদন"}</span>
@@ -886,15 +890,15 @@ function FreelancerDashboardContent() {
         {activeTab === "wallet" && (
           <div id="wallet" className="space-y-6">
             {paymentsError && (
-              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between gap-3">
+              <div className="p-4 rounded-2xl bg-[#FEF2F2] border border-[#DC2626]/20 text-[#991B1B] text-xs font-semibold flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0" />
                   <span>{paymentsError}</span>
                 </div>
                 <button
                   type="button"
                   onClick={handleRefreshPayments}
-                  className="px-3 py-1 rounded-lg bg-white border border-rose-200 text-rose-700 font-bold hover:bg-rose-100 cursor-pointer"
+                  className="px-3 py-1 rounded-lg bg-white border border-[#DC2626]/20 text-[#B91C1C] font-bold hover:bg-[#FEF2F2] cursor-pointer"
                 >
                   {lang === "en" ? "Retry" : "আবার চেষ্টা করুন"}
                 </button>
@@ -902,8 +906,8 @@ function FreelancerDashboardContent() {
             )}
 
             {/* Academic Simulation Disclaimer */}
-            <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/90 text-xs text-amber-950">
-              <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-[#FEF6E6] border border-[#A87224]/25 text-xs text-[#6B4712]">
+              <Info className="w-4 h-4 text-[#A87224] shrink-0 mt-0.5" />
               <p className="leading-relaxed">
                 {lang === "en"
                   ? ESCROW_SIMULATION_DISCLAIMER
@@ -912,26 +916,26 @@ function FreelancerDashboardContent() {
             </div>
 
             {/* Simulated Freelancer Earnings Card */}
-            <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 rounded-2xl p-6 text-white shadow-sm border border-slate-800 space-y-5">
+            <div className="mk-dark-card rounded-2xl p-6 text-white shadow-sm space-y-5">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <Wallet className="w-4 h-4 text-emerald-400" />
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
+                    <Wallet className="w-4 h-4 text-emerald-300" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">
                       {lang === "en"
                         ? "Freelancer Earnings Ledger"
                         : "ফ্রিল্যান্সার আয় ও এসক্রো লেজার"}
                     </span>
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-amber-400/20 text-amber-200 border border-amber-400/30">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-amber-400/20 text-amber-200 border border-amber-400/30">
                       {lang === "en"
                         ? "Simulated Internal Ledger"
                         : "সিমুলেটেড অভ্যন্তরীণ লেজার"}
                     </span>
                   </div>
-                  <p className="text-3xl font-black tracking-tight">
+                  <p className="text-3xl font-bold font-mono mk-tabular tracking-tight text-white">
                     {formatBdt(availableEarningsSimulatedBdt)}
                   </p>
-                  <p className="text-[11px] text-slate-400 mt-1">
+                  <p className="text-[11px] text-white/70 mt-1">
                     {lang === "en"
                       ? "Available earnings (simulated) credited from released escrow contracts after 10% platform commission."
                       : "১০% প্ল্যাটফর্ম কমিশন বাদ দিয়ে রিলিজ হওয়া এসক্রো চুক্তি থেকে সিমুলেটেড উপলব্ধ আয়।"}
@@ -943,7 +947,7 @@ function FreelancerDashboardContent() {
                     type="button"
                     onClick={handleRefreshPayments}
                     disabled={loadingPayments}
-                    className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
                   >
                     <RefreshCw
                       className={`w-3.5 h-3.5 ${
@@ -960,7 +964,7 @@ function FreelancerDashboardContent() {
                       setWithdrawStep("FORM");
                       setWithdrawModalOpen(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-all cursor-pointer shadow-md shadow-emerald-500/20 active:scale-95"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#0F6E50] hover:bg-emerald-600 text-white text-xs font-semibold transition-all cursor-pointer shadow-xs active:scale-95"
                   >
                     <Smartphone className="w-4 h-4" />
                     <span>
@@ -974,57 +978,57 @@ function FreelancerDashboardContent() {
 
               {/* 4 Earnings KPIs derived from Supabase */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-4 border-t border-white/10">
-                <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">
+                <div className="bg-white/10 rounded-xl px-4 py-3 border border-white/10">
+                  <p className="text-[10px] font-bold text-white/65 uppercase">
                     {lang === "en" ? "Total Earnings (Net)" : "মোট আয় (নিট)"}
                   </p>
-                  <p className="text-base font-black text-white mt-0.5">
+                  <p className="text-base font-bold font-mono mk-tabular text-white mt-0.5">
                     {formatBdt(totalEarningsBdt)}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
+                  <p className="text-[10px] font-mono mk-tabular text-white/65 mt-0.5">
                     Gross {formatBdt(releasedGrossBdt)}
                   </p>
                 </div>
 
-                <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">
+                <div className="bg-white/10 rounded-xl px-4 py-3 border border-white/10">
+                  <p className="text-[10px] font-bold text-white/65 uppercase">
                     {lang === "en"
                       ? "Pending Earnings (Escrow)"
                       : "অপেক্ষমান আয় (এসক্রো)"}
                   </p>
-                  <p className="text-base font-black text-amber-300 mt-0.5">
+                  <p className="text-base font-bold font-mono mk-tabular text-amber-200 mt-0.5">
                     {formatBdt(pendingEarningsBdt)}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
+                  <p className="text-[10px] font-mono mk-tabular text-white/65 mt-0.5">
                     Gross held {formatBdt(pendingEscrowGrossBdt)}
                   </p>
                 </div>
 
-                <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">
+                <div className="bg-white/10 rounded-xl px-4 py-3 border border-white/10">
+                  <p className="text-[10px] font-bold text-white/65 uppercase">
                     {lang === "en"
                       ? "Released Earnings (90%)"
                       : "রিলিজড আয় (৯০%)"}
                   </p>
-                  <p className="text-base font-black text-emerald-300 mt-0.5">
+                  <p className="text-base font-bold font-mono mk-tabular text-emerald-200 mt-0.5">
                     {formatBdt(releasedEarningsBdt)}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
+                  <p className="text-[10px] font-mono mk-tabular text-white/65 mt-0.5">
                     {completedReleasedCount}{" "}
                     {lang === "en" ? "released payments" : "টি রিলিজড পেমেন্ট"}
                   </p>
                 </div>
 
-                <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">
+                <div className="bg-white/10 rounded-xl px-4 py-3 border border-white/10">
+                  <p className="text-[10px] font-bold text-white/65 uppercase">
                     {lang === "en"
                       ? "Platform Fees (10%)"
                       : "প্ল্যাটফর্ম ফি (১০%)"}
                   </p>
-                  <p className="text-base font-black text-sky-300 mt-0.5">
+                  <p className="text-base font-bold font-mono mk-tabular text-sky-200 mt-0.5">
                     {formatBdt(platformFeesDeductedBdt)}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">
+                  <p className="text-[10px] text-white/65 mt-0.5">
                     {lang === "en"
                       ? "Deducted on ledger release"
                       : "রিলিজের সময় কর্তনকৃত"}
@@ -1045,7 +1049,7 @@ function FreelancerDashboardContent() {
                   <button
                     type="button"
                     onClick={() => setActiveTab("workspace")}
-                    className="text-xs font-bold text-emerald-700 hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-semibold text-[#0F6E50] hover:text-[#0B3B2E] hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <span>
                       {lang === "en" ? "Go to Workspace" : "ওয়ার্কস্পেসে যান"}
@@ -1056,14 +1060,14 @@ function FreelancerDashboardContent() {
               />
 
               {activeFundedContracts.length === 0 ? (
-                <div className="bg-white border border-dashed border-slate-200 rounded-2xl p-8 text-center space-y-2">
-                  <Lock className="w-7 h-7 text-slate-300 mx-auto" />
-                  <p className="text-xs font-bold text-slate-800">
+                <div className="bg-white border border-dashed border-[rgba(17,19,21,0.14)] rounded-2xl p-8 text-center space-y-2">
+                  <Lock className="w-7 h-7 text-[#8E9599] mx-auto" />
+                  <p className="text-xs font-bold text-[#111315]">
                     {lang === "en"
                       ? "No active funded contracts right now"
                       : "বর্তমানে কোনো ফান্ডেড চুক্তি নেই"}
                   </p>
-                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                  <p className="text-xs text-[#61676B] max-w-md mx-auto">
                     {lang === "en"
                       ? "Once a client funds a contract via SSLCOMMERZ Sandbox, it will appear here so you can submit work and earn simulated escrow release."
                       : "ক্লায়েন্ট SSLCOMMERZ স্যান্ডবক্সের মাধ্যমে চুক্তি ফান্ড করলে তা এখানে দেখা যাবে।"}
@@ -1077,44 +1081,44 @@ function FreelancerDashboardContent() {
                     return (
                       <div
                         key={ct.id}
-                        className="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3"
+                        className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 shadow-xs flex flex-col justify-between gap-3"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className="font-mono text-[10px] text-slate-400">
+                            <p className="font-mono mk-tabular text-[10px] text-[#61676B]">
                               {ct.contractCode}
                             </p>
                             <Link
                               href={`/contracts/${ct.id}`}
-                              className="text-sm font-black text-slate-900 hover:text-emerald-700 hover:underline line-clamp-1"
+                              className="text-sm font-bold text-[#111315] hover:text-[#0F6E50] hover:underline line-clamp-1"
                             >
                               {ct.title}
                             </Link>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                            <p className="text-xs text-[#61676B] mt-0.5">
                               Client: {ct.counterpartyName}
                             </p>
                           </div>
 
                           <div className="text-right shrink-0">
-                            <p className="text-sm font-black text-emerald-700">
+                            <p className="text-sm font-bold font-mono mk-tabular text-[#0B3B2E]">
                               {formatBdt(ct.netEarningsBdt)}
                             </p>
-                            <p className="text-[10px] text-slate-400">
+                            <p className="text-[10px] font-mono mk-tabular text-[#61676B]">
                               Net 90% of {formatBdt(ct.totalBdt)}
                             </p>
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[rgba(17,19,21,0.07)]">
                           <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EEF5FA] text-[#1E5B88] border border-[#1E5B88]/20">
                               {lang === "en" ? payMeta.label : payMeta.labelBn}
                             </span>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F4F2EC] text-[#3F4448] border border-[rgba(17,19,21,0.08)]">
                               {lang === "en" ? workMeta.label : workMeta.labelBn}
                             </span>
                             {openRefundContractIds.has(ct.id) && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-800 border border-amber-200">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF6E6] text-[#A87224] border border-[#A87224]/25">
                                 {lang === "en" ? "Refund Pending Review" : "রিফান্ড পর্যালোচনাধীন"}
                               </span>
                             )}
@@ -1122,7 +1126,7 @@ function FreelancerDashboardContent() {
 
                           <Link
                             href={`/contracts/${ct.id}`}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-colors"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-[11px] font-semibold transition-colors"
                           >
                             <span>
                               {lang === "en"
@@ -1178,11 +1182,11 @@ function FreelancerDashboardContent() {
                   lang={lang}
                 />
                 <div className="flex items-center gap-2 text-[11px] font-bold">
-                  <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                  <span className="px-2.5 py-1 rounded-full font-mono mk-tabular bg-[#F4F2EC] text-[#3F4448] border border-[rgba(17,19,21,0.08)]">
                     {refundRequests.length}{" "}
                     {lang === "en" ? "requests" : "টি অনুরোধ"}
                   </span>
-                  <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200">
+                  <span className="px-2.5 py-1 rounded-full font-mono mk-tabular bg-[#F3EFFA] text-[#5B3E96] border border-[#5B3E96]/20">
                     {earningsSummary?.refundedCount ?? 0}{" "}
                     {lang === "en" ? "refunded" : "টি রিফান্ডেড"}
                   </span>
@@ -1190,8 +1194,8 @@ function FreelancerDashboardContent() {
               </div>
 
               {refundRequests.length === 0 ? (
-                <div className="bg-white border border-slate-200/90 rounded-2xl p-5 text-xs text-slate-500 flex items-center gap-2.5">
-                  <RotateCcw className="w-4 h-4 text-slate-400 shrink-0" />
+                <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-5 text-xs text-[#61676B] flex items-center gap-2.5">
+                  <RotateCcw className="w-4 h-4 text-[#8E9599] shrink-0" />
                   <span>
                     {lang === "en"
                       ? "No refund requests or escrow disputes have been filed on your contracts."
@@ -1199,16 +1203,16 @@ function FreelancerDashboardContent() {
                   </span>
                 </div>
               ) : (
-                <div className="bg-white border border-slate-200/90 rounded-2xl divide-y divide-slate-100 shadow-xs overflow-hidden">
+                <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl divide-y divide-[rgba(17,19,21,0.07)] shadow-xs overflow-hidden">
                   {refundRequests.map((req) => {
                     const statusClass =
                       req.status === "COMPLETED"
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        ? "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25"
                         : req.status === "REJECTED" || req.status === "FAILED"
-                          ? "bg-rose-50 text-rose-700 border-rose-200"
+                          ? "bg-[#FEF2F2] text-[#DC2626] border-[#DC2626]/20"
                           : req.status === "GATEWAY_INITIATED"
-                            ? "bg-sky-50 text-sky-700 border-sky-200"
-                            : "bg-amber-50 text-amber-800 border-amber-200";
+                            ? "bg-[#EEF5FA] text-[#1E5B88] border-[#1E5B88]/20"
+                            : "bg-[#FEF6E6] text-[#A87224] border-[#A87224]/25";
                     return (
                       <div
                         key={req.id}
@@ -1216,32 +1220,32 @@ function FreelancerDashboardContent() {
                       >
                         <div className="space-y-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-xs font-black text-slate-900">
+                            <span className="text-xs font-bold font-mono mk-tabular text-[#111315]">
                               {formatBdt(req.amount)}
                             </span>
                             <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-black border ${statusClass}`}
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusClass}`}
                             >
                               {req.status}
                             </span>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#F4F2EC] text-[#3F4448] border border-[rgba(17,19,21,0.08)]">
                               {req.refund_mode}
                             </span>
                             {req.gateway_status && (
-                              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-slate-100 text-slate-600">
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-[#F4F2EC] text-[#3F4448]">
                                 GW: {req.gateway_status}
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-slate-600">{req.reason}</p>
+                          <p className="text-xs text-[#3F4448]">{req.reason}</p>
                           {req.admin_notes && (
-                            <p className="text-[11px] text-slate-500">
+                            <p className="text-[11px] text-[#61676B]">
                               {lang === "en" ? "Admin note:" : "অ্যাডমিন নোট:"}{" "}
                               {req.admin_notes}
                             </p>
                           )}
                         </div>
-                        <div className="text-left sm:text-right shrink-0 text-[10px] text-slate-400 font-mono space-y-1">
+                        <div className="text-left sm:text-right shrink-0 text-[10px] text-[#61676B] font-mono mk-tabular space-y-1">
                           <div>
                             {new Intl.DateTimeFormat("en-BD", {
                               dateStyle: "medium",
@@ -1253,7 +1257,7 @@ function FreelancerDashboardContent() {
                           <div>
                             <Link
                               href={`/contracts/${req.contract_id}`}
-                              className="font-sans text-[11px] font-bold text-emerald-700 hover:underline"
+                              className="font-sans text-[11px] font-semibold text-[#0F6E50] hover:underline"
                             >
                               {lang === "en" ? "Open Contract →" : "চুক্তি দেখুন →"}
                             </Link>
@@ -1275,55 +1279,55 @@ function FreelancerDashboardContent() {
                 subtitleBn="ডাটাবেসে সংরক্ষিত ফান্ড, রিলিজ এবং রিফান্ড লেজার এন্ট্রি"
                 lang={lang}
               />
-              <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+              <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-xs overflow-hidden">
                 {(paymentDashboard?.ledgerEntries ?? []).length === 0 ? (
-                  <div className="p-8 text-center text-xs text-slate-500">
+                  <div className="p-8 text-center text-xs text-[#61676B]">
                     {lang === "en"
                       ? "No internal escrow ledger entries recorded yet."
                       : "এখনো কোনো অভ্যন্তরীণ এসক্রো লেজার এন্ট্রি নেই।"}
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-[rgba(17,19,21,0.07)]">
                     {(paymentDashboard?.ledgerEntries ?? []).map((entry) => (
                       <div
                         key={entry.id}
-                        className="px-4 sm:px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-50/70"
+                        className="px-4 sm:px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-[#FAF9F6]"
                       >
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase border ${
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
                                 entry.entry_type === "RELEASE"
-                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  ? "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25"
                                   : entry.entry_type === "REFUND"
-                                    ? "bg-indigo-50 text-indigo-700 border-indigo-200"
-                                    : "bg-sky-50 text-sky-700 border-sky-200"
+                                    ? "bg-[#F3EFFA] text-[#5B3E96] border-[#5B3E96]/20"
+                                    : "bg-[#EEF5FA] text-[#1E5B88] border-[#1E5B88]/20"
                               }`}
                             >
                               {entry.entry_type}
                             </span>
-                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-[#FEF6E6] text-[#A87224] border border-[#A87224]/25">
                               Simulated Ledger
                             </span>
-                            <span className="text-[11px] text-slate-400">
+                            <span className="text-[11px] font-mono mk-tabular text-[#61676B]">
                               {new Intl.DateTimeFormat("en-BD", {
                                 dateStyle: "medium",
                                 timeStyle: "short",
                               }).format(new Date(entry.created_at))}
                             </span>
                           </div>
-                          <p className="text-xs font-bold text-slate-800 mt-1">
+                          <p className="text-xs font-semibold text-[#111315] mt-1">
                             {entry.description}
                           </p>
                         </div>
 
                         <div className="text-left sm:text-right shrink-0">
-                          <p className="text-xs font-black text-slate-900">
+                          <p className="text-xs font-bold font-mono mk-tabular text-[#111315]">
                             {entry.entry_type === "RELEASE"
                               ? `+${formatBdt(entry.freelancer_net_amount)} Net`
                               : formatBdt(entry.amount)}
                           </p>
-                          <p className="text-[10px] text-slate-400">
+                          <p className="text-[10px] font-mono mk-tabular text-[#61676B]">
                             Gross {formatBdt(entry.amount)} · Fee{" "}
                             {formatBdt(entry.platform_fee_amount)}
                           </p>
@@ -1339,15 +1343,15 @@ function FreelancerDashboardContent() {
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-emerald-600" />
+                  <h3 className="text-lg font-bold tracking-tight text-[#111315] flex items-center gap-2">
+                    <CreditCard className="w-5 h-5 text-[#0F6E50]" />
                     <span>
                       {lang === "en"
                         ? "Saved Payout Preferences"
                         : "সংরক্ষিত উত্তোলন মাধ্যম"}
                     </span>
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-[#61676B] mt-0.5">
                     {lang === "en"
                       ? "Store preferred MFS/bank accounts on your profile. Automated live transfers are disabled in academic sandbox mode."
                       : "আপনার প্রোফাইলে পছন্দের বিকাশ/নগদ/ব্যাংক তথ্য সংরক্ষণ করুন। স্যান্ডবক্স মোডে সরাসরি টাকা পাঠানো হয় না।"}
@@ -1356,7 +1360,7 @@ function FreelancerDashboardContent() {
                 <button
                   type="button"
                   onClick={() => setAddMethodModalOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer hover:scale-[1.02] active:scale-95 shrink-0"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer active:scale-95 shrink-0"
                 >
                   <Plus className="w-4 h-4 stroke-[2.5]" />
                   <span>{lang === "en" ? "Add Payment Method" : "নতুন মাধ্যম যোগ করুন"}</span>
@@ -1374,10 +1378,10 @@ function FreelancerDashboardContent() {
                   return (
                     <div
                       key={m.id}
-                      className={`relative rounded-2xl p-4.5 border transition-all flex flex-col justify-between ${
+                      className={`relative rounded-2xl p-5 border transition-all flex flex-col justify-between ${
                         m.isPrimary
-                          ? "bg-white border-emerald-500/80 shadow-sm ring-2 ring-emerald-500/20"
-                          : "bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs"
+                          ? "bg-white border-[#0F6E50] shadow-xs ring-2 ring-[#0F6E50]/15"
+                          : "bg-white border-[rgba(17,19,21,0.09)] hover:border-[rgba(17,19,21,0.2)] shadow-2xs"
                       }`}
                     >
                       <div>
@@ -1385,39 +1389,39 @@ function FreelancerDashboardContent() {
                         <div className="flex items-center justify-between gap-2 mb-3">
                           <div className="flex items-center gap-2">
                             {isBkash && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-pink-50 text-pink-700 border border-pink-200">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-pink-50 text-pink-700 border border-pink-200">
                                 <Smartphone className="w-3.5 h-3.5 text-pink-600" />
                                 bKash
                               </span>
                             )}
                             {isNagad && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-orange-50 text-orange-700 border border-orange-200">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
                                 <Smartphone className="w-3.5 h-3.5 text-orange-600" />
                                 Nagad
                               </span>
                             )}
                             {isRocket && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-purple-50 text-purple-700 border border-purple-200">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
                                 <Smartphone className="w-3.5 h-3.5 text-purple-600" />
                                 Rocket
                               </span>
                             )}
                             {isBank && (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black bg-sky-50 text-sky-700 border border-sky-200">
-                                <Building className="w-3.5 h-3.5 text-sky-600" />
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#EEF5FA] text-[#1E5B88] border border-[#1E5B88]/20">
+                                <Building className="w-3.5 h-3.5 text-[#1E5B88]" />
                                 Bank (NPSB)
                               </span>
                             )}
 
                             {m.accountType && (
-                              <span className="text-[10px] font-bold text-slate-400 uppercase">
+                              <span className="text-[10px] font-bold text-[#61676B] uppercase">
                                 {m.accountType}
                               </span>
                             )}
                           </div>
 
                           {m.isPrimary ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#EAF5F0] text-[#0B3B2E] border border-[#0F6E50]/20">
                               <Check className="w-3 h-3 stroke-[3]" />
                               {lang === "en" ? "Primary" : "প্রধান"}
                             </span>
@@ -1425,7 +1429,7 @@ function FreelancerDashboardContent() {
                             <button
                               type="button"
                               onClick={() => handleSetPrimaryMethod(m.id)}
-                              className="text-[11px] font-bold text-slate-400 hover:text-emerald-700 hover:underline cursor-pointer"
+                              className="text-[11px] font-semibold text-[#61676B] hover:text-[#0F6E50] hover:underline cursor-pointer"
                             >
                               {lang === "en" ? "Make Primary" : "প্রধান করুন"}
                             </button>
@@ -1436,27 +1440,27 @@ function FreelancerDashboardContent() {
                         <div className="space-y-1">
                           {isBank ? (
                             <>
-                              <h4 className="text-sm font-black text-slate-900 leading-tight">
+                              <h4 className="text-sm font-bold text-[#111315] leading-tight">
                                 {m.bankName || "Bank Account"}
                               </h4>
                               {m.branchName && (
-                                <p className="text-[11px] text-slate-500 font-medium">{m.branchName}</p>
+                                <p className="text-[11px] text-[#61676B] font-medium">{m.branchName}</p>
                               )}
-                              <p className="text-xs font-mono font-bold text-slate-700 pt-1">
+                              <p className="text-xs font-mono mk-tabular font-bold text-[#3F4448] pt-1">
                                 A/C: {m.accountNumber}
                               </p>
                               {m.routingNumber && (
-                                <p className="text-[10px] font-mono text-slate-400">
+                                <p className="text-[10px] font-mono mk-tabular text-[#61676B]">
                                   Routing: {m.routingNumber}
                                 </p>
                               )}
                             </>
                           ) : (
                             <>
-                              <p className="text-sm font-mono font-black text-slate-900 tracking-wide">
+                              <p className="text-sm font-mono mk-tabular font-bold text-[#111315] tracking-wide">
                                 {m.accountNumber}
                               </p>
-                              <p className="text-[11px] text-slate-500 font-medium">
+                              <p className="text-[11px] text-[#61676B] font-medium">
                                 {m.accountHolder}
                               </p>
                             </>
@@ -1465,16 +1469,16 @@ function FreelancerDashboardContent() {
                       </div>
 
                       {/* Card Footer: Status and Delete */}
-                      <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      <div className="flex items-center justify-between pt-3 mt-3 border-t border-[rgba(17,19,21,0.07)]">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#0F6E50]">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>{lang === "en" ? "Preference Saved" : "সংরক্ষিত"}</span>
                         </span>
 
                         <button
                           type="button"
                           onClick={() => handleRemoveMethod(m.id)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg text-[#8E9599] hover:text-[#DC2626] hover:bg-[#FEF2F2] transition-colors cursor-pointer"
                           title={lang === "en" ? "Remove method" : "মাধ্যমটি মুছুন"}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1488,16 +1492,16 @@ function FreelancerDashboardContent() {
                 <button
                   type="button"
                   onClick={() => setAddMethodModalOpen(true)}
-                  className="rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/30 p-5 flex flex-col items-center justify-center text-center gap-2 transition-all cursor-pointer group min-h-[160px]"
+                  className="rounded-2xl border-2 border-dashed border-[rgba(17,19,21,0.14)] hover:border-[#0F6E50] hover:bg-[#EAF5F0]/40 p-5 flex flex-col items-center justify-center text-center gap-2 transition-all cursor-pointer group min-h-[160px]"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-emerald-100 text-slate-500 group-hover:text-emerald-700 flex items-center justify-center transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-[#F4F2EC] group-hover:bg-[#EAF5F0] text-[#61676B] group-hover:text-[#0B3B2E] flex items-center justify-center transition-colors">
                     <Plus className="w-5 h-5 stroke-[2.5]" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-slate-800 group-hover:text-emerald-700 block">
+                    <span className="text-xs font-bold text-[#111315] group-hover:text-[#0B3B2E] block">
                       {lang === "en" ? "Add New Payment Method" : "নতুন মাধ্যম যোগ করুন"}
                     </span>
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">
+                    <span className="text-[11px] text-[#61676B] mt-0.5 block">
                       {lang === "en"
                         ? "bKash, Nagad, Rocket or local Bangladeshi Bank"
                         : "বিকাশ, নগদ, রকেট বা যেকোনো বাংলাদেশি ব্যাংক"}
@@ -1528,19 +1532,27 @@ function FreelancerDashboardContent() {
 
       {/* Add Payment Method Modal */}
       {addMethodModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 z-50 bg-[#111315]/55 backdrop-blur-xs flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setAddMethodModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[rgba(17,19,21,0.1)] space-y-5 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3 border-b border-[rgba(17,19,21,0.08)]">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-xl bg-[#EAF5F0] text-[#0B3B2E] flex items-center justify-center font-bold">
                   <CreditCard className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-900">
+                  <h3 className="text-base font-bold text-[#111315]">
                     {lang === "en" ? "Add Payment Method" : "পেমেন্ট মাধ্যম যোগ করুন"}
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-[#61676B]">
                     {lang === "en" ? "Link an account for instant withdrawals" : "তাৎক্ষণিক উত্তোলনের জন্য অ্যাকাউন্ট যুক্ত করুন"}
                   </p>
                 </div>
@@ -1548,7 +1560,7 @@ function FreelancerDashboardContent() {
               <button
                 type="button"
                 onClick={() => setAddMethodModalOpen(false)}
-                className="text-slate-400 hover:text-slate-700 p-1 rounded-full cursor-pointer"
+                className="text-[#8E9599] hover:text-[#111315] p-1 rounded-full cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1556,13 +1568,13 @@ function FreelancerDashboardContent() {
 
             {addMethodSuccess ? (
               <div className="py-8 text-center space-y-3">
-                <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
+                <div className="w-14 h-14 rounded-full bg-[#EAF5F0] text-[#0F6E50] flex items-center justify-center mx-auto">
                   <Check className="w-8 h-8" />
                 </div>
-                <h4 className="text-base font-black text-slate-900">
+                <h4 className="text-base font-bold text-[#111315]">
                   {lang === "en" ? "Payment Method Added!" : "পেমেন্ট মাধ্যম যুক্ত হয়েছে!"}
                 </h4>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-[#61676B]">
                   {lang === "en"
                     ? "Your payout method has been verified and saved."
                     : "আপনার উত্তোলনের মাধ্যম সফলভাবে সংরক্ষিত ও যাচাই করা হয়েছে।"}
@@ -1572,7 +1584,7 @@ function FreelancerDashboardContent() {
               <form onSubmit={handleSavePaymentMethod} className="space-y-4">
                 {/* Method Type Selector */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-900 mb-2">
+                  <label className="block text-xs font-semibold text-[#111315] mb-2">
                     {lang === "en" ? "Select Gateway" : "গেটওয়ে নির্বাচন করুন"}
                   </label>
                   <div className="grid grid-cols-4 gap-2">
@@ -1581,10 +1593,10 @@ function FreelancerDashboardContent() {
                         key={type}
                         type="button"
                         onClick={() => setNewMethodType(type)}
-                        className={`py-2.5 px-2 rounded-xl border text-xs font-black transition-all cursor-pointer text-center ${
+                        className={`py-2.5 px-2 rounded-xl border text-xs font-bold transition-all cursor-pointer text-center ${
                           newMethodType === type
-                            ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
-                            : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200"
+                            ? "bg-[#0B3B2E] text-white border-[#0B3B2E] shadow-xs"
+                            : "bg-[#FAF9F6] hover:bg-[#F4F2EC] text-[#3F4448] border-[rgba(17,19,21,0.1)]"
                         }`}
                       >
                         {type === "BANK" ? (lang === "en" ? "Bank" : "ব্যাংক") : type}
@@ -1596,7 +1608,7 @@ function FreelancerDashboardContent() {
                 {/* Account Type for MFS */}
                 {newMethodType !== "BANK" && (
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-900">
+                    <label className="block text-xs font-semibold text-[#111315]">
                       {lang === "en" ? "Account Type" : "অ্যাকাউন্টের ধরন"}
                     </label>
                     <div className="grid grid-cols-2 gap-2">
@@ -1605,10 +1617,10 @@ function FreelancerDashboardContent() {
                           key={at}
                           type="button"
                           onClick={() => setNewAccountType(at)}
-                          className={`py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                          className={`py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                             newAccountType === at
-                              ? "bg-slate-900 text-white border-slate-900"
-                              : "bg-white text-slate-700 border-slate-200"
+                              ? "bg-[#111315] text-white border-[#111315]"
+                              : "bg-white text-[#3F4448] border-[rgba(17,19,21,0.1)] hover:bg-[#FAF9F6]"
                           }`}
                         >
                           {at === "Personal" ? (lang === "en" ? "Personal" : "ব্যক্তিগত") : (lang === "en" ? "Merchant / Agent" : "মার্চেন্ট")}
@@ -1622,13 +1634,13 @@ function FreelancerDashboardContent() {
                 {newMethodType === "BANK" ? (
                   <>
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-900">
+                      <label className="block text-xs font-semibold text-[#111315]">
                         {lang === "en" ? "Bank Name" : "ব্যাংকের নাম"}
                       </label>
                       <select
                         value={newBankName}
                         onChange={(e) => setNewBankName(e.target.value)}
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-semibold text-[#111315] focus:outline-none focus:ring-2 focus:ring-[#0F6E50]"
                       >
                         {[
                           "BRAC Bank PLC",
@@ -1647,7 +1659,7 @@ function FreelancerDashboardContent() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-900">
+                      <label className="block text-xs font-semibold text-[#111315]">
                         {lang === "en" ? "Branch Name" : "শাখার নাম"}
                       </label>
                       <input
@@ -1656,12 +1668,12 @@ function FreelancerDashboardContent() {
                         value={newBranchName}
                         onChange={(e) => setNewBranchName(e.target.value)}
                         placeholder="e.g. Gulshan, Banani, Motijheel"
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-medium text-[#111315] focus:outline-none focus:ring-2 focus:ring-[#0F6E50]"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-900">
+                      <label className="block text-xs font-semibold text-[#111315]">
                         {lang === "en" ? "Bank Account Number" : "ব্যাংক হিসাব নম্বর"}
                       </label>
                       <input
@@ -1670,12 +1682,12 @@ function FreelancerDashboardContent() {
                         value={newAccountNumber}
                         onChange={(e) => setNewAccountNumber(e.target.value)}
                         placeholder="1501 2039 4810 2001"
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-mono mk-tabular font-medium text-[#111315] focus:outline-none focus:ring-2 focus:ring-[#0F6E50]"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-900">
+                      <label className="block text-xs font-semibold text-[#111315]">
                         {lang === "en" ? "Routing Number (Optional)" : "রাউটিং নম্বর (ঐচ্ছিক)"}
                       </label>
                       <input
@@ -1683,13 +1695,13 @@ function FreelancerDashboardContent() {
                         value={newRoutingNumber}
                         onChange={(e) => setNewRoutingNumber(e.target.value)}
                         placeholder="9-digit routing code"
-                        className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-mono mk-tabular font-medium text-[#111315] focus:outline-none focus:ring-2 focus:ring-[#0F6E50]"
                       />
                     </div>
                   </>
                 ) : (
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-900">
+                    <label className="block text-xs font-semibold text-[#111315]">
                       {newMethodType} {lang === "en" ? "Mobile Number" : "মোবাইল নম্বর"}
                     </label>
                     <input
@@ -1698,14 +1710,14 @@ function FreelancerDashboardContent() {
                       value={newAccountNumber}
                       onChange={(e) => setNewAccountNumber(e.target.value)}
                       placeholder="+880 1XXXXXXXXX"
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-mono font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-mono mk-tabular font-medium text-[#111315] focus:outline-none focus:ring-2 focus:ring-[#0F6E50]"
                     />
                   </div>
                 )}
 
                 {/* Account Holder Name */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-900">
+                  <label className="block text-xs font-semibold text-[#111315]">
                     {lang === "en" ? "Account Holder Name (as on NID)" : "অ্যাকাউন্টধারীর নাম (এনআইডি অনুযায়ী)"}
                   </label>
                   <input
@@ -1714,7 +1726,7 @@ function FreelancerDashboardContent() {
                     value={newAccountHolder}
                     onChange={(e) => setNewAccountHolder(e.target.value)}
                     placeholder="e.g. Tanvir Rahman"
-                    className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-medium text-[#111315] focus:outline-none focus:ring-2 focus:ring-[#0F6E50]"
                   />
                 </div>
 
@@ -1724,9 +1736,9 @@ function FreelancerDashboardContent() {
                     type="checkbox"
                     checked={newIsPrimary}
                     onChange={(e) => setNewIsPrimary(e.target.checked)}
-                    className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                    className="rounded border-[rgba(17,19,21,0.2)] text-[#0F6E50] focus:ring-[#0F6E50]"
                   />
-                  <span className="text-xs font-semibold text-slate-700">
+                  <span className="text-xs font-medium text-[#3F4448]">
                     {lang === "en"
                       ? "Set as primary withdrawal method"
                       : "প্রধান উত্তোলনের মাধ্যম হিসেবে সেট করুন"}
@@ -1738,13 +1750,13 @@ function FreelancerDashboardContent() {
                   <button
                     type="button"
                     onClick={() => setAddMethodModalOpen(false)}
-                    className="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all cursor-pointer"
+                    className="flex-1 py-2.5 rounded-xl border border-[rgba(17,19,21,0.12)] text-xs font-semibold text-[#61676B] hover:bg-[#FAF9F6] transition-all cursor-pointer"
                   >
                     {lang === "en" ? "Cancel" : "বাতিল"}
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
+                    className="flex-1 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
                   >
                     {lang === "en" ? "Save Method" : "সংরক্ষণ করুন"}
                   </button>
@@ -1758,25 +1770,33 @@ function FreelancerDashboardContent() {
       
       {/* Simulated Payout Request Preview Modal (Academic Sandbox Mode) */}
       {withdrawModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+        <div
+          className="fixed inset-0 z-50 bg-[#111315]/55 backdrop-blur-xs flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setWithdrawModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[rgba(17,19,21,0.1)] space-y-5 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center justify-between pb-3 border-b border-[rgba(17,19,21,0.08)]">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-[#EAF5F0] text-[#0B3B2E] flex items-center justify-center">
                   <Wallet className="w-4 h-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">
+                  <h3 className="text-sm font-bold text-[#111315]">
                     {lang === "en"
                       ? "Simulated Payout Preview"
                       : "সিমুলেটেড উত্তোলন প্রিভিউ"}
                   </h3>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-[#61676B]">
                     {lang === "en"
                       ? "Simulated Available Balance: "
                       : "সিমুলেটেড উপলব্ধ ব্যালেন্স: "}
-                    <span className="font-bold text-slate-700">
+                    <span className="font-bold font-mono mk-tabular text-[#111315]">
                       {formatBdt(availableEarningsSimulatedBdt)} BDT
                     </span>
                   </p>
@@ -1785,14 +1805,14 @@ function FreelancerDashboardContent() {
               <button
                 type="button"
                 onClick={() => setWithdrawModalOpen(false)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="p-1 rounded-full text-[#8E9599] hover:text-[#111315] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-900">
-              <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-[#FEF6E6] border border-[#A87224]/25 text-[11px] text-[#6B4712]">
+              <Info className="w-4 h-4 text-[#A87224] shrink-0 mt-0.5" />
               <p className="leading-relaxed">
                 {lang === "en"
                   ? "Academic Sandbox Notice: Real bKash, Nagad, or bank transfers do not run automatically. This calculator only previews payout breakdown against your Supabase-released earnings."
@@ -1802,13 +1822,13 @@ function FreelancerDashboardContent() {
 
             {availableEarningsSimulatedBdt <= 0 ? (
               <div className="py-4 text-center space-y-3">
-                <Lock className="w-8 h-8 text-slate-300 mx-auto" />
-                <p className="text-xs font-bold text-slate-800">
+                <Lock className="w-8 h-8 text-[#8E9599] mx-auto" />
+                <p className="text-xs font-bold text-[#111315]">
                   {lang === "en"
                     ? "No released earnings available yet"
                     : "এখনো কোনো রিলিজড আয় নেই"}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-[#61676B]">
                   {lang === "en"
                     ? "Submit completed contract work and receive client approval to credit released earnings in Supabase."
                     : "চুক্তির কাজ জমা দিয়ে ক্লায়েন্টের অনুমোদন পেলে রিলিজড আয় যুক্ত হবে।"}
@@ -1816,7 +1836,7 @@ function FreelancerDashboardContent() {
                 <button
                   type="button"
                   onClick={() => setWithdrawModalOpen(false)}
-                  className="w-full py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-[#0B3B2E] text-white font-semibold text-xs cursor-pointer"
                 >
                   {lang === "en" ? "Close" : "বন্ধ করুন"}
                 </button>
@@ -1824,7 +1844,7 @@ function FreelancerDashboardContent() {
             ) : withdrawStep === "FORM" ? (
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                  <label className="text-xs font-semibold text-[#111315] block mb-1.5">
                     {lang === "en" ? "Preferred Payout Channel" : "পছন্দের মাধ্যম"}
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -1835,8 +1855,8 @@ function FreelancerDashboardContent() {
                         onClick={() => setWithdrawGateway(gw)}
                         className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                           withdrawGateway === gw
-                            ? "bg-emerald-50 border-emerald-500 text-emerald-700 font-bold shadow-2xs"
-                            : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "bg-[#EAF5F0] border-[#0F6E50] text-[#0B3B2E] font-bold shadow-2xs"
+                            : "border-[rgba(17,19,21,0.1)] text-[#3F4448] hover:bg-[#FAF9F6]"
                         }`}
                       >
                         <span className="text-xs font-bold">
@@ -1848,26 +1868,26 @@ function FreelancerDashboardContent() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                  <label className="text-xs font-semibold text-[#111315] block mb-1">
                     {lang === "en" ? "Account Reference" : "অ্যাকাউন্ট নম্বর"}
                   </label>
                   <input
                     type="text"
                     value={withdrawAccount}
                     onChange={(e) => setWithdrawAccount(e.target.value)}
-                    className="w-full px-3 py-2 text-xs font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 text-xs font-mono mk-tabular font-bold bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0F6E50]"
                   />
                 </div>
 
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <label className="text-xs font-bold text-slate-700">
+                    <label className="text-xs font-semibold text-[#111315]">
                       {lang === "en" ? "Preview Amount (BDT)" : "প্রিভিউ পরিমাণ (টাকা)"}
                     </label>
                     <button
                       type="button"
                       onClick={() => setWithdrawAmount(availableEarningsSimulatedBdt)}
-                      className="text-[11px] font-bold text-emerald-600 hover:underline cursor-pointer"
+                      className="text-[11px] font-semibold text-[#0F6E50] hover:underline cursor-pointer"
                     >
                       {lang === "en" ? "Use Max" : "সর্বোচ্চ"}
                     </button>
@@ -1878,26 +1898,26 @@ function FreelancerDashboardContent() {
                     max={availableEarningsSimulatedBdt}
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(Number(e.target.value))}
-                    className="w-full px-3 py-2 text-base font-black text-slate-900 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 text-base font-bold font-mono mk-tabular text-[#111315] border border-[rgba(17,19,21,0.12)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F6E50]"
                   />
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-xl space-y-1 text-xs">
-                  <div className="flex justify-between text-slate-500">
+                <div className="p-3 bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)] rounded-xl space-y-1 text-xs">
+                  <div className="flex justify-between text-[#61676B]">
                     <span>Preview Amount:</span>
-                    <span className="font-bold text-slate-800">
+                    <span className="font-bold font-mono mk-tabular text-[#111315]">
                       {formatBdt(clampedPreviewAmount)} BDT
                     </span>
                   </div>
-                  <div className="flex justify-between text-slate-500">
+                  <div className="flex justify-between text-[#61676B]">
                     <span>Estimated MFS Fee (1.5%):</span>
-                    <span className="font-bold text-rose-600">
+                    <span className="font-bold font-mono mk-tabular text-[#DC2626]">
                       -{formatBdt(mfsFee)} BDT
                     </span>
                   </div>
-                  <div className="flex justify-between text-emerald-700 font-bold pt-1 border-t border-slate-200">
+                  <div className="flex justify-between text-[#0B3B2E] font-bold pt-1 border-t border-[rgba(17,19,21,0.08)]">
                     <span>Estimated Net (Simulated):</span>
-                    <span>{formatBdt(netReceived)} BDT</span>
+                    <span className="font-mono mk-tabular">{formatBdt(netReceived)} BDT</span>
                   </div>
                 </div>
 
@@ -1905,7 +1925,7 @@ function FreelancerDashboardContent() {
                   type="button"
                   onClick={handlePreviewSimulatedPayout}
                   disabled={clampedPreviewAmount <= 0}
-                  className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 text-white font-bold text-xs cursor-pointer transition-all"
+                  className="w-full py-3 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] disabled:bg-[#D5D1C8] text-white font-semibold text-xs cursor-pointer transition-all"
                 >
                   {lang === "en"
                     ? "Preview Payout Summary (Simulated Only)"
@@ -1914,15 +1934,15 @@ function FreelancerDashboardContent() {
               </div>
             ) : (
               <div className="py-3 text-center space-y-3">
-                <div className="w-11 h-11 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
+                <div className="w-11 h-11 rounded-full bg-[#FEF6E6] text-[#A87224] flex items-center justify-center mx-auto">
                   <Info className="w-5 h-5" />
                 </div>
-                <h4 className="text-sm font-black text-slate-900">
+                <h4 className="text-sm font-bold text-[#111315]">
                   {lang === "en"
                     ? "Simulated Payout Preview Recorded Locally"
                     : "সিমুলেটেড পেআউট প্রিভিউ"}
                 </h4>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <p className="text-xs text-[#61676B] leading-relaxed">
                   {lang === "en"
                     ? `Estimated net ${formatBdt(netReceived)} to ${withdrawGateway} (${withdrawAccount}). No real funds were moved and your Supabase ledger balance remains ${formatBdt(availableEarningsSimulatedBdt)}.`
                     : `${withdrawGateway} (${withdrawAccount})-এর জন্য আনুমানিক ${formatBdt(netReceived)} প্রদর্শিত হয়েছে। কোনো বাস্তব অর্থ স্থানান্তর করা হয়নি।`}
@@ -1930,7 +1950,7 @@ function FreelancerDashboardContent() {
                 <button
                   type="button"
                   onClick={() => setWithdrawModalOpen(false)}
-                  className="w-full py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer"
+                  className="w-full py-2.5 rounded-xl bg-[#0B3B2E] text-white font-semibold text-xs cursor-pointer"
                 >
                   {lang === "en" ? "Back to Dashboard" : "ড্যাশবোর্ডে ফিরুন"}
                 </button>
@@ -1942,20 +1962,28 @@ function FreelancerDashboardContent() {
 
       {/* Quick Job Bid Modal */}
       {selectedJobToApply && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+        <div
+          className="fixed inset-0 z-50 bg-[#111315]/55 backdrop-blur-xs flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setSelectedJobToApply(null)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[rgba(17,19,21,0.1)] space-y-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-start justify-between">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                <span className="text-[10px] font-bold text-[#61676B] uppercase tracking-wide">
                   {selectedJobToApply.category}
                 </span>
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-sm font-bold text-[#111315]">
                   {lang === "en" ? selectedJobToApply.title : (selectedJobToApply.titleBn || selectedJobToApply.title)}
                 </h3>
               </div>
               <button
                 onClick={() => setSelectedJobToApply(null)}
-                className="p-1 rounded-full text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="p-1 rounded-full text-[#8E9599] hover:text-[#111315] cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1963,30 +1991,30 @@ function FreelancerDashboardContent() {
 
             {applySuccess ? (
               <div className="py-6 text-center space-y-2">
-                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-                <h4 className="text-sm font-bold text-slate-900">Proposal Submitted!</h4>
-                <p className="text-xs text-slate-500">Client will be notified of your competitive proposal.</p>
+                <CheckCircle2 className="w-10 h-10 text-[#0F6E50] mx-auto" />
+                <h4 className="text-sm font-bold text-[#111315]">Proposal Submitted!</h4>
+                <p className="text-xs text-[#61676B]">Client will be notified of your competitive proposal.</p>
               </div>
             ) : (
               <form onSubmit={handleApplyToJob} className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Your Bid (BDT)</label>
+                    <label className="text-[11px] font-semibold text-[#111315] block mb-1">Your Bid (BDT)</label>
                     <input
                       type="number"
                       value={applyBidAmount}
                       onChange={(e) => setApplyBidAmount(Number(e.target.value))}
-                      className="w-full px-3 py-2 text-xs font-bold border border-slate-200 rounded-xl"
+                      className="w-full px-3 py-2 text-xs font-mono mk-tabular font-bold border border-[rgba(17,19,21,0.12)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F6E50]"
                       required
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700 block mb-1">Delivery Time (Days)</label>
+                    <label className="text-[11px] font-semibold text-[#111315] block mb-1">Delivery Time (Days)</label>
                     <input
                       type="number"
                       value={applyDays}
                       onChange={(e) => setApplyDays(Number(e.target.value))}
-                      className="w-full px-3 py-2 text-xs font-bold border border-slate-200 rounded-xl"
+                      className="w-full px-3 py-2 text-xs font-mono mk-tabular font-bold border border-[rgba(17,19,21,0.12)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F6E50]"
                       required
                     />
                   </div>
@@ -1998,14 +2026,14 @@ function FreelancerDashboardContent() {
                     DEFAULT_PLATFORM_FEE_PCT
                   );
                   return (
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px] flex items-center justify-between">
-                      <span className="text-slate-500">
-                        Platform commission ({preview.platformFeePct}%):{" "}
-                        <strong className="text-slate-800">
+                    <div className="p-3 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)] text-[11px] flex items-center justify-between">
+                      <span className="text-[#61676B]">
+                        Platform commission (<span className="font-mono mk-tabular">{preview.platformFeePct}%</span>):{" "}
+                        <strong className="font-mono mk-tabular text-[#111315]">
                           {formatBdt(preview.platformFeeAmount)}
                         </strong>
                       </span>
-                      <span className="text-emerald-700 font-bold">
+                      <span className="text-[#0B3B2E] font-bold font-mono mk-tabular">
                         Net Payable: {formatBdt(preview.freelancerPayableAmount)}
                       </span>
                     </div>
@@ -2013,12 +2041,12 @@ function FreelancerDashboardContent() {
                 })()}
 
                 <div>
-                  <label className="text-[11px] font-bold text-slate-700 block mb-1">Proposal Pitch</label>
+                  <label className="text-[11px] font-semibold text-[#111315] block mb-1">Proposal Pitch</label>
                   <textarea
                     rows={3}
                     value={applyCoverNote}
                     onChange={(e) => setApplyCoverNote(e.target.value)}
-                    className="w-full p-2.5 text-xs border border-slate-200 rounded-xl"
+                    className="w-full p-2.5 text-xs border border-[rgba(17,19,21,0.12)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F6E50]"
                     required
                   />
                 </div>
@@ -2027,13 +2055,13 @@ function FreelancerDashboardContent() {
                   <button
                     type="button"
                     onClick={() => setSelectedJobToApply(null)}
-                    className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold cursor-pointer"
+                    className="px-4 py-2 rounded-xl border border-[rgba(17,19,21,0.12)] text-xs font-semibold text-[#3F4448] hover:bg-[#FAF9F6] cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-xs hover:bg-emerald-700 cursor-pointer"
+                    className="px-5 py-2 rounded-xl bg-[#0B3B2E] text-white text-xs font-semibold shadow-xs hover:bg-[#0F6E50] cursor-pointer"
                   >
                     Submit Proposal
                   </button>
@@ -2060,8 +2088,8 @@ export default function FreelancerDashboardPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-4xl h-96 bg-white border border-slate-200/90 rounded-3xl shadow-xl animate-pulse" />
+        <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl h-96 bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-sm animate-pulse" />
         </div>
       }
     >

@@ -27,12 +27,12 @@ interface ContractPaymentSectionProps {
 }
 
 const BADGE_CLASSES: Record<string, string> = {
-  emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  sky: "bg-sky-50 text-sky-700 border-sky-200",
-  amber: "bg-amber-50 text-amber-700 border-amber-200",
-  rose: "bg-rose-50 text-rose-700 border-rose-200",
-  indigo: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  slate: "bg-slate-100 text-slate-700 border-slate-200",
+  emerald: "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25",
+  sky: "bg-[#EEF5FA] text-[#1E5B88] border-[#1E5B88]/20",
+  amber: "bg-[#FEF6E6] text-[#A87224] border-[#A87224]/25",
+  rose: "bg-[#FEF2F2] text-[#DC2626] border-[#DC2626]/20",
+  indigo: "bg-[#F3EFFA] text-[#5B3E96] border-[#5B3E96]/20",
+  slate: "bg-[#F4F2EC] text-[#3E434A] border-[rgba(17,19,21,0.09)]",
 };
 
 export default function ContractPaymentSection({
@@ -152,32 +152,32 @@ export default function ContractPaymentSection({
   };
 
   return (
-    <section className="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-xs space-y-5">
+    <section className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 shadow-xs space-y-5">
       {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[rgba(17,19,21,0.09)]">
         <div className="flex items-start gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center shrink-0">
-            <CreditCard className="w-5 h-5 text-emerald-600" />
+          <div className="w-11 h-11 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/25 flex items-center justify-center shrink-0">
+            <CreditCard className="w-5 h-5 text-[#0F6E50]" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base sm:text-lg font-black text-slate-900">
+              <h2 className="text-base sm:text-lg font-semibold text-[#111315]">
                 {lang === "en"
                   ? "Contract Payment & SSLCOMMERZ Sandbox"
                   : "কন্ট্রাক্ট পেমেন্ট ও SSLCOMMERZ স্যান্ডবক্স"}
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#FEF6E6] text-[#A87224] border border-[#A87224]/25 font-mono">
                 SANDBOX
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
+            <p className="text-xs text-[#686E78] mt-0.5 line-clamp-1">
               {contract.title} · Freelancer: {contract.freelancer.name}
             </p>
           </div>
         </div>
 
         <span
-          className={`self-start sm:self-auto px-3.5 py-1.5 rounded-full text-xs font-black border ${
+          className={`self-start sm:self-auto px-3.5 py-1.5 rounded-full text-xs font-semibold border ${
             BADGE_CLASSES[statusMeta.tone] ?? BADGE_CLASSES.slate
           }`}
         >
@@ -187,38 +187,38 @@ export default function ContractPaymentSection({
 
       {/* Pricing & Commission Breakdown Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+        <div className="p-4 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)]">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#686E78] block">
             {lang === "en" ? "Total Contract Amount" : "মোট চুক্তির পরিমাণ"}
           </span>
-          <span className="text-xl font-black text-slate-900 mt-1 block">
+          <span className="text-xl font-bold text-[#111315] mt-1 block font-mono mk-tabular">
             {formatBdt(breakdown.grossAmount)}
           </span>
-          <span className="text-[11px] text-slate-400">Currency: BDT</span>
+          <span className="text-[11px] text-[#686E78] font-mono">Currency: BDT</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+        <div className="p-4 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)]">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#686E78] block font-mono mk-tabular">
             {lang === "en"
               ? `Platform Commission (${breakdown.platformFeePct}%)`
               : `প্ল্যাটফর্ম কমিশন (${breakdown.platformFeePct}%)`}
           </span>
-          <span className="text-xl font-black text-slate-900 mt-1 block">
+          <span className="text-xl font-bold text-[#111315] mt-1 block font-mono mk-tabular">
             {formatBdt(breakdown.platformFeeAmount)}
           </span>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-[11px] text-[#686E78]">
             {lang === "en" ? "Deducted on ledger release" : "রিলিজের সময় কর্তনযোগ্য"}
           </span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 block">
+        <div className="p-4 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/25">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#0B3B2E] block">
             {lang === "en" ? "Freelancer Payable Amount" : "ফ্রিল্যান্সারের প্রাপ্য"}
           </span>
-          <span className="text-xl font-black text-emerald-800 mt-1 block">
+          <span className="text-xl font-bold text-[#0B3B2E] mt-1 block font-mono mk-tabular">
             {formatBdt(breakdown.freelancerPayableAmount)}
           </span>
-          <span className="text-[11px] text-emerald-700 font-medium">
+          <span className="text-[11px] text-[#0F6E50] font-medium">
             {contract.freelancer.name}
           </span>
         </div>
@@ -226,30 +226,30 @@ export default function ContractPaymentSection({
 
       {/* Latest Transaction Metadata */}
       {latestPayment && (
-        <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="p-4 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <Receipt className="w-3.5 h-3.5 text-slate-500" />
-              <span className="font-bold text-slate-800">
+              <Receipt className="w-3.5 h-3.5 text-[#686E78]" />
+              <span className="font-semibold text-[#111315]">
                 Transaction ID:
               </span>
-              <span className="font-mono font-semibold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
+              <span className="font-mono mk-tabular font-semibold text-[#3E434A] bg-white px-2 py-0.5 rounded-md border border-[rgba(17,19,21,0.12)]">
                 {latestPayment.transaction_id}
               </span>
               {latestPayment.card_type && (
-                <span className="text-[11px] font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">
+                <span className="text-[11px] font-semibold text-[#1E5B88] bg-[#EEF5FA] px-2 py-0.5 rounded-md border border-[#1E5B88]/20">
                   {latestPayment.card_type}
                 </span>
               )}
             </div>
             {latestPayment.failure_reason && (
-              <p className="text-rose-600 font-medium">
+              <p className="text-[#DC2626] font-medium">
                 {latestPayment.failure_reason}
               </p>
             )}
           </div>
           {latestPayment.validation_id && (
-            <span className="font-mono text-[11px] text-slate-500">
+            <span className="font-mono mk-tabular text-[11px] text-[#686E78]">
               val_id: {latestPayment.validation_id}
             </span>
           )}
@@ -258,13 +258,13 @@ export default function ContractPaymentSection({
 
       {/* Alerts */}
       {errorMsg && (
-        <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-semibold flex items-start gap-2">
+        <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#DC2626]/25 text-xs text-[#DC2626] font-semibold flex items-start gap-2">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{errorMsg}</span>
         </div>
       )}
       {infoMsg && (
-        <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold flex items-start gap-2">
+        <div className="p-3.5 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/25 text-xs text-[#0B3B2E] font-semibold flex items-start gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{infoMsg}</span>
         </div>
@@ -272,8 +272,8 @@ export default function ContractPaymentSection({
 
       {/* Role-Specific Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-        <div className="flex items-start gap-2 text-xs text-slate-500 max-w-xl">
-          <Lock className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 text-xs text-[#686E78] max-w-xl">
+          <Lock className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
           <span>
             {isFunded
               ? lang === "en"
@@ -303,7 +303,7 @@ export default function ContractPaymentSection({
               type="button"
               disabled={initiating}
               onClick={handleFundContract}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-sm shadow-emerald-600/20 transition-all cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-60 font-mono mk-tabular"
             >
               {initiating ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -332,7 +332,7 @@ export default function ContractPaymentSection({
                 type="button"
                 disabled={validating}
                 onClick={handleVerifyPending}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1E5B88] hover:bg-[#16476B] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-60"
               >
                 <RefreshCw
                   className={`w-3.5 h-3.5 ${validating ? "animate-spin" : ""}`}
@@ -347,7 +347,7 @@ export default function ContractPaymentSection({
                   type="button"
                   disabled={initiating}
                   onClick={handleFundContract}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-[rgba(17,19,21,0.12)] hover:bg-[#FAF9F6] text-[#3E434A] text-xs font-semibold transition-all cursor-pointer disabled:opacity-60"
                 >
                   <span>{lang === "en" ? "Start New Session" : "নতুন সেশন"}</span>
                 </button>
@@ -356,7 +356,7 @@ export default function ContractPaymentSection({
           )}
 
           {!isClient && paymentStatus === "UNPAID" && (
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#FEF6E6] border border-[#A87224]/25 text-[#A87224] text-xs font-semibold">
               <ShieldCheck className="w-3.5 h-3.5" />
               {lang === "en"
                 ? "Awaiting Client Funding"

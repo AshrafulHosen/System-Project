@@ -1,41 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  --background: #FAF9F6;
+  --foreground: #111315;
 
-  /* Muktokormo 2026 SaaS Design Tokens */
-  --mk-brand: #059669;
-  --mk-brand-hover: #047857;
-  --mk-brand-soft: #ecfdf5;
-  --mk-brand-border: #a7f3d0;
-  --mk-ink: #0f172a;
-  --mk-ink-muted: #475569;
-  --mk-surface: #ffffff;
-  --mk-surface-subtle: #f8fafc;
-  --mk-border: rgba(226, 232, 240, 0.85);
-  --mk-shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-  --mk-shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
-  --mk-shadow-elevated: 0 12px 28px -6px rgba(15, 23, 42, 0.08), 0 4px 10px -4px rgba(15, 23, 42, 0.04);
+  /* MuktoKormo 2026 Fintech-Editorial Design System */
+  --mk-canvas: #FAF9F6;
+  --mk-surface: #FFFFFF;
+  --mk-surface-subtle: #F4F2EC;
+  --mk-surface-muted: #EAE7DF;
+
+  --mk-brand-deep: #0B3B2E;
+  --mk-brand: #0F6E50;
+  --mk-brand-hover: #0B5940;
+  --mk-brand-soft: #EAF5F0;
+  --mk-brand-border: #C3E3D5;
+
+  --mk-accent: #A87224;
+  --mk-accent-soft: #FBF5EA;
+  --mk-accent-border: #EADAB8;
+
+  --mk-ink: #111315;
+  --mk-ink-secondary: #3E434A;
+  --mk-ink-muted: #686E78;
+  --mk-ink-subtle: #949BA6;
+
+  --mk-border: rgba(17, 19, 21, 0.09);
+  --mk-border-strong: rgba(17, 19, 21, 0.16);
+
+  --mk-shadow-xs: 0 1px 2px 0 rgba(17, 19, 21, 0.04);
+  --mk-shadow-card: 0 1px 2px rgba(17, 19, 21, 0.04), 0 4px 12px -2px rgba(17, 19, 21, 0.03);
+  --mk-shadow-elevated: 0 14px 32px -8px rgba(17, 19, 21, 0.09), 0 4px 12px -4px rgba(17, 19, 21, 0.04);
+  --mk-shadow-popover: 0 20px 44px -10px rgba(17, 19, 21, 0.14), 0 4px 14px -4px rgba(17, 19, 21, 0.06);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --color-canvas: var(--mk-canvas);
+  --color-surface: var(--mk-surface);
+  --color-pine: var(--mk-brand);
+  --color-pine-deep: var(--mk-brand-deep);
+  --font-sans: var(--font-plus-jakarta), var(--font-hind-siliguri), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, Cambria, serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-plus-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  letter-spacing: -0.015em;
+  background: var(--mk-canvas);
+  color: var(--mk-ink);
+  font-family: var(--font-sans);
+  letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  letter-spacing: -0.025em;
+  letter-spacing: -0.024em;
+}
+
+/* Numeric ledger alignment */
+.mk-tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Purposeful SaaS Surface & Micro-interaction Utilities */
@@ -44,17 +71,133 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--mk-border);
   border-radius: 1rem;
   box-shadow: var(--mk-shadow-card);
-  transition: border-color 160ms ease, box-shadow 180ms ease, transform 180ms ease;
+  transition: border-color 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .mk-surface-card-hover:hover {
-  border-color: rgba(148, 163, 184, 0.55);
+  border-color: var(--mk-border-strong);
   box-shadow: var(--mk-shadow-elevated);
+  transform: translateY(-1px);
+}
+
+.mk-subtle-well {
+  background-color: var(--mk-surface-subtle);
+  border: 1px solid var(--mk-border);
+  border-radius: 0.875rem;
+}
+
+.mk-dark-card {
+  background: linear-gradient(155deg, #0B3B2E 0%, #07281F 60%, #051F18 100%);
+  color: #FAF9F6;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  box-shadow: 0 20px 44px -12px rgba(7, 40, 31, 0.35);
+}
+
+.mk-dot-grid {
+  background-image: radial-gradient(rgba(17, 19, 21, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.mk-grid-lines {
+  background-image:
+    linear-gradient(to right, rgba(17, 19, 21, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 19, 21, 0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
 }
 
 .mk-focus-ring:focus-visible {
   outline: 2px solid var(--mk-brand);
   outline-offset: 2px;
+}
+
+/* Lightweight Built-In Entrance Animations */
+@keyframes mkFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mkFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mkZoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes mkSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mk-fade-in {
+  animation: mkFadeIn 180ms ease-out both;
+}
+
+.mk-fade-up {
+  animation: mkFadeUp 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.mk-zoom-in {
+  animation: mkZoomIn 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Compatibility helpers for existing utility classes without tailwindcss-animate */
+.animate-in.fade-in {
+  animation: mkFadeIn 180ms ease-out both;
+}
+
+.animate-in.zoom-in-95 {
+  animation: mkZoomIn 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.animate-in.slide-in-from-top-2,
+.animate-in.slide-in-from-top-1 {
+  animation: mkSlideDown 180ms ease-out both;
+}
+
+.animate-in.slide-in-from-bottom-2 {
+  animation: mkFadeUp 220ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-fade-in,
+  .mk-fade-up,
+  .mk-zoom-in,
+  .animate-in {
+    animation: none !important;
+  }
+  .mk-surface-card,
+  .mk-surface-card-hover {
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 /* Custom subtle scrollbars for sidebars and chat lists */
@@ -68,12 +211,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
+  background: rgba(17, 19, 21, 0.16);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.55);
+  background: rgba(17, 19, 21, 0.3);
 }
 
 /* TalkJS Container & Responsive Iframe Fixes */

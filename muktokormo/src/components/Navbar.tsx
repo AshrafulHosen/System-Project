@@ -10,14 +10,12 @@ import {
   LogOut,
   ChevronDown,
   ChevronRight,
-  ArrowRight,
   ShieldCheck,
-  Briefcase,
-  Users,
-  FileText,
   LayoutDashboard,
-  Sparkles,
   Handshake,
+  User,
+  Briefcase,
+  CreditCard,
 } from "lucide-react";
 import Logo from "./Logo";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
@@ -253,14 +251,15 @@ export default function Navbar({
   onOpenMyBids,
 }: NavbarProps) {
   const { name, email, role, loading: userLoading, signOut } = useCurrentUser();
-  const isLoggedIn = !userLoading && Boolean(email);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<"talent" | "work" | "why" | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<
+    "talent" | "work" | "why" | "profile" | null
+  >(null);
   const [selectedTalentCatIdx, setSelectedTalentCatIdx] = useState(0);
   const [selectedWorkCatIdx, setSelectedWorkCatIdx] = useState(0);
   const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleMouseEnter = (menu: "talent" | "work" | "why") => {
+  const handleMouseEnter = (menu: "talent" | "work" | "why" | "profile") => {
     if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
     setActiveDropdown(menu);
   };
@@ -268,7 +267,7 @@ export default function Navbar({
   const handleMouseLeave = () => {
     dropdownTimeoutRef.current = setTimeout(() => {
       setActiveDropdown(null);
-    }, 150);
+    }, 160);
   };
 
   useEffect(() => {
@@ -277,19 +276,21 @@ export default function Navbar({
     };
   }, []);
 
+  const userInitial = (name ? name.trim()[0] : email?.[0] || "M").toUpperCase();
+  const firstName = name ? name.split(" ")[0] : email?.split("@")[0] || "Account";
+
   return (
-    <header className="sticky top-0 z-40 bg-white/98 backdrop-blur-md border-b border-slate-200/90 text-slate-900 transition-all font-sans">
+    <header className="sticky top-0 z-40 bg-[#FAF9F6]/92 backdrop-blur-md border-b border-[rgba(17,19,21,0.08)] text-[#111315] transition-all font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-[68px]">
-          
-          {/* Left: Brand + Upwork-style Nav Menus */}
-          <div className="flex items-center gap-7">
+          {/* Left: Brand + Qonto-inspired Navigation */}
+          <div className="flex items-center gap-6 xl:gap-8">
             <Link href="/" className="cursor-pointer shrink-0">
               <Logo size="md" />
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-1 text-[13px] font-semibold text-slate-700">
-              {/* 1. Find Talent Mega Menu (Upwork Style) */}
+            <nav className="hidden lg:flex items-center gap-0.5 text-[13px] font-semibold text-[#3E434A]">
+              {/* 1. Find Talent Mega Menu */}
               <div
                 className="relative"
                 onMouseEnter={() => handleMouseEnter("talent")}
@@ -297,34 +298,35 @@ export default function Navbar({
               >
                 <button
                   type="button"
-                  onClick={() => setActiveDropdown(activeDropdown === "talent" ? null : "talent")}
-                  className={`flex items-center gap-1 px-3 py-2 rounded-lg hover:text-emerald-700 transition-colors cursor-pointer ${
-                    activeDropdown === "talent" ? "text-emerald-700" : ""
+                  onClick={() =>
+                    setActiveDropdown(activeDropdown === "talent" ? null : "talent")
+                  }
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors cursor-pointer ${
+                    activeDropdown === "talent"
+                      ? "bg-[#F4F2EC] text-[#0B3B2E]"
+                      : "hover:text-[#0B3B2E] hover:bg-[#F4F2EC]/70"
                   }`}
                 >
                   <span>{lang === "en" ? "Find Talent" : "ট্যালেন্ট খুঁজুন"}</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                      activeDropdown === "talent" ? "rotate-180 text-emerald-600" : ""
+                    className={`w-3.5 h-3.5 text-[#686E78] transition-transform duration-200 ${
+                      activeDropdown === "talent" ? "rotate-180 text-[#0F6E50]" : ""
                     }`}
                   />
                 </button>
 
                 {activeDropdown === "talent" && (
                   <div
-                    className="absolute top-full left-0 w-[860px] max-w-[calc(100vw-3rem)] pt-2 animate-in fade-in zoom-in-95 duration-150 z-50"
+                    className="absolute top-full left-0 w-[860px] max-w-[calc(100vw-3rem)] pt-2.5 mk-zoom-in z-50"
                     onMouseEnter={() => handleMouseEnter("talent")}
                     onMouseLeave={handleMouseLeave}
                   >
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col">
-                      
-                      {/* 2-Pane Upwork Mega Menu Body */}
+                    <div className="bg-white rounded-2xl border border-[rgba(17,19,21,0.11)] shadow-[0_24px_54px_-12px_rgba(17,19,21,0.18)] overflow-hidden flex flex-col">
                       <div className="flex min-h-[380px]">
-                        
-                        {/* Left Pane: Categories List */}
-                        <div className="w-56 border-r border-slate-100/90 py-3 px-2 bg-white flex flex-col justify-start shrink-0">
-                          <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 pt-1 pb-2">
-                            CATEGORIES
+                        {/* Left Pane */}
+                        <div className="w-56 border-r border-[rgba(17,19,21,0.08)] py-3.5 px-2.5 bg-[#FAF9F6] flex flex-col justify-start shrink-0">
+                          <span className="block text-[10px] font-bold text-[#686E78] uppercase tracking-[0.09em] px-3 pt-1 pb-2.5">
+                            {lang === "en" ? "Specialties" : "বিভাগসমূহ"}
                           </span>
                           <div className="space-y-0.5">
                             {TALENT_CATEGORIES.map((cat, idx) => (
@@ -333,61 +335,60 @@ export default function Navbar({
                                 type="button"
                                 onMouseEnter={() => setSelectedTalentCatIdx(idx)}
                                 onClick={() => setSelectedTalentCatIdx(idx)}
-                                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-[13px] transition-colors text-left cursor-pointer ${
+                                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[13px] transition-colors text-left cursor-pointer ${
                                   selectedTalentCatIdx === idx
-                                    ? "bg-slate-100 text-slate-900 font-semibold"
-                                    : "text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-normal"
+                                    ? "bg-white text-[#0B3B2E] font-semibold shadow-[0_1px_2px_rgba(17,19,21,0.06)] border border-[rgba(17,19,21,0.07)]"
+                                    : "text-[#3E434A] hover:text-[#111315] hover:bg-white/60 font-medium border border-transparent"
                                 }`}
                               >
                                 <span>{lang === "en" ? cat.name : cat.nameBn}</span>
-                                <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <ChevronRight className="w-3.5 h-3.5 text-[#949BA6] shrink-0" />
                               </button>
                             ))}
                           </div>
                         </div>
 
-                        {/* Right Pane: 2-Column Skills Grid */}
-                        <div className="flex-1 py-4 px-7 bg-white flex flex-col justify-between">
+                        {/* Right Pane */}
+                        <div className="flex-1 py-5 px-7 bg-white flex flex-col justify-between">
                           <div>
-                            <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-4">
+                            <span className="block text-[10px] font-bold text-[#0F6E50] uppercase tracking-[0.09em] mb-4">
                               {lang === "en"
                                 ? TALENT_CATEGORIES[selectedTalentCatIdx].name
                                 : TALENT_CATEGORIES[selectedTalentCatIdx].nameBn}
                             </span>
 
                             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                              {TALENT_CATEGORIES[selectedTalentCatIdx].roles.map((role) => (
+                              {TALENT_CATEGORIES[selectedTalentCatIdx].roles.map((r) => (
                                 <Link
-                                  key={role.title}
+                                  key={r.title}
                                   href="/#freelancers-section"
                                   onClick={() => {
                                     setActiveDropdown(null);
-                                    onSearchChange(role.title);
+                                    onSearchChange(r.title);
                                   }}
                                   className="group block text-left"
                                 >
-                                  <h4 className="text-[13px] font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
-                                    {role.title}
+                                  <h4 className="text-[13px] font-semibold text-[#111315] group-hover:text-[#0F6E50] transition-colors">
+                                    {r.title}
                                   </h4>
-                                  <p className="text-[12px] text-slate-500 mt-0.5 leading-snug group-hover:text-slate-600">
-                                    {role.desc}
+                                  <p className="text-[12px] text-[#686E78] mt-0.5 leading-snug">
+                                    {r.desc}
                                   </p>
                                 </Link>
                               ))}
                             </div>
                           </div>
                         </div>
-
                       </div>
 
-                      {/* Footer Action Bar (Upwork Style) */}
-                      <div className="border-t border-slate-100 px-7 py-3.5 flex items-center gap-6 text-[13px]">
+                      {/* Footer Action Bar */}
+                      <div className="border-t border-[rgba(17,19,21,0.08)] bg-[#FAF9F6]/70 px-7 py-3.5 flex items-center gap-6 text-[13px]">
                         <Link
                           href="/#freelancers-section"
                           onClick={() => setActiveDropdown(null)}
-                          className="font-medium text-[#108a00] hover:text-[#14a800] hover:underline flex items-center gap-1 cursor-pointer"
+                          className="font-semibold text-[#0F6E50] hover:text-[#0B3B2E] inline-flex items-center gap-1 cursor-pointer"
                         >
-                          <span>{lang === "en" ? "See all talent" : "সকল ট্যালেন্ট দেখুন"}</span>
+                          <span>{lang === "en" ? "Browse verified talent" : "সকল ট্যালেন্ট দেখুন"}</span>
                           <ChevronRight className="w-3.5 h-3.5" />
                         </Link>
 
@@ -397,7 +398,7 @@ export default function Navbar({
                             setActiveDropdown(null);
                             onOpenPostJob();
                           }}
-                          className="font-medium text-[#108a00] hover:text-[#14a800] hover:underline flex items-center gap-1 cursor-pointer"
+                          className="font-semibold text-[#0F6E50] hover:text-[#0B3B2E] inline-flex items-center gap-1 cursor-pointer"
                         >
                           <span>{lang === "en" ? "Post a job for free" : "ফ্রি কাজ পোস্ট করুন"}</span>
                           <ChevronRight className="w-3.5 h-3.5" />
@@ -406,19 +407,18 @@ export default function Navbar({
                         <Link
                           href="/dashboard/client"
                           onClick={() => setActiveDropdown(null)}
-                          className="font-medium text-[#108a00] hover:text-[#14a800] hover:underline flex items-center gap-1 cursor-pointer"
+                          className="font-semibold text-[#3E434A] hover:text-[#111315] inline-flex items-center gap-1 cursor-pointer"
                         >
-                          <span>{lang === "en" ? "Talent marketplace" : "ট্যালেন্ট মার্কেটপ্লেস"}</span>
+                          <span>{lang === "en" ? "Client workspace" : "ক্লায়েন্ট ড্যাশবোর্ড"}</span>
                           <ChevronRight className="w-3.5 h-3.5" />
                         </Link>
                       </div>
-
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* 2. Find Work Dropdown (Upwork 2-Column Style) */}
+              {/* 2. Find Work Dropdown */}
               <div
                 className="relative"
                 onMouseEnter={() => handleMouseEnter("work")}
@@ -426,37 +426,38 @@ export default function Navbar({
               >
                 <button
                   type="button"
-                  onClick={() => setActiveDropdown(activeDropdown === "work" ? null : "work")}
-                  className={`flex items-center gap-1 px-3 py-2 rounded-lg hover:text-emerald-700 transition-colors cursor-pointer ${
-                    activeDropdown === "work" ? "text-emerald-700" : ""
+                  onClick={() =>
+                    setActiveDropdown(activeDropdown === "work" ? null : "work")
+                  }
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors cursor-pointer ${
+                    activeDropdown === "work"
+                      ? "bg-[#F4F2EC] text-[#0B3B2E]"
+                      : "hover:text-[#0B3B2E] hover:bg-[#F4F2EC]/70"
                   }`}
                 >
                   <span>{lang === "en" ? "Find Work" : "কাজ খুঁজুন"}</span>
                   {myBidsCount > 0 && (
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span className="w-2 h-2 rounded-full bg-[#0F6E50]" />
                   )}
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                      activeDropdown === "work" ? "rotate-180 text-emerald-600" : ""
+                    className={`w-3.5 h-3.5 text-[#686E78] transition-transform duration-200 ${
+                      activeDropdown === "work" ? "rotate-180 text-[#0F6E50]" : ""
                     }`}
                   />
                 </button>
 
                 {activeDropdown === "work" && (
                   <div
-                    className="absolute top-full left-0 w-[860px] max-w-[calc(100vw-3rem)] pt-2 animate-in fade-in zoom-in-95 duration-150 z-50"
+                    className="absolute top-full left-0 w-[860px] max-w-[calc(100vw-3rem)] pt-2.5 mk-zoom-in z-50"
                     onMouseEnter={() => handleMouseEnter("work")}
                     onMouseLeave={handleMouseLeave}
                   >
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col">
-                      
-                      {/* 2-Pane Upwork Mega Menu Body */}
+                    <div className="bg-white rounded-2xl border border-[rgba(17,19,21,0.11)] shadow-[0_24px_54px_-12px_rgba(17,19,21,0.18)] overflow-hidden flex flex-col">
                       <div className="flex min-h-[380px]">
-                        
-                        {/* Left Pane: Categories List */}
-                        <div className="w-56 border-r border-slate-100/90 py-3 px-2 bg-white flex flex-col justify-start shrink-0">
-                          <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 pt-1 pb-2">
-                            CATEGORIES
+                        {/* Left Pane */}
+                        <div className="w-56 border-r border-[rgba(17,19,21,0.08)] py-3.5 px-2.5 bg-[#FAF9F6] flex flex-col justify-start shrink-0">
+                          <span className="block text-[10px] font-bold text-[#686E78] uppercase tracking-[0.09em] px-3 pt-1 pb-2.5">
+                            {lang === "en" ? "Job Categories" : "কাজের বিভাগ"}
                           </span>
                           <div className="space-y-0.5">
                             {WORK_CATEGORIES.map((cat, idx) => (
@@ -465,89 +466,87 @@ export default function Navbar({
                                 type="button"
                                 onMouseEnter={() => setSelectedWorkCatIdx(idx)}
                                 onClick={() => setSelectedWorkCatIdx(idx)}
-                                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-[13px] transition-colors text-left cursor-pointer ${
+                                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-[13px] transition-colors text-left cursor-pointer ${
                                   selectedWorkCatIdx === idx
-                                    ? "bg-slate-100 text-slate-900 font-semibold"
-                                    : "text-slate-700 hover:text-slate-900 hover:bg-slate-50 font-normal"
+                                    ? "bg-white text-[#0B3B2E] font-semibold shadow-[0_1px_2px_rgba(17,19,21,0.06)] border border-[rgba(17,19,21,0.07)]"
+                                    : "text-[#3E434A] hover:text-[#111315] hover:bg-white/60 font-medium border border-transparent"
                                 }`}
                               >
                                 <span>{lang === "en" ? cat.name : cat.nameBn}</span>
-                                <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                <ChevronRight className="w-3.5 h-3.5 text-[#949BA6] shrink-0" />
                               </button>
                             ))}
                           </div>
                         </div>
 
-                        {/* Right Pane: 2-Column Job Specialties Grid */}
-                        <div className="flex-1 py-4 px-7 bg-white flex flex-col justify-between">
+                        {/* Right Pane */}
+                        <div className="flex-1 py-5 px-7 bg-white flex flex-col justify-between">
                           <div>
-                            <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-4">
+                            <span className="block text-[10px] font-bold text-[#0F6E50] uppercase tracking-[0.09em] mb-4">
                               {lang === "en"
                                 ? WORK_CATEGORIES[selectedWorkCatIdx].name
                                 : WORK_CATEGORIES[selectedWorkCatIdx].nameBn}
                             </span>
 
                             <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                              {WORK_CATEGORIES[selectedWorkCatIdx].roles.map((role) => (
+                              {WORK_CATEGORIES[selectedWorkCatIdx].roles.map((r) => (
                                 <Link
-                                  key={role.title}
+                                  key={r.title}
                                   href="/#jobs-section"
                                   onClick={() => {
                                     setActiveDropdown(null);
-                                    onSearchChange(role.title);
+                                    onSearchChange(r.title);
                                   }}
                                   className="group block text-left"
                                 >
-                                  <h4 className="text-[13px] font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors">
-                                    {role.title}
+                                  <h4 className="text-[13px] font-semibold text-[#111315] group-hover:text-[#0F6E50] transition-colors">
+                                    {r.title}
                                   </h4>
-                                  <p className="text-[12px] text-slate-500 mt-0.5 leading-snug group-hover:text-slate-600">
-                                    {role.desc}
+                                  <p className="text-[12px] text-[#686E78] mt-0.5 leading-snug">
+                                    {r.desc}
                                   </p>
                                 </Link>
                               ))}
                             </div>
                           </div>
                         </div>
-
                       </div>
 
-                      {/* Footer Action Bar (Directly from Upwork Image 1) */}
-                      <div className="border-t border-slate-100 px-7 py-3.5 flex items-center gap-6 text-[13px]">
+                      {/* Footer Action Bar */}
+                      <div className="border-t border-[rgba(17,19,21,0.08)] bg-[#FAF9F6]/70 px-7 py-3.5 flex items-center gap-6 text-[13px]">
                         <Link
                           href="/#jobs-section"
                           onClick={() => setActiveDropdown(null)}
-                          className="font-medium text-[#108a00] hover:text-[#14a800] hover:underline flex items-center gap-1 cursor-pointer"
+                          className="font-semibold text-[#0F6E50] hover:text-[#0B3B2E] inline-flex items-center gap-1 cursor-pointer"
                         >
-                          <span>{lang === "en" ? "See all jobs" : "সকল কাজ দেখুন"}</span>
+                          <span>{lang === "en" ? "Explore open jobs" : "সকল কাজ দেখুন"}</span>
                           <ChevronRight className="w-3.5 h-3.5" />
                         </Link>
 
                         <Link
                           href="/dashboard/freelancer"
                           onClick={() => setActiveDropdown(null)}
-                          className="font-medium text-[#108a00] hover:text-[#14a800] hover:underline flex items-center gap-1 cursor-pointer"
+                          className="font-semibold text-[#0F6E50] hover:text-[#0B3B2E] inline-flex items-center gap-1 cursor-pointer"
                         >
-                          <span>{lang === "en" ? "Win work with ads" : "বিজ্ঞাপনে কাজ জিতুন"}</span>
+                          <span>{lang === "en" ? "Freelancer portal" : "ফ্রিল্যান্সার ড্যাশবোর্ড"}</span>
                           <ChevronRight className="w-3.5 h-3.5" />
                         </Link>
 
                         <Link
-                          href="/dashboard/freelancer"
+                          href="/escrow"
                           onClick={() => setActiveDropdown(null)}
-                          className="font-medium text-[#108a00] hover:text-[#14a800] hover:underline flex items-center gap-1 cursor-pointer"
+                          className="font-semibold text-[#3E434A] hover:text-[#111315] inline-flex items-center gap-1 cursor-pointer"
                         >
-                          <span>{lang === "en" ? "Ways to earn" : "উপার্জনের উপায়"}</span>
+                          <span>{lang === "en" ? "How BDT payout works" : "পেমেন্ট প্রক্রিয়া"}</span>
                           <ChevronRight className="w-3.5 h-3.5" />
                         </Link>
                       </div>
-
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* 3. Why MuktoKormo Dropdown */}
+              {/* 3. Platform / Why MuktoKormo Dropdown */}
               <div
                 className="relative"
                 onMouseEnter={() => handleMouseEnter("why")}
@@ -555,150 +554,222 @@ export default function Navbar({
               >
                 <button
                   type="button"
-                  onClick={() => setActiveDropdown(activeDropdown === "why" ? null : "why")}
-                  className={`flex items-center gap-1 px-3 py-2 rounded-lg hover:text-emerald-700 transition-colors cursor-pointer ${
-                    activeDropdown === "why" ? "text-emerald-700" : ""
+                  onClick={() =>
+                    setActiveDropdown(activeDropdown === "why" ? null : "why")
+                  }
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors cursor-pointer ${
+                    activeDropdown === "why"
+                      ? "bg-[#F4F2EC] text-[#0B3B2E]"
+                      : "hover:text-[#0B3B2E] hover:bg-[#F4F2EC]/70"
                   }`}
                 >
                   <span>{lang === "en" ? "Why MuktoKormo" : "কেন মুক্তকর্ম"}</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
-                      activeDropdown === "why" ? "rotate-180 text-emerald-600" : ""
+                    className={`w-3.5 h-3.5 text-[#686E78] transition-transform duration-200 ${
+                      activeDropdown === "why" ? "rotate-180 text-[#0F6E50]" : ""
                     }`}
                   />
                 </button>
 
                 {activeDropdown === "why" && (
-                  <div className="absolute top-full left-0 w-80 pt-2 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-xl p-3 space-y-1">
+                  <div className="absolute top-full left-0 w-80 pt-2.5 mk-zoom-in z-50">
+                    <div className="bg-white rounded-2xl border border-[rgba(17,19,21,0.11)] shadow-[0_20px_44px_-10px_rgba(17,19,21,0.16)] p-2.5 space-y-1">
                       <Link
                         href="/escrow"
                         onClick={() => setActiveDropdown(null)}
-                        className="block p-3 rounded-xl hover:bg-slate-50 transition-colors group"
+                        className="block p-3 rounded-xl hover:bg-[#FAF9F6] transition-colors group"
                       >
-                        <div className="flex items-center gap-2">
-                          <ShieldCheck className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-                          <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
-                            {lang === "en" ? "100% BDT Escrow Protection" : "১০০% নিরাপদ বিডিটি এসক্রো"}
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-[#EAF5F0] text-[#0F6E50] flex items-center justify-center shrink-0">
+                            <ShieldCheck className="w-4 h-4" />
+                          </div>
+                          <p className="text-xs font-bold text-[#111315] group-hover:text-[#0F6E50]">
+                            {lang === "en"
+                              ? "100% BDT Escrow Protection"
+                              : "১০০% নিরাপদ বিডিটি এসক্রো"}
                           </p>
                         </div>
-                        <p className="text-[11px] text-slate-500 mt-1 pl-6">
+                        <p className="text-[11px] text-[#686E78] mt-1 pl-9.5 leading-relaxed">
                           {lang === "en"
-                            ? "Safe deposits via bKash & Nagad. Release funds only when work is approved"
-                            : "বিকাশ ও নগদে সুরক্ষিত তহবিল। কাজ অনুমোদনের পরেই পেমেন্ট ছাড়"}
+                            ? "Milestone custody via bKash, Nagad & bank cards. Pay only when approved."
+                            : "বিকাশ ও নগদে সুরক্ষিত তহবিল। কাজ অনুমোদনের পরেই পেমেন্ট ছাড়।"}
                         </p>
                       </Link>
 
                       <Link
                         href="/workspaces"
                         onClick={() => setActiveDropdown(null)}
-                        className="block p-3 rounded-xl hover:bg-slate-50 transition-colors group"
+                        className="block p-3 rounded-xl hover:bg-[#FAF9F6] transition-colors group"
                       >
-                        <div className="flex items-center gap-2">
-                          <Handshake className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition-transform" />
-                          <p className="text-xs font-bold text-slate-900 group-hover:text-emerald-700">
-                            {lang === "en" ? "Contract Delivery Workspaces" : "কন্ট্রাক্ট ডেলিভারি ওয়ার্কস্পেস"}
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-[#FBF5EA] text-[#A87224] flex items-center justify-center shrink-0">
+                            <Handshake className="w-4 h-4" />
+                          </div>
+                          <p className="text-xs font-bold text-[#111315] group-hover:text-[#0F6E50]">
+                            {lang === "en"
+                              ? "Contract Delivery Workspaces"
+                              : "কন্ট্রাক্ট ডেলিভারি ওয়ার্কস্পেস"}
                           </p>
                         </div>
-                        <p className="text-[11px] text-slate-500 mt-1 pl-6">
+                        <p className="text-[11px] text-[#686E78] mt-1 pl-9.5 leading-relaxed">
                           {lang === "en"
-                            ? "Submit deliverables, demo URLs, and audit activity logs"
-                            : "মাইলস্টোন ডেলিভারি জমা দিন, রিভিশন রিভিউ ও ট্র্যাকিং করুন"}
+                            ? "Track deliverables, live URLs, audit trails, and integrated 1-to-1 chat."
+                            : "মাইলস্টোন ডেলিভারি জমা দিন, রিভিশন রিভিউ ও ট্র্যাকিং করুন।"}
                         </p>
                       </Link>
                     </div>
                   </div>
                 )}
               </div>
-
-              
             </nav>
           </div>
 
-          {/* Right: Clean, Upwork-style Actions */}
-          <div className="hidden sm:flex items-center gap-3">
-            {/* Search Bar */}
+          {/* Right Actions */}
+          <div className="hidden sm:flex items-center gap-2.5">
+            {/* Search Pill */}
             <div className="hidden xl:flex items-center relative w-52 2xl:w-60">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-[#949BA6] absolute left-3 pointer-events-none" />
               <input
                 type="search"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder={lang === "en" ? "Search talent or jobs..." : "ট্যালেন্ট বা কাজ খুঁজুন..."}
-                className="w-full pl-8 pr-3 py-1.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-emerald-600 rounded-full text-xs font-medium focus:outline-none transition-all placeholder:text-slate-400 text-slate-800"
+                placeholder={
+                  lang === "en" ? "Search talent or jobs..." : "ট্যালেন্ট বা কাজ খুঁজুন..."
+                }
+                className="w-full pl-8.5 pr-3 py-1.5 bg-white hover:border-[rgba(17,19,21,0.2)] focus:border-[#0F6E50] border border-[rgba(17,19,21,0.11)] rounded-xl text-xs font-medium focus:outline-none transition-all placeholder:text-[#949BA6] text-[#111315]"
               />
             </div>
 
-            {/* Language Toggle with subtle pill & Globe icon */}
+            {/* Bilingual Language Toggle */}
             <button
+              type="button"
               onClick={onToggleLang}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all cursor-pointer border border-transparent hover:border-slate-200"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-[#3E434A] hover:text-[#111315] hover:bg-[#F4F2EC] transition-all cursor-pointer border border-transparent hover:border-[rgba(17,19,21,0.08)]"
               title={lang === "en" ? "Switch to বাংলা" : "Switch to English"}
             >
-              <Globe className="w-3.5 h-3.5 text-emerald-600" />
+              <Globe className="w-3.5 h-3.5 text-[#0F6E50]" />
               <span>{lang === "en" ? "বাংলা" : "English"}</span>
             </button>
 
-            {/* Subtle Divider */}
-            <div className="h-5 w-px bg-slate-200 mx-0.5" />
+            <div className="h-5 w-px bg-[rgba(17,19,21,0.1)] mx-0.5" />
 
-            {/* Authenticated vs Guest Actions */}
+            {/* Authenticated vs Guest */}
             {!userLoading && email ? (
-              <div className="flex items-center gap-2.5">
-                {/* User Profile Pill */}
-                <Link
-                  href={dashboardPathForRole(role || "freelancer")}
-                  title={lang === "en" ? "View profile & dashboard" : "প্রোফাইল ও ড্যাশবোর্ড"}
-                  className="group flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full bg-slate-50 hover:bg-slate-100 border border-slate-200/80 transition-all"
+              <div className="flex items-center gap-2">
+                {/* Profile Dropdown */}
+                <div
+                  className="relative"
+                  onMouseEnter={() => handleMouseEnter("profile")}
+                  onMouseLeave={handleMouseLeave}
                 >
-                  <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-[11px] font-black flex items-center justify-center shrink-0 uppercase shadow-xs">
-                    {(name ? name.trim()[0] : email[0]).toUpperCase()}
-                  </span>
-                  <span className="text-xs font-bold text-slate-800 max-w-[100px] truncate group-hover:text-emerald-700 transition-colors">
-                    {name ? name.split(" ")[0] : email.split("@")[0]}
-                  </span>
-                  <span
-                    className={`px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
-                      role === "client"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-sky-100 text-sky-800"
-                    }`}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setActiveDropdown(activeDropdown === "profile" ? null : "profile")
+                    }
+                    className="flex items-center gap-2 pl-1.5 pr-2.5 py-1 rounded-xl bg-white hover:bg-[#F4F2EC] border border-[rgba(17,19,21,0.11)] transition-all cursor-pointer"
                   >
-                    {role === "client" ? "Client" : "Freelancer"}
-                  </span>
-                </Link>
+                    <span className="w-6 h-6 rounded-lg bg-[#0B3B2E] text-white text-[11px] font-bold flex items-center justify-center shrink-0">
+                      {userInitial}
+                    </span>
+                    <span className="text-xs font-semibold text-[#111315] max-w-[96px] truncate">
+                      {firstName}
+                    </span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider ${
+                        role === "client"
+                          ? "bg-[#EAF5F0] text-[#0B3B2E]"
+                          : role === "admin"
+                          ? "bg-[#FBF5EA] text-[#9A661A]"
+                          : "bg-[#EDF4FC] text-[#1D5A96]"
+                      }`}
+                    >
+                      {role || "member"}
+                    </span>
+                    <ChevronDown className="w-3 h-3 text-[#686E78]" />
+                  </button>
+
+                  {activeDropdown === "profile" && (
+                    <div className="absolute right-0 top-full w-60 pt-2 mk-zoom-in z-50">
+                      <div className="bg-white rounded-2xl border border-[rgba(17,19,21,0.11)] shadow-[0_20px_44px_-10px_rgba(17,19,21,0.16)] p-2 space-y-0.5">
+                        <div className="px-3 py-2 border-b border-[rgba(17,19,21,0.08)] mb-1">
+                          <p className="text-xs font-bold text-[#111315] truncate">
+                            {name || firstName}
+                          </p>
+                          <p className="text-[11px] text-[#686E78] truncate">
+                            {email}
+                          </p>
+                        </div>
+                        <Link
+                          href={dashboardPathForRole(role || "freelancer")}
+                          onClick={() => setActiveDropdown(null)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#111315] hover:bg-[#FAF9F6]"
+                        >
+                          <LayoutDashboard className="w-3.5 h-3.5 text-[#0F6E50]" />
+                          <span>{lang === "en" ? "Dashboard Overview" : "ড্যাশবোর্ড"}</span>
+                        </Link>
+                        <Link
+                          href="/contracts"
+                          onClick={() => setActiveDropdown(null)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#111315] hover:bg-[#FAF9F6]"
+                        >
+                          <Briefcase className="w-3.5 h-3.5 text-[#0F6E50]" />
+                          <span>{lang === "en" ? "Contracts & Escrow" : "চুক্তি ও এসক্রো"}</span>
+                        </Link>
+                        <Link
+                          href="/messages"
+                          onClick={() => setActiveDropdown(null)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#111315] hover:bg-[#FAF9F6]"
+                        >
+                          <User className="w-3.5 h-3.5 text-[#0F6E50]" />
+                          <span>{lang === "en" ? "Messages" : "মেসেজ"}</span>
+                        </Link>
+                        <Link
+                          href="/escrow"
+                          onClick={() => setActiveDropdown(null)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#111315] hover:bg-[#FAF9F6]"
+                        >
+                          <CreditCard className="w-3.5 h-3.5 text-[#0F6E50]" />
+                          <span>{lang === "en" ? "Payment Guide" : "পেমেন্ট গাইড"}</span>
+                        </Link>
+                        <div className="pt-1 border-t border-[rgba(17,19,21,0.08)]">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveDropdown(null);
+                              signOut();
+                            }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#BE123C] hover:bg-[#FFF1F3] cursor-pointer"
+                          >
+                            <LogOut className="w-3.5 h-3.5" />
+                            <span>{lang === "en" ? "Sign Out" : "লগআউট"}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Dashboard Primary CTA */}
                 <Link
                   href={dashboardPathForRole(role || "freelancer")}
-                  className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs px-3.5 py-2 rounded-full transition-all cursor-pointer shadow-xs hover:shadow-emerald-600/20"
+                  className="flex items-center gap-1.5 bg-[#0B3B2E] hover:bg-[#07281F] text-[#FAF9F6] font-semibold text-xs px-3.5 py-2 rounded-xl transition-all shadow-[0_1px_2px_rgba(11,59,46,0.2)]"
                 >
-                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <LayoutDashboard className="w-3.5 h-3.5 text-[#7CE0B8]" />
                   <span>{lang === "en" ? "Dashboard" : "ড্যাশবোর্ড"}</span>
                 </Link>
-
-                {/* Sign Out Button with Icon */}
-                <button
-                  type="button"
-                  onClick={() => signOut()}
-                  title={lang === "en" ? "Sign Out" : "লগআউট"}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all cursor-pointer"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span className="hidden xl:inline">{lang === "en" ? "Sign Out" : "লগআউট"}</span>
-                </button>
               </div>
             ) : (
               <div className="flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="text-xs font-bold text-slate-700 hover:text-emerald-700 px-3 py-2 rounded-full hover:bg-slate-50 transition-all cursor-pointer"
+                  className="text-xs font-semibold text-[#3E434A] hover:text-[#111315] px-3 py-2 rounded-xl hover:bg-[#F4F2EC] transition-all cursor-pointer"
                 >
                   <span>{lang === "en" ? "Log In" : "লগইন"}</span>
                 </Link>
                 <Link
                   href="/signup"
-                  className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-xs px-4 py-2 rounded-full transition-all cursor-pointer shadow-xs hover:shadow-emerald-600/20"
+                  className="bg-[#0B3B2E] hover:bg-[#07281F] active:scale-[0.98] text-[#FAF9F6] font-semibold text-xs px-4 py-2 rounded-xl transition-all cursor-pointer shadow-[0_1px_2px_rgba(11,59,46,0.2)]"
                 >
                   <span>{lang === "en" ? "Sign Up" : "সাইন আপ"}</span>
                 </Link>
@@ -709,86 +780,106 @@ export default function Navbar({
           {/* Mobile Menu Toggle Button */}
           <div className="flex sm:hidden items-center gap-2">
             <button
+              type="button"
               onClick={onOpenPostJob}
-              className="bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-full text-xs"
+              className="bg-[#0B3B2E] text-[#FAF9F6] font-semibold px-3 py-1.5 rounded-lg text-xs cursor-pointer"
             >
-              Post Job
+              {lang === "en" ? "Post Job" : "পোস্ট"}
             </button>
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-700 hover:text-slate-950 cursor-pointer"
+              className="p-2 rounded-lg text-[#111315] hover:bg-[#F4F2EC] cursor-pointer"
               aria-label="Toggle navigation"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 text-slate-800" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
-
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="sm:hidden bg-white border-t border-slate-200 px-5 py-4 space-y-4 shadow-xl animate-in slide-in-from-top-2 duration-150">
-          <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+        <div className="sm:hidden bg-white border-t border-[rgba(17,19,21,0.09)] px-5 py-4 space-y-4 shadow-xl mk-zoom-in">
+          {/* Mobile Search */}
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-[#949BA6] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder={
+                lang === "en" ? "Search talent or jobs..." : "ট্যালেন্ট বা কাজ খুঁজুন..."
+              }
+              className="w-full pl-8.5 pr-3 py-2 bg-[#FAF9F6] border border-[rgba(17,19,21,0.1)] rounded-xl text-xs font-medium focus:outline-none focus:border-[#0F6E50]"
+            />
+          </div>
+
+          <div className="flex justify-between items-center pb-2 border-b border-[rgba(17,19,21,0.07)]">
             <button
+              type="button"
               onClick={onToggleLang}
-              className="text-xs font-semibold text-slate-700"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#111315]"
             >
-              {lang === "en" ? "বাংলা ভার্সন" : "English Version"}
+              <Globe className="w-3.5 h-3.5 text-[#0F6E50]" />
+              <span>{lang === "en" ? "বাংলা সংস্করণ দেখুন" : "Switch to English"}</span>
             </button>
           </div>
 
-          <div className="space-y-2.5 text-xs font-semibold text-slate-700">
+          <div className="space-y-2 text-xs font-semibold text-[#3E434A]">
             <Link
               href="/#jobs-section"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-1 hover:text-emerald-600"
+              className="block py-1.5 hover:text-[#0F6E50]"
             >
               {lang === "en" ? "Find Work" : "কাজ খুঁজুন"}
             </Link>
             <Link
               href="/#freelancers-section"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-1 hover:text-emerald-600"
+              className="block py-1.5 hover:text-[#0F6E50]"
             >
               {lang === "en" ? "Hire Talent" : "ট্যালেন্ট খুঁজুন"}
             </Link>
-            
             <Link
               href="/escrow"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 py-1 text-slate-700 hover:text-emerald-600"
+              className="flex items-center gap-2 py-1.5 hover:text-[#0F6E50]"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{lang === "en" ? "100% BDT Escrow Protection" : "১০০% নিরাপদ বিডিটি এসক্রো"}</span>
+              <ShieldCheck className="w-3.5 h-3.5 text-[#0F6E50]" />
+              <span>
+                {lang === "en" ? "100% BDT Escrow Protection" : "১০০% নিরাপদ বিডিটি এসক্রো"}
+              </span>
             </Link>
             <Link
               href="/workspaces"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 py-1 text-slate-700 hover:text-emerald-600"
+              className="flex items-center gap-2 py-1.5 hover:text-[#0F6E50]"
             >
-              <Handshake className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{lang === "en" ? "Contract Delivery Workspaces" : "কন্ট্রাক্ট ডেলিভারি ওয়ার্কস্পেস"}</span>
+              <Handshake className="w-3.5 h-3.5 text-[#0F6E50]" />
+              <span>
+                {lang === "en" ? "Contract Delivery Workspaces" : "কন্ট্রাক্ট ডেলিভারি ওয়ার্কস্পেস"}
+              </span>
             </Link>
-            
             <Link
               href="/dashboard"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-1 text-emerald-700 font-bold"
+              className="block py-1.5 text-[#0B3B2E] font-bold"
             >
-              {lang === "en" ? "Dedicated Dashboards" : "ড্যাশবোর্ড পোর্টাল"}
+              {lang === "en" ? "Dashboard Portal" : "ড্যাশবোর্ড পোর্টাল"}
             </Link>
             {onOpenMyBids && (
               <button
+                type="button"
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onOpenMyBids();
                 }}
-                className="w-full text-left py-1 text-slate-700 hover:text-emerald-600 flex items-center justify-between"
+                className="w-full text-left py-1.5 text-[#111315] hover:text-[#0F6E50] flex items-center justify-between"
               >
-                <span>{lang === "en" ? "My Bids" : "আমার বিড"}</span>
+                <span>{lang === "en" ? "My Submitted Bids" : "আমার জমাকৃত বিড"}</span>
                 {myBidsCount > 0 && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF5F0] text-[#0B3B2E]">
                     {myBidsCount}
                   </span>
                 )}
@@ -796,20 +887,20 @@ export default function Navbar({
             )}
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex items-center gap-3">
+          <div className="pt-3 border-t border-[rgba(17,19,21,0.08)] flex items-center gap-3">
             {!userLoading && email ? (
-              <div className="w-full space-y-2">
-                <div className="flex items-center justify-between text-xs px-1 font-bold text-slate-700">
+              <div className="w-full space-y-2.5">
+                <div className="flex items-center justify-between text-xs px-1 font-bold text-[#111315]">
                   <span className="truncate">{name || email}</span>
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-100 text-emerald-800">
-                    {role === "client" ? "Client" : "Freelancer"}
+                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-[#EAF5F0] text-[#0B3B2E]">
+                    {role === "client" ? "Client" : role === "admin" ? "Admin" : "Freelancer"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Link
                     href={dashboardPathForRole(role || "freelancer")}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex-1 text-center py-2 text-xs font-bold text-white bg-emerald-600 rounded-full hover:bg-emerald-700 shadow-xs"
+                    className="flex-1 text-center py-2.5 text-xs font-semibold text-white bg-[#0B3B2E] rounded-xl"
                   >
                     {lang === "en" ? "Dashboard" : "ড্যাশবোর্ড"}
                   </Link>
@@ -819,7 +910,7 @@ export default function Navbar({
                       setMobileMenuOpen(false);
                       signOut();
                     }}
-                    className="flex-1 text-center py-2 text-xs font-bold text-rose-600 border border-rose-200 rounded-full hover:bg-rose-50"
+                    className="flex-1 text-center py-2.5 text-xs font-semibold text-[#BE123C] border border-[#FCCDD6] bg-[#FFF1F3] rounded-xl"
                   >
                     {lang === "en" ? "Sign Out" : "লগআউট"}
                   </button>
@@ -830,14 +921,14 @@ export default function Navbar({
                 <Link
                   href="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex-1 text-center py-2 text-xs font-bold text-slate-800 border border-slate-200 rounded-full hover:bg-slate-50"
+                  className="flex-1 text-center py-2.5 text-xs font-semibold text-[#111315] border border-[rgba(17,19,21,0.14)] rounded-xl"
                 >
                   {lang === "en" ? "Log In" : "লগইন"}
                 </Link>
                 <Link
                   href="/signup"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex-1 text-center py-2 text-xs font-bold text-white bg-emerald-600 rounded-full hover:bg-emerald-700 shadow-xs"
+                  className="flex-1 text-center py-2.5 text-xs font-semibold text-white bg-[#0B3B2E] rounded-xl"
                 >
                   {lang === "en" ? "Sign Up" : "সাইন আপ"}
                 </Link>

@@ -3,7 +3,8 @@
 import React, { useState, Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Briefcase, User, Check, ShieldCheck, Sparkles, ArrowRight, Mail, Globe } from "lucide-react";
+import { Briefcase, User, Check, ShieldCheck, Sparkles, ArrowRight, Mail, Globe, ArrowLeft, AlertCircle } from "lucide-react";
+import Logo from "@/components/Logo";
 import OnboardingShell, { WizardStep } from "@/components/onboarding/OnboardingShell";
 import { ClientOrgStep } from "@/components/onboarding/ClientOrgStep";
 import { ClientAccountStep, ClientAccount } from "@/components/onboarding/ClientAccountStep";
@@ -74,8 +75,8 @@ export default function SignUpPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-md h-64 bg-white border border-slate-200/90 rounded-3xl shadow-xl animate-pulse" />
+        <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center p-4">
+          <div className="w-full max-w-md h-64 bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-sm animate-pulse" />
         </div>
       }
     >
@@ -113,11 +114,11 @@ function SignUpFlow() {
   const [profile, setProfile] = useState<ProfileFormState>(() =>
     isFreelancerDeepLink
       ? {
-        ...EMPTY_PROFILE,
-        employment: SAMPLE_EMPLOYMENT,
-        education: SAMPLE_EDUCATION,
-        languages: SAMPLE_LANGUAGES,
-      }
+          ...EMPTY_PROFILE,
+          employment: SAMPLE_EMPLOYMENT,
+          education: SAMPLE_EDUCATION,
+          languages: SAMPLE_LANGUAGES,
+        }
       : EMPTY_PROFILE
   );
 
@@ -134,11 +135,11 @@ function SignUpFlow() {
 
     const email = (role === "client" ? clientAccount.email : account.email).trim();
     const password = role === "client" ? clientAccount.password : account.password;
-    const fullName = (
-      role === "client"
+    const fullName =
+      (role === "client"
         ? clientAccount.name
         : `${account.firstName} ${account.lastName}`
-    ).trim() || (role === "client" ? "Client User" : "Freelancer User");
+      ).trim() || (role === "client" ? "Client User" : "Freelancer User");
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -147,11 +148,11 @@ function SignUpFlow() {
         data: {
           full_name: fullName,
           role: role,
-          company_name: role === "client" ? (org.companyName || null) : null,
-          title: role === "freelancer" ? (profile.title || null) : null,
+          company_name: role === "client" ? org.companyName || null : null,
+          title: role === "freelancer" ? profile.title || null : null,
           hourly_rate: role === "freelancer" ? profile.hourlyRate : null,
           skills: role === "freelancer" ? skills : [],
-          bio: role === "freelancer" ? (profile.intro || null) : null,
+          bio: role === "freelancer" ? profile.intro || null : null,
         },
       },
     });
@@ -181,21 +182,27 @@ function SignUpFlow() {
 
     try {
       if (role === "client") {
-        const { error: pErr } = await supabase.from("clients").upsert({
-          user_id: userId,
-          company_name: org.companyName || null,
-          display_name: fullName,
-        }, { onConflict: "user_id" });
+        const { error: pErr } = await supabase.from("clients").upsert(
+          {
+            user_id: userId,
+            company_name: org.companyName || null,
+            display_name: fullName,
+          },
+          { onConflict: "user_id" }
+        );
         if (pErr) console.warn("client profile upsert:", pErr.message);
       } else {
-        const { error: pErr } = await supabase.from("freelancers").upsert({
-          user_id: userId,
-          title: profile.title || null,
-          hourly_rate: profile.hourlyRate,
-          skills: skills || [],
-          bio: profile.intro || null,
-          display_name: fullName,
-        }, { onConflict: "user_id" });
+        const { error: pErr } = await supabase.from("freelancers").upsert(
+          {
+            user_id: userId,
+            title: profile.title || null,
+            hourly_rate: profile.hourlyRate,
+            skills: skills || [],
+            bio: profile.intro || null,
+            display_name: fullName,
+          },
+          { onConflict: "user_id" }
+        );
         if (pErr) console.warn("freelancer profile upsert:", pErr.message);
       }
     } catch (e) {
@@ -213,14 +220,14 @@ function SignUpFlow() {
       <button
         type="button"
         onClick={() => setLang((prev) => (prev === "en" ? "bn" : "en"))}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold text-xs text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold text-xs text-[#111315] bg-[#FAF9F6] border border-[rgba(17,19,21,0.1)] hover:border-[rgba(17,19,21,0.2)] transition-all cursor-pointer"
       >
-        <Globe className="w-3.5 h-3.5 text-emerald-600" />
+        <Globe className="w-3.5 h-3.5 text-[#0F6E50]" />
         {lang === "en" ? "বাংলা" : "English"}
       </button>
-      <span className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500">
+      <span className="hidden sm:flex items-center gap-1.5 text-xs text-[#686E78]">
         <span>{lang === "en" ? "Already have an account?" : "ইতিমধ্যে অ্যাকাউন্ট আছে?"}</span>
-        <Link href="/login" className="font-bold text-emerald-600 hover:underline">
+        <Link href="/login" className="font-semibold text-[#0F6E50] hover:text-[#0B3B2E] hover:underline">
           {lang === "en" ? "Sign In" : "লগইন"}
         </Link>
       </span>
@@ -228,23 +235,27 @@ function SignUpFlow() {
   );
 
   const ErrorBanner = authError ? (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl px-4 py-3 shadow-lg">
-      {authError}
+    <div
+      role="alert"
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-[#FEF2F2] border border-[#DC2626]/25 text-[#991B1B] text-xs font-semibold rounded-xl px-4 py-3 shadow-lg flex items-center gap-2"
+    >
+      <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0" />
+      <span>{authError}</span>
     </div>
   ) : null;
 
   /* ---------------- Success ---------------- */
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white border border-slate-200/90 rounded-3xl shadow-xl p-10 text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
-            <Check className="w-9 h-9" />
+      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-[0_14px_38px_-18px_rgba(11,59,46,0.14)] p-10 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-[#EAF5F0] text-[#0F6E50] flex items-center justify-center mx-auto border border-[#0F6E50]/20">
+            <Check className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900">
+          <h2 className="text-2xl font-bold tracking-tight text-[#111315]">
             Welcome to MuktoKormo, {account.firstName || org.companyName || "Friend"}!
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#686E78] leading-relaxed">
             Your {role === "client" ? "Employer" : "Freelancer"} account has been created. Setting up
             your workspace...
           </p>
@@ -256,19 +267,19 @@ function SignUpFlow() {
   /* ---------------- Email confirmation required ---------------- */
   if (needsConfirmation) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white border border-slate-200/90 rounded-3xl shadow-xl p-10 text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
+      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-[0_14px_38px_-18px_rgba(11,59,46,0.14)] p-10 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-[#EAF5F0] text-[#0F6E50] flex items-center justify-center mx-auto border border-[#0F6E50]/20">
             <Mail className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900">Confirm your email</h2>
-          <p className="text-xs text-slate-500 leading-relaxed">
-            We sent a confirmation link to <b>{needsConfirmation}</b>. Click it, then log in to
+          <h2 className="text-2xl font-bold tracking-tight text-[#111315]">Confirm your email</h2>
+          <p className="text-xs text-[#686E78] leading-relaxed">
+            We sent a confirmation link to <strong className="text-[#111315]">{needsConfirmation}</strong>. Click it, then log in to
             finish setting up your workspace.
           </p>
           <Link
             href="/login"
-            className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all"
+            className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white font-semibold text-xs shadow-sm transition-all"
           >
             Go to login
             <ArrowRight className="w-3.5 h-3.5" />
@@ -281,30 +292,40 @@ function SignUpFlow() {
   /* ---------------- Role selection ---------------- */
   if (role === null) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col">
-        <div className="bg-white border-b border-slate-200">
+      <div className="min-h-screen bg-[#FAF9F6] text-[#111315] flex flex-col">
+        <header className="bg-white/90 backdrop-blur-md border-b border-[rgba(17,19,21,0.08)]">
           <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 group cursor-pointer">
-              <span className="text-slate-500 text-xs font-bold group-hover:-translate-x-0.5 transition-transform">
-                &larr;
-              </span>
-              <span className="text-xs font-bold text-slate-600 hidden sm:inline">Home</span>
+            <Link href="/" className="inline-flex items-center gap-1.5 group cursor-pointer text-xs font-semibold text-[#3E434A] hover:text-[#111315]">
+              <ArrowLeft className="w-4 h-4 text-[#686E78] group-hover:-translate-x-0.5 transition-transform" />
+              <span className="hidden sm:inline">Home</span>
             </Link>
-            <span className="text-lg font-black tracking-tight text-slate-950">
-              Mukto<span className="text-emerald-600">Kormo</span>
-            </span>
+            <Link href="/">
+              <Logo size="sm" />
+            </Link>
             {headerRight}
           </div>
-        </div>
+        </header>
 
-        <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
-          <div className="w-full max-w-lg space-y-6">
-            <div className="text-center space-y-1.5">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-                {lang === "en" ? "Welcome to MuktoKormo" : "মুক্তকর্মে স্বাগতম"}
+        <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
+          <div className="w-full max-w-2xl space-y-7">
+            <div className="text-center space-y-2">
+              <span className="inline-block px-3 py-1 rounded-lg bg-[#EAF5F0] border border-[#0F6E50]/20 text-[#0B3B2E] text-[10px] font-semibold uppercase tracking-wider">
+                {lang === "en" ? "Get Started Free" : "বিনামূল্যে শুরু করুন"}
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#111315]">
+                {lang === "en" ? (
+                  <>
+                    Welcome to{" "}
+                    <span className="font-serif italic font-medium text-[#0F6E50]">
+                      MuktoKormo
+                    </span>
+                  </>
+                ) : (
+                  "মুক্তকর্মে স্বাগতম"
+                )}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-500">
-                {lang === "en" ? "Which describes you best?" : "আপনার জন্য কোনটি সবচেয়ে প্রযোজ্য?"}
+              <p className="text-xs sm:text-sm text-[#686E78]">
+                {lang === "en" ? "Which describes your goals best?" : "আপনার জন্য কোনটি সবচেয়ে প্রযোজ্য?"}
               </p>
             </div>
 
@@ -315,7 +336,10 @@ function SignUpFlow() {
                   icon: Briefcase,
                   title: lang === "en" ? "Client" : "নিয়োগদাতা",
                   subtitle: lang === "en" ? "I want to hire talent" : "কাজের জন্য লোক খুঁজছি",
-                  body: lang === "en" ? "Post jobs and hire" : "কাজ পোস্ট করুন ও নিয়োগ দিন",
+                  body:
+                    lang === "en"
+                      ? "Post scoped projects, review verified proposals, and fund milestones in BDT escrow."
+                      : "কাজ পোস্ট করুন, প্রপোজাল যাচাই করুন এবং বিডিটি এসক্রোতে নিয়োগ দিন।",
                   foot: lang === "en" ? "Protected by BDT escrow" : "বিডিটি এসক্রো দ্বারা সুরক্ষিত",
                   footIcon: ShieldCheck,
                 },
@@ -324,7 +348,10 @@ function SignUpFlow() {
                   icon: User,
                   title: lang === "en" ? "Freelancer" : "ফ্রিল্যান্সার",
                   subtitle: lang === "en" ? "I'm looking for work" : "কাজের সন্ধানে আছি",
-                  body: lang === "en" ? "Work and get paid" : "কাজ করুন ও টাকা নিন",
+                  body:
+                    lang === "en"
+                      ? "Showcase your expertise, submit targeted proposals, and receive fast MFS payouts."
+                      : "আপনার দক্ষতা উপস্থাপন করুন, কাজে বিড করুন ও সরাসরি এমএফএস পেমেন্ট নিন।",
                   foot: lang === "en" ? "Flat 7% service fee" : "মাত্র ৭% সার্ভিস ফি",
                   footIcon: Sparkles,
                 },
@@ -333,36 +360,39 @@ function SignUpFlow() {
                   key={card.id}
                   type="button"
                   onClick={() => setRole(card.id)}
-                  className="p-5 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-500 hover:bg-emerald-50/30 text-left transition-all cursor-pointer flex flex-col justify-between"
+                  className="group p-6 rounded-2xl border border-[rgba(17,19,21,0.1)] bg-white hover:border-[#0B3B2E] hover:shadow-[0_14px_32px_-16px_rgba(11,59,46,0.16)] text-left transition-all cursor-pointer flex flex-col justify-between"
                 >
                   <div>
-                    <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-4 text-emerald-600">
+                    <div className="w-12 h-12 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/15 flex items-center justify-center mb-4 text-[#0F6E50] group-hover:bg-[#0B3B2E] group-hover:text-white transition-colors">
                       <card.icon className="w-6 h-6" />
                     </div>
-                    <h3 className="font-extrabold text-base text-slate-900">{card.title}</h3>
-                    <p className="text-xs font-bold text-emerald-700 mt-0.5">{card.subtitle}</p>
-                    <p className="text-xs text-slate-500 leading-relaxed mt-2">{card.body}</p>
+                    <h3 className="font-bold text-base text-[#111315]">{card.title}</h3>
+                    <p className="text-xs font-semibold text-[#0F6E50] mt-0.5">{card.subtitle}</p>
+                    <p className="text-xs text-[#686E78] leading-relaxed mt-2.5">{card.body}</p>
                   </div>
-                  <div className="mt-4 pt-3 border-t border-slate-100 text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
-                    <card.footIcon className="w-3.5 h-3.5" />
-                    <span>{card.foot}</span>
+                  <div className="mt-5 pt-3.5 border-t border-[rgba(17,19,21,0.08)] text-[11px] font-semibold text-[#0B3B2E] flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5">
+                      <card.footIcon className="w-3.5 h-3.5 text-[#0F6E50]" />
+                      <span>{card.foot}</span>
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#686E78] group-hover:text-[#0B3B2E] group-hover:translate-x-0.5 transition-all" />
                   </div>
                 </button>
               ))}
             </div>
 
-            <p className="text-center text-xs text-slate-500">
+            <p className="text-center text-xs text-[#686E78]">
               {lang === "en" ? "Already have an account? " : "ইতিমধ্যে অ্যাকাউন্ট আছে? "}
-              <Link href="/login" className="font-bold text-emerald-600 hover:underline">
+              <Link href="/login" className="font-semibold text-[#0F6E50] hover:text-[#0B3B2E] hover:underline">
                 {lang === "en" ? "Log in" : "লগইন"}
               </Link>
             </p>
           </div>
-        </div>
+        </main>
 
-        <div className="text-center py-5 text-xs text-slate-400">
+        <footer className="text-center py-5 text-xs text-[#686E78]">
           © 2026 MuktoKormo (মুক্তকর্ম) Technologies Ltd.
-        </div>
+        </footer>
       </div>
     );
   }
@@ -389,6 +419,7 @@ function SignUpFlow() {
               onNext={() => setClientStep(1)}
               onSwitchToFreelancer={() => setRole("freelancer")}
               isLoading={isLoading}
+              lang={lang}
             />
           </OnboardingShell>
         )}
@@ -409,6 +440,7 @@ function SignUpFlow() {
               onChange={setOrg}
               onBack={() => setClientStep(0)}
               onNext={() => setClientStep(2)}
+              lang={lang}
             />
           </OnboardingShell>
         )}
@@ -426,38 +458,40 @@ function SignUpFlow() {
             width="lg"
           >
             <div className="space-y-5">
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 flex items-start gap-3">
-                <Briefcase className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div className="rounded-xl border border-[#0F6E50]/20 bg-[#EAF5F0] p-4 flex items-start gap-3">
+                <div className="w-9 h-9 rounded-lg bg-[#0B3B2E] text-white flex items-center justify-center shrink-0">
+                  <Briefcase className="w-4 h-4" />
+                </div>
                 <div>
-                  <p className="text-xs font-black text-emerald-900">{org.companyName}</p>
-                  <p className="text-[11px] text-emerald-800/80 mt-0.5">
+                  <p className="text-xs font-bold text-[#0B3B2E]">{org.companyName}</p>
+                  <p className="text-[11px] text-[#0F6E50] mt-0.5">
                     {org.role}
                     {org.website ? ` · ${org.website}` : ""}
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-2.5">
-                <p className="text-xs font-bold text-slate-900">Before you publish</p>
+              <div className="rounded-xl border border-[rgba(17,19,21,0.09)] bg-[#FAF9F6] p-4 space-y-2.5">
+                <p className="text-xs font-semibold text-[#111315]">Before you publish</p>
                 {[
                   "Verify your phone number (required to publish)",
                   "Add a billing method (required to hire)",
                   "Verify your NID (required for escrow funding)",
                 ].map((item) => (
-                  <div key={item} className="flex items-center gap-2 text-[11px] text-slate-600">
-                    <span className="w-4 h-4 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                  <div key={item} className="flex items-center gap-2.5 text-[11px] text-[#3E434A]">
+                    <span className="w-4 h-4 rounded-full bg-[#FEF6E6] border border-[#A87224]/30 text-[#A87224] flex items-center justify-center text-[10px] font-bold shrink-0">
                       !
                     </span>
-                    {item}
+                    <span>{item}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="flex items-center justify-between gap-3 pt-1">
+              <div className="flex items-center justify-between gap-3 pt-2 border-t border-[rgba(17,19,21,0.08)]">
                 <button
                   type="button"
-                  onClick={() => setClientStep(0)}
-                  className="text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+                  onClick={() => setClientStep(1)}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#3E434A] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
                 >
                   Back
                 </button>
@@ -466,7 +500,7 @@ function SignUpFlow() {
                   type="button"
                   onClick={() => finish("/dashboard/client")}
                   disabled={isLoading}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-bold shadow-sm shadow-emerald-600/20 transition-all cursor-pointer"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] disabled:opacity-40 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
                 >
                   {isLoading ? "Creating account..." : "Go to my dashboard"}
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -516,6 +550,7 @@ function SignUpFlow() {
             onNext={() => setFreelancerStep(1)}
             onSwitchToClient={() => setRole("client")}
             isLoading={isLoading}
+            lang={lang}
           />
         )}
 
@@ -535,6 +570,7 @@ function SignUpFlow() {
             onSkillsChange={setSkills}
             onBack={() => setFreelancerStep(1)}
             onNext={() => setFreelancerStep(3)}
+            lang={lang}
           />
         )}
 
@@ -545,6 +581,7 @@ function SignUpFlow() {
             onBack={() => setFreelancerStep(2)}
             isFinal
             onFinish={() => finish("/dashboard/freelancer")}
+            lang={lang}
           />
         )}
       </OnboardingShell>
