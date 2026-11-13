@@ -18,27 +18,37 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   rightIcon?: React.ReactNode;
 }
 
+/**
+ * Button variants
+ * - primary:   brand blue, the single main action on a surface
+ * - pine:      deep navy, for actions on light editorial surfaces (kept name for API compatibility)
+ * - secondary: ink, high-contrast neutral action
+ * - outline:   bordered neutral
+ * - subtle:    filled neutral
+ * - ghost:     text-only
+ * - danger:    destructive
+ */
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    "bg-[#0F6E50] hover:bg-[#0B5940] text-white border border-[#0F6E50] shadow-[0_1px_2px_rgba(11,59,46,0.18),inset_0_1px_0_rgba(255,255,255,0.12)] hover:shadow-[0_6px_16px_-4px_rgba(15,110,80,0.3)]",
+    "bg-brand hover:bg-brand-hover text-white border border-brand hover:border-brand-hover shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]",
   pine:
-    "bg-[#0B3B2E] hover:bg-[#072920] text-[#FAF9F6] border border-[#0B3B2E] shadow-[0_1px_2px_rgba(11,59,46,0.22),inset_0_1px_0_rgba(255,255,255,0.1)] hover:shadow-[0_8px_20px_-6px_rgba(11,59,46,0.35)]",
+    "bg-navy hover:bg-navy-ink text-white border border-navy hover:border-navy-ink",
   secondary:
-    "bg-[#111315] hover:bg-[#23272B] text-white border border-[#111315] shadow-[0_1px_2px_rgba(17,19,21,0.18)]",
+    "bg-ink hover:bg-ink-hover text-white border border-ink hover:border-ink-hover",
   outline:
-    "bg-white hover:bg-[#F4F2EC] text-[#111315] border border-[rgba(17,19,21,0.14)] hover:border-[rgba(17,19,21,0.24)] shadow-[0_1px_2px_rgba(17,19,21,0.03)]",
+    "bg-white hover:bg-subtle text-ink border border-line-strong hover:border-[rgba(16,24,40,0.26)]",
   subtle:
-    "bg-[#F4F2EC] hover:bg-[#EAE7DF] text-[#111315] border border-[rgba(17,19,21,0.08)]",
+    "bg-subtle hover:bg-muted text-ink border border-transparent",
   ghost:
-    "bg-transparent hover:bg-[#F4F2EC] text-[#3E434A] hover:text-[#111315] border border-transparent",
+    "bg-transparent hover:bg-subtle text-ink-2 hover:text-ink border border-transparent",
   danger:
-    "bg-[#BE123C] hover:bg-[#9F1239] text-white border border-[#BE123C] shadow-[0_1px_2px_rgba(190,18,60,0.2)]",
+    "bg-danger-strong hover:bg-danger-ink text-white border border-danger-strong hover:border-danger-ink",
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  sm: "px-3 py-1.5 text-xs rounded-lg gap-1.5",
-  md: "px-4 py-2.5 text-xs sm:text-[13px] rounded-xl gap-2",
-  lg: "px-5.5 py-3 text-sm rounded-xl gap-2",
+  sm: "h-8 px-3 text-xs rounded-md gap-1.5",
+  md: "h-10 px-4 text-[13px] sm:text-sm rounded-lg gap-2",
+  lg: "h-12 px-6 text-sm sm:text-[15px] rounded-lg gap-2",
 };
 
 export function Button({
@@ -57,11 +67,15 @@ export function Button({
     <button
       type={type}
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center font-semibold tracking-[-0.01em] transition-all duration-150 active:scale-[0.985] disabled:opacity-50 disabled:pointer-events-none cursor-pointer mk-focus-ring ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
+      aria-busy={loading || undefined}
+      className={`inline-flex items-center justify-center font-medium tracking-[-0.01em] whitespace-nowrap transition-colors duration-150 active:translate-y-px disabled:opacity-50 disabled:pointer-events-none cursor-pointer mk-focus-ring ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
       {...rest}
     >
       {loading ? (
-        <span className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />
+        <span
+          aria-hidden="true"
+          className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin shrink-0"
+        />
       ) : (
         leftIcon && <span className="shrink-0 flex items-center">{leftIcon}</span>
       )}

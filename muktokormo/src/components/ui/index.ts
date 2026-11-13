@@ -25,3 +25,4 @@ export {
   FreelancerCardSkeleton,
 } from "./Skeleton";
 export { Modal } from "./Modal";
+export { Avatar } from "./Avatar";

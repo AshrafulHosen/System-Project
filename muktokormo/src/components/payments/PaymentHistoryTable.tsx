@@ -28,12 +28,12 @@ interface PaymentHistoryTableProps {
 }
 
 const TONE_CLASSES: Record<string, string> = {
-  emerald: "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25",
-  sky: "bg-[#EEF5FA] text-[#1E5B88] border-[#1E5B88]/20",
-  amber: "bg-[#FEF6E6] text-[#A87224] border-[#A87224]/25",
-  rose: "bg-[#FEF2F2] text-[#DC2626] border-[#DC2626]/20",
-  indigo: "bg-[#F3EFFA] text-[#5B3E96] border-[#5B3E96]/20",
-  slate: "bg-[#F4F2EC] text-[#3E434A] border-[rgba(17,19,21,0.09)]",
+  emerald: "bg-brand-soft text-navy border-brand/25",
+  sky: "bg-brand-soft text-brand-strong border-brand-strong/20",
+  amber: "bg-accent-soft text-accent border-accent/25",
+  rose: "bg-danger-soft text-danger border-danger/20",
+  indigo: "bg-plum-soft text-plum border-plum/20",
+  slate: "bg-subtle text-ink-2 border-line",
 };
 
 function formatDateShort(iso: string): string {
@@ -60,25 +60,25 @@ export default function PaymentHistoryTable({
 }: PaymentHistoryTableProps) {
   if (loading && payments.length === 0) {
     return (
-      <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 space-y-3 animate-pulse">
-        <div className="h-10 rounded-xl bg-[#F4F2EC]" />
-        <div className="h-14 rounded-xl bg-[#F4F2EC]" />
-        <div className="h-14 rounded-xl bg-[#F4F2EC]" />
+      <div className="bg-white border border-line rounded-xl p-6 space-y-3 animate-pulse">
+        <div className="h-10 rounded-lg bg-subtle" />
+        <div className="h-14 rounded-lg bg-subtle" />
+        <div className="h-14 rounded-lg bg-subtle" />
       </div>
     );
   }
 
   if (payments.length === 0) {
     return (
-      <div className="bg-white border border-dashed border-[rgba(17,19,21,0.16)] rounded-2xl p-10 text-center space-y-2">
-        <Receipt className="w-8 h-8 text-[#949BA6] mx-auto" />
-        <p className="text-xs font-semibold text-[#111315]">
+      <div className="bg-white border border-dashed border-line-strong rounded-xl p-10 text-center space-y-2">
+        <Receipt className="w-8 h-8 text-ink-4 mx-auto" />
+        <p className="text-xs font-semibold text-ink">
           {emptyTitle ||
             (lang === "en"
               ? "No payment transactions yet"
               : "এখনো কোনো পেমেন্ট লেনদেন নেই")}
         </p>
-        <p className="text-xs text-[#686E78] max-w-md mx-auto">
+        <p className="text-xs text-ink-3 max-w-md mx-auto">
           {emptySubtitle ||
             (lang === "en"
               ? "SSLCOMMERZ Sandbox transactions, simulated escrow holds, and settlement records will appear here."
@@ -89,33 +89,33 @@ export default function PaymentHistoryTable({
   }
 
   return (
-    <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-xs overflow-hidden">
+    <div className="bg-white border border-line rounded-xl shadow-xs overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[820px]">
           <thead>
-            <tr className="border-b border-[rgba(17,19,21,0.09)] bg-[#FAF9F6]">
-              <th className="px-4 sm:px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#686E78]">
+            <tr className="border-b border-line bg-canvas">
+              <th className="px-4 sm:px-5 py-3 text-left mk-eyebrow text-ink-3">
                 {lang === "en" ? "Transaction ID" : "ট্রানজেকশন আইডি"}
               </th>
-              <th className="px-4 sm:px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#686E78]">
+              <th className="px-4 sm:px-5 py-3 text-left mk-eyebrow text-ink-3">
                 {lang === "en" ? "Contract & Parties" : "চুক্তি ও পক্ষ"}
               </th>
-              <th className="px-4 sm:px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#686E78]">
+              <th className="px-4 sm:px-5 py-3 text-left mk-eyebrow text-ink-3">
                 {lang === "en" ? "Method" : "মাধ্যম"}
               </th>
-              <th className="px-4 sm:px-5 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-[#686E78]">
+              <th className="px-4 sm:px-5 py-3 text-right mk-eyebrow text-ink-3">
                 {lang === "en" ? "Amount / Split" : "পরিমাণ ও বিভাজন"}
               </th>
-              <th className="px-4 sm:px-5 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#686E78]">
+              <th className="px-4 sm:px-5 py-3 text-left mk-eyebrow text-ink-3">
                 {lang === "en" ? "Status" : "স্ট্যাটাস"}
               </th>
-              <th className="px-4 sm:px-5 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-[#686E78]">
+              <th className="px-4 sm:px-5 py-3 text-right mk-eyebrow text-ink-3">
                 {lang === "en" ? "Actions" : "অ্যাকশন"}
               </th>
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-[rgba(17,19,21,0.09)]">
+          <tbody className="divide-y divide-line">
             {payments.map((p) => {
               const meta = getPaymentStatusMeta(p.status);
               const badgeCls = TONE_CLASSES[meta.tone] ?? TONE_CLASSES.slate;
@@ -131,21 +131,21 @@ export default function PaymentHistoryTable({
               return (
                 <tr
                   key={p.id}
-                  className="hover:bg-[#FAF9F6] transition-colors"
+                  className="hover:bg-canvas transition-colors"
                 >
                   <td className="px-4 sm:px-5 py-3.5 align-top">
                     <button
                       type="button"
                       onClick={() => onViewDetails(p)}
-                      className="font-mono mk-tabular text-xs font-semibold text-[#111315] hover:text-[#0F6E50] hover:underline text-left cursor-pointer"
+                      className="font-mono mk-tabular text-xs font-semibold text-ink hover:text-brand hover:underline text-left cursor-pointer"
                     >
                       {p.transaction_id}
                     </button>
-                    <p className="text-[11px] text-[#949BA6] mt-0.5 font-mono mk-tabular">
+                    <p className="text-[11px] text-ink-4 mt-0.5 font-mono mk-tabular">
                       {formatDateShort(p.created_at)}
                     </p>
                     {p.validation_id && (
-                      <p className="font-mono mk-tabular text-[10px] text-[#0F6E50] mt-0.5">
+                      <p className="font-mono mk-tabular text-[10px] text-brand mt-0.5">
                         val: {p.validation_id}
                       </p>
                     )}
@@ -154,33 +154,33 @@ export default function PaymentHistoryTable({
                   <td className="px-4 sm:px-5 py-3.5 align-top max-w-[260px]">
                     <Link
                       href={`/contracts/${p.contract_id}`}
-                      className="text-xs font-semibold text-[#111315] hover:text-[#0F6E50] hover:underline line-clamp-1"
+                      className="text-xs font-semibold text-ink hover:text-brand hover:underline line-clamp-1"
                     >
                       {p.contract_title}
                     </Link>
-                    <p className="text-[11px] text-[#686E78] mt-0.5 truncate">
+                    <p className="text-[11px] text-ink-3 mt-0.5 truncate">
                       {viewerRole === "admin"
                         ? `${p.client_name} → ${p.freelancer_name}`
                         : viewerRole === "client"
                           ? `Freelancer: ${p.freelancer_name}`
                           : `Client: ${p.client_name}`}
                     </p>
-                    <p className="font-mono mk-tabular text-[10px] text-[#949BA6]">
+                    <p className="font-mono mk-tabular text-[10px] text-ink-4">
                       {p.contract_code}
                     </p>
                   </td>
 
                   <td className="px-4 sm:px-5 py-3.5 align-top whitespace-nowrap">
-                    <span className="text-xs font-semibold text-[#3E434A] block">
+                    <span className="text-xs font-semibold text-ink-2 block">
                       {p.card_type || p.gateway}
                     </span>
-                    <span className="text-[10px] text-[#949BA6]">
+                    <span className="text-[10px] text-ink-4">
                       {p.card_brand || "SSLCOMMERZ Sandbox"}
                     </span>
                   </td>
 
                   <td className="px-4 sm:px-5 py-3.5 align-top text-right whitespace-nowrap">
-                    <p className="text-xs font-bold text-[#111315] font-mono mk-tabular">
+                    <p className="text-xs font-semibold text-ink font-mono mk-tabular">
                       {formatBdt(
                         viewerRole === "freelancer"
                           ? p.freelancer_amount
@@ -188,11 +188,11 @@ export default function PaymentHistoryTable({
                       )}
                     </p>
                     {viewerRole === "freelancer" ? (
-                      <p className="text-[10px] text-[#686E78] font-mono mk-tabular">
+                      <p className="text-[10px] text-ink-3 font-mono mk-tabular">
                         Gross {formatBdt(p.amount)} · -{p.platform_fee_pct}% fee
                       </p>
                     ) : (
-                      <p className="text-[10px] text-[#686E78] font-mono mk-tabular">
+                      <p className="text-[10px] text-ink-3 font-mono mk-tabular">
                         Fee {formatBdt(p.platform_fee)} · Net{" "}
                         {formatBdt(p.freelancer_amount)}
                       </p>
@@ -206,7 +206,7 @@ export default function PaymentHistoryTable({
                       {lang === "en" ? meta.label : meta.labelBn}
                     </span>
                     {p.refund_request && (
-                      <span className="flex items-center gap-1 text-[10px] font-semibold text-[#5B3E96] mt-1">
+                      <span className="flex items-center gap-1 text-[10px] font-semibold text-plum mt-1">
                         <RotateCcw className="w-3 h-3" />
                         Refund: {p.refund_request.status}
                       </span>
@@ -218,7 +218,7 @@ export default function PaymentHistoryTable({
                       <button
                         type="button"
                         onClick={() => onViewDetails(p)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#F4F2EC] hover:bg-[#EAE7DF] text-[#3E434A] text-[11px] font-semibold transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-subtle hover:bg-muted text-ink-2 text-[11px] font-semibold transition-colors cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>{lang === "en" ? "Details" : "বিস্তারিত"}</span>
@@ -229,7 +229,7 @@ export default function PaymentHistoryTable({
                           type="button"
                           disabled={verifyingTranId === p.transaction_id}
                           onClick={() => onVerifyPending(p.transaction_id)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#1E5B88] hover:bg-[#16476B] text-white text-[11px] font-semibold transition-colors cursor-pointer disabled:opacity-60"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-brand-strong hover:bg-brand-strong text-white text-[11px] font-semibold transition-colors cursor-pointer disabled:opacity-60"
                         >
                           <RefreshCw
                             className={`w-3 h-3 ${
@@ -247,7 +247,7 @@ export default function PaymentHistoryTable({
                           type="button"
                           disabled={retryingContractId === p.contract_id}
                           onClick={() => onRetryPayment(p.contract_id)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-[11px] font-semibold transition-colors cursor-pointer disabled:opacity-60"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-navy hover:bg-brand text-white text-[11px] font-semibold transition-colors cursor-pointer disabled:opacity-60"
                         >
                           <ExternalLink className="w-3 h-3" />
                           <span>{lang === "en" ? "Retry" : "পুনরায়"}</span>

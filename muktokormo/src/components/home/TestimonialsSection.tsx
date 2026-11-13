@@ -1,85 +1,86 @@
 "use client";
 
 import React from "react";
-import { Quote, ShieldCheck } from "lucide-react";
 
 interface TestimonialsSectionProps {
   lang: "en" | "bn";
 }
 
+/**
+ * Platform commitments.
+ *
+ * This section previously showed testimonials attributed to named people
+ * without any backing data. Until real, consented reviews exist, it states
+ * what the platform guarantees to each side instead — no invented identities.
+ */
 export default function TestimonialsSection({ lang }: TestimonialsSectionProps) {
-  const quotes = [
+  const en = lang === "en";
+
+  const commitments = [
     {
-      quote:
-        lang === "en"
-          ? "Moving our e-commerce engineering sprints onto MuktoKormo cut out international card hassle completely. Locking milestones in BDT gave both our finance team and developers clear accountability."
-          : "আমাদের ই-কমার্স ডেভেলপমেন্ট স্প্রিন্ট মুক্তকর্মে নেওয়ার পর বিদেশি কার্ডের ঝামেলা একদম কমে গেছে। বিডিটি মাইলস্টোন এসক্রোতে কাজ অনেক সহজ হয়েছে।",
-      author: "Tanvir Rahman",
-      role: lang === "en" ? "Operations Lead, Dhanmondi Commerce" : "অপারেশনস লিড, ঢাকা",
-      badge: lang === "en" ? "Verified Client" : "যাচাইকৃত ক্লায়েন্ট",
+      audience: en ? "To clients" : "ক্লায়েন্টদের প্রতি",
+      statement: en
+        ? "Your money stays in escrow until you approve the delivered work."
+        : "কাজ অনুমোদন না করা পর্যন্ত আপনার টাকা এসক্রোতেই থাকবে।",
+      detail: en
+        ? "Request revisions with feedback on record before anything is released."
+        : "রিলিজের আগে মতামতসহ রিভিশন চাইতে পারবেন।",
     },
     {
-      quote:
-        lang === "en"
-          ? "I used to lose nearly 8% on international payout conversion and wire delays. Having BDT milestone escrow funded upfront via local channels lets me focus purely on delivering clean code."
-          : "আগে ডলার কনভার্সন ও ব্যাংক ডিলেতে অনেক ক্ষতি হতো। এখন কাজ শুরুর আগেই এসক্রো ফান্ড দেখে নিশ্চিন্তে কোডিংয়ে মনোযোগ দিতে পারি।",
-      author: "Nusrat Jahan",
-      role: lang === "en" ? "Senior Full-Stack Engineer, Chattogram" : "সিনিয়র ফুল-স্ট্যাক ইঞ্জিনিয়ার, চট্টগ্রাম",
-      badge: lang === "en" ? "NID Verified Pro" : "ভেরিফাইড ফ্রিল্যান্সার",
+      audience: en ? "To freelancers" : "ফ্রিল্যান্সারদের প্রতি",
+      statement: en
+        ? "You start only after the contract is funded — never on a promise."
+        : "চুক্তি ফান্ডেড হওয়ার পরেই কাজ শুরু—শুধু প্রতিশ্রুতিতে নয়।",
+      detail: en
+        ? "See your net payout in Taka before you submit a proposal."
+        : "প্রস্তাব পাঠানোর আগেই টাকায় আপনার নিট আয় দেখুন।",
     },
     {
-      quote:
-        lang === "en"
-          ? "The shared workspace with live demo links and revision audit history replaced dozens of scattered WhatsApp screenshots. Approving design handoffs now takes seconds."
-          : "লাইভ ডেমো লিংক ও রিভিশন হিস্ট্রি এক জায়গায় থাকায় হোয়াটসঅ্যাপে স্ক্রিনশট খোঁজার ঝামেলা আর নেই।",
-      author: "Farhan Karim",
-      role: lang === "en" ? "Product Founder, Banani Tech Studio" : "প্রোডাক্ট ফাউন্ডার, বনানী",
-      badge: lang === "en" ? "Verified Client" : "যাচাইকৃত ক্লায়েন্ট",
+      audience: en ? "To both" : "উভয়ের প্রতি",
+      statement: en
+        ? "Every payment, submission and decision is written to a shared record."
+        : "প্রতিটি পেমেন্ট, জমা ও সিদ্ধান্ত একটি যৌথ রেকর্ডে সংরক্ষিত।",
+      detail: en
+        ? "Refund requests and disputes are reviewed against the ledger, not screenshots."
+        : "রিফান্ড ও বিরোধ যাচাই হয় লেজার দেখে, স্ক্রিনশট দেখে নয়।",
     },
   ];
 
   return (
-    <section className="py-20 bg-[#F4F2EC]/70 border-t border-[rgba(17,19,21,0.08)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#0F6E50] block mb-1.5">
-            {lang === "en" ? "Community Perspectives" : "ব্যবহারকারীদের অভিজ্ঞতা"}
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#111315]">
-            {lang === "en"
-              ? "Trusted by growing businesses and independent specialists"
-              : "উদ্যোক্তা ও স্বাধীন পেশাজীবীদের আস্থার প্রতীক"}
+    <section id="commitments" className="py-20 sm:py-24 bg-white border-t border-line">
+      <div className="mk-container">
+        <div className="max-w-2xl mb-12 lg:mb-14">
+          <span className="mk-eyebrow text-brand">{en ? "Our commitments" : "আমাদের প্রতিশ্রুতি"}</span>
+          <h2 className="mk-h2 mt-4 text-ink">
+            {en ? "Promises written into the product." : "প্রতিশ্রুতি, যা প্রোডাক্টেই লেখা।"}
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {quotes.map((item) => (
-            <div
-              key={item.author}
-              className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-7 flex flex-col justify-between shadow-[0_1px_2px_rgba(17,19,21,0.03)]"
+        <ul className="grid grid-cols-1 md:grid-cols-3 gap-px bg-line border border-line rounded-2xl overflow-hidden">
+          {commitments.map((c, idx) => (
+            <li
+              key={c.audience}
+              className={`p-7 sm:p-9 flex flex-col justify-between gap-10 min-h-[280px] ${
+                idx === 1 ? "bg-navy text-white" : "bg-white"
+              }`}
             >
-              <div>
-                <Quote className="w-6 h-6 text-[#0F6E50]/35 mb-4" />
-                <p className="text-xs sm:text-[13px] text-[#3E434A] leading-relaxed">
-                  &ldquo;{item.quote}&rdquo;
+              <blockquote
+                className={`text-xl sm:text-2xl font-medium tracking-[-0.025em] leading-[1.3] ${
+                  idx === 1 ? "text-white" : "text-ink"
+                }`}
+              >
+                {c.statement}
+              </blockquote>
+              <div className={`pt-5 border-t ${idx === 1 ? "border-white/15" : "border-line"}`}>
+                <p className={`mk-eyebrow ${idx === 1 ? "text-brand-light" : "text-brand"}`}>{c.audience}</p>
+                <p className={`mt-2 text-[14px] leading-relaxed ${idx === 1 ? "text-white/65" : "text-ink-3"}`}>
+                  {c.detail}
                 </p>
               </div>
-
-              <div className="mt-6 pt-4 border-t border-[rgba(17,19,21,0.07)] flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-xs font-bold text-[#111315]">{item.author}</p>
-                  <p className="text-[11px] text-[#686E78]">{item.role}</p>
-                </div>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EAF5F0] text-[#0B3B2E] border border-[#C3E3D5] text-[10px] font-semibold shrink-0">
-                  <ShieldCheck className="w-3 h-3 text-[#0F6E50]" />
-                  {item.badge}
-                </span>
-              </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );
 }
-

@@ -42,28 +42,28 @@ export function Input({
       {label && (
         <label
           htmlFor={id}
-          className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-[#3E434A]"
+          className="block text-[13px] font-medium text-ink-2"
         >
           {label}
-          {requiredMark && <span className="text-[#BE123C] ml-0.5">*</span>}
+          {requiredMark && <span className="text-danger-strong ml-0.5">*</span>}
         </label>
       )}
       <div className="relative flex items-center">
         {leftIcon && (
-          <span className="pointer-events-none absolute left-3.5 text-[#686E78] flex items-center">
+          <span className="pointer-events-none absolute left-3.5 text-ink-3 flex items-center">
             {leftIcon}
           </span>
         )}
         <input
           id={id}
           type={resolvedType}
-          className={`w-full rounded-xl bg-white border text-sm text-[#111315] placeholder-[#949BA6] transition-all duration-150 focus:outline-none focus:ring-3 ${
+          className={`w-full rounded-lg bg-white border text-sm text-ink placeholder-ink-4 transition-all duration-150 focus:outline-none focus:ring-4 ${
             error
-              ? "border-[#BE123C]/60 focus:border-[#BE123C] focus:ring-[#BE123C]/12"
-              : "border-[rgba(17,19,21,0.13)] hover:border-[rgba(17,19,21,0.24)] focus:border-[#0F6E50] focus:ring-[#0F6E50]/12"
+              ? "border-danger-strong/60 focus:border-danger-strong focus:ring-danger-strong/12"
+              : "border-line-strong hover:border-[rgba(16,24,40,0.26)] focus:border-brand focus:ring-brand/15"
           } ${leftIcon ? "pl-10" : "pl-3.5"} ${
             isPasswordField || rightElement ? "pr-11" : "pr-3.5"
-          } py-2.5 shadow-[0_1px_2px_rgba(17,19,21,0.02)] ${className}`}
+          } h-10 shadow-[0_1px_2px_rgba(16,24,40,0.03)] ${className}`}
           {...rest}
         />
         {isPasswordField && (
@@ -71,7 +71,7 @@ export function Input({
             type="button"
             onClick={() => setRevealed((prev) => !prev)}
             aria-label={revealed ? "Hide password" : "Show password"}
-            className="absolute right-2.5 p-1.5 rounded-lg text-[#686E78] hover:text-[#111315] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
+            className="absolute right-2.5 p-1.5 rounded-lg text-ink-3 hover:text-ink hover:bg-subtle transition-colors cursor-pointer"
           >
             {revealed ? (
               <EyeOff className="w-4 h-4" />
@@ -85,12 +85,12 @@ export function Input({
         )}
       </div>
       {error && (
-        <p className="text-xs font-medium text-[#BE123C] leading-snug">
+        <p className="text-xs font-medium text-danger-strong leading-snug">
           {error}
         </p>
       )}
       {!error && hint && (
-        <p className="text-[11px] text-[#686E78] leading-snug">{hint}</p>
+        <p className="text-xs text-ink-3 leading-snug">{hint}</p>
       )}
     </div>
   );
@@ -115,28 +115,28 @@ export function Textarea({
       {label && (
         <label
           htmlFor={id}
-          className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-[#3E434A]"
+          className="block text-[13px] font-medium text-ink-2"
         >
           {label}
-          {requiredMark && <span className="text-[#BE123C] ml-0.5">*</span>}
+          {requiredMark && <span className="text-danger-strong ml-0.5">*</span>}
         </label>
       )}
       <textarea
         id={id}
-        className={`w-full rounded-xl bg-white border text-sm text-[#111315] placeholder-[#949BA6] px-3.5 py-2.5 transition-all duration-150 focus:outline-none focus:ring-3 ${
+        className={`w-full rounded-lg bg-white border text-sm text-ink placeholder-ink-4 px-3.5 py-2.5 leading-relaxed transition-all duration-150 focus:outline-none focus:ring-4 ${
           error
-            ? "border-[#BE123C]/60 focus:border-[#BE123C] focus:ring-[#BE123C]/12"
-            : "border-[rgba(17,19,21,0.13)] hover:border-[rgba(17,19,21,0.24)] focus:border-[#0F6E50] focus:ring-[#0F6E50]/12"
-        } shadow-[0_1px_2px_rgba(17,19,21,0.02)] ${className}`}
+            ? "border-danger-strong/60 focus:border-danger-strong focus:ring-danger-strong/12"
+            : "border-line-strong hover:border-[rgba(16,24,40,0.26)] focus:border-brand focus:ring-brand/15"
+        } shadow-[0_1px_2px_rgba(16,24,40,0.03)] ${className}`}
         {...rest}
       />
       {error && (
-        <p className="text-xs font-medium text-[#BE123C] leading-snug">
+        <p className="text-xs font-medium text-danger-strong leading-snug">
           {error}
         </p>
       )}
       {!error && hint && (
-        <p className="text-[11px] text-[#686E78] leading-snug">{hint}</p>
+        <p className="text-xs text-ink-3 leading-snug">{hint}</p>
       )}
     </div>
   );
@@ -162,30 +162,30 @@ export function Select({
       {label && (
         <label
           htmlFor={id}
-          className="block text-[11px] font-semibold uppercase tracking-[0.06em] text-[#3E434A]"
+          className="block text-[13px] font-medium text-ink-2"
         >
           {label}
-          {requiredMark && <span className="text-[#BE123C] ml-0.5">*</span>}
+          {requiredMark && <span className="text-danger-strong ml-0.5">*</span>}
         </label>
       )}
       <select
         id={id}
-        className={`w-full rounded-xl bg-white border text-sm text-[#111315] px-3.5 py-2.5 transition-all duration-150 focus:outline-none focus:ring-3 cursor-pointer ${
+        className={`w-full rounded-lg bg-white border text-sm text-ink px-3.5 h-10 transition-all duration-150 focus:outline-none focus:ring-4 cursor-pointer ${
           error
-            ? "border-[#BE123C]/60 focus:border-[#BE123C] focus:ring-[#BE123C]/12"
-            : "border-[rgba(17,19,21,0.13)] hover:border-[rgba(17,19,21,0.24)] focus:border-[#0F6E50] focus:ring-[#0F6E50]/12"
-        } shadow-[0_1px_2px_rgba(17,19,21,0.02)] ${className}`}
+            ? "border-danger-strong/60 focus:border-danger-strong focus:ring-danger-strong/12"
+            : "border-line-strong hover:border-[rgba(16,24,40,0.26)] focus:border-brand focus:ring-brand/15"
+        } shadow-[0_1px_2px_rgba(16,24,40,0.03)] ${className}`}
         {...rest}
       >
         {children}
       </select>
       {error && (
-        <p className="text-xs font-medium text-[#BE123C] leading-snug">
+        <p className="text-xs font-medium text-danger-strong leading-snug">
           {error}
         </p>
       )}
       {!error && hint && (
-        <p className="text-[11px] text-[#686E78] leading-snug">{hint}</p>
+        <p className="text-xs text-ink-3 leading-snug">{hint}</p>
       )}
     </div>
   );

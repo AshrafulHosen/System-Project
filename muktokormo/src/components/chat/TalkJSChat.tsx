@@ -230,22 +230,22 @@ export default function TalkJSChat({
 
       {/* Minimalist Pine-Ivory Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#FAF9F6] p-6 text-center">
-          <div className="w-8 h-8 border-2 border-[#0F6E50] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-medium text-[#6B7278]">Loading conversation...</p>
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-canvas p-6 text-center">
+          <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-xs font-medium text-ink-3">Loading conversation...</p>
         </div>
       )}
 
       {/* Error State */}
       {error && !loading && (
-        <div className="p-8 text-center bg-[#FEF2F2] border border-[#DC2626]/20 rounded-2xl m-4">
-          <AlertCircle className="w-8 h-8 text-[#DC2626] mx-auto mb-2" />
-          <h4 className="text-sm font-bold text-[#111315] mb-1">TalkJS Connection Notice</h4>
-          <p className="text-xs text-[#DC2626] mb-4">{error}</p>
+        <div className="p-8 text-center bg-danger-soft border border-danger/20 rounded-xl m-4">
+          <AlertCircle className="w-8 h-8 text-danger mx-auto mb-2" />
+          <h4 className="text-sm font-semibold text-ink mb-1">TalkJS Connection Notice</h4>
+          <p className="text-xs text-danger mb-4">{error}</p>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-[#0B3B2E] hover:bg-[#0F6E50] text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
+            className="px-4 py-2 bg-navy hover:bg-brand text-white rounded-lg text-xs font-semibold transition-all shadow-xs cursor-pointer"
           >
             Retry Connection
           </button>

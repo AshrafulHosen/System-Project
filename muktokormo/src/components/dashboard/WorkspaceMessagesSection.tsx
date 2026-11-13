@@ -44,9 +44,9 @@ import type { WorkspaceContract, WorkspaceMilestone } from "@/types";
 const TalkJSChat = dynamic(() => import("@/components/chat/TalkJSChat"), {
   ssr: false,
   loading: () => (
-    <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-[#FAF9F6]">
-      <div className="w-8 h-8 border-2 border-[#0F6E50] border-t-transparent rounded-full animate-spin mb-3" />
-      <p className="text-xs font-medium text-[#6B7278]">Loading conversation...</p>
+    <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-canvas">
+      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin mb-3" />
+      <p className="text-xs font-medium text-ink-3">Loading conversation...</p>
     </div>
   ),
 });
@@ -264,25 +264,25 @@ export default function WorkspaceMessagesSection({
   }, [threads, searchFilter]);
 
   return (
-    <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-xs overflow-hidden flex flex-col h-[760px]">
+    <div className="bg-white border border-line rounded-xl shadow-xs overflow-hidden flex flex-col h-[760px]">
       {/* Main 3-Column Messaging Layout */}
       {loading ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#FAF9F6]">
-          <div className="w-8 h-8 border-2 border-[#0F6E50] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-medium text-[#6B7278]">
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-canvas">
+          <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-xs font-medium text-ink-3">
             {lang === "en" ? "Loading messages..." : "মেসেজ লোড হচ্ছে..."}
           </p>
         </div>
       ) : threads.length === 0 ? (
         /* Empty State when no contracts exist */
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#FAF9F6]">
-          <div className="w-12 h-12 rounded-2xl bg-[#EAF5F0] border border-[#0F6E50]/20 flex items-center justify-center text-[#0F6E50] mb-3 shadow-2xs">
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-canvas">
+          <div className="w-12 h-12 rounded-xl bg-brand-soft border border-brand/20 flex items-center justify-center text-brand mb-3 shadow-2xs">
             <MessageSquare className="w-6 h-6" />
           </div>
-          <h4 className="text-sm font-bold text-[#111315] mb-1">
+          <h4 className="text-sm font-semibold text-ink mb-1">
             {lang === "en" ? "No Active Conversations Yet" : "এখনও কোনো চলমান কথোপকথন নেই"}
           </h4>
-          <p className="text-xs text-[#6B7278] max-w-md mb-5 leading-relaxed">
+          <p className="text-xs text-ink-3 max-w-md mb-5 leading-relaxed">
             {lang === "en"
               ? "Once a proposal is accepted and a contract begins, you and your project partner can communicate directly here in real-time."
               : "একটি বিড বা প্রস্তাব গৃহীত হলে এবং চুক্তি শুরু হলে, আপনি ও আপনার সহকর্মী এখানে সরাসরি রিয়েল-টাইমে যোগাযোগ করতে পারবেন।"}
@@ -290,13 +290,13 @@ export default function WorkspaceMessagesSection({
           <div className="flex flex-wrap items-center justify-center gap-2.5">
             <Link
               href="/messages"
-              className="px-4 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white font-bold text-xs shadow-xs transition-colors"
+              className="px-4 py-2 rounded-lg bg-navy hover:bg-brand text-white font-semibold text-xs shadow-xs transition-colors"
             >
               {lang === "en" ? "Open Messages Inbox" : "মেসেজ ইনবক্স খুলুন"}
             </Link>
             <Link
               href="/contracts"
-              className="px-4 py-2 rounded-xl bg-white border border-[rgba(17,19,21,0.12)] hover:bg-[#F4F2EC] text-[#111315] font-bold text-xs shadow-2xs transition-colors"
+              className="px-4 py-2 rounded-lg bg-white border border-line-strong hover:bg-subtle text-ink font-semibold text-xs shadow-2xs transition-colors"
             >
               {lang === "en" ? "View Contracts" : "কন্ট্রাক্ট দেখুন"}
             </Link>
@@ -306,19 +306,19 @@ export default function WorkspaceMessagesSection({
         <div className="flex-1 flex min-h-0 overflow-hidden">
           {/* COLUMN 1: Left Messages Sidebar */}
           <div
-            className={`w-full lg:w-80 xl:w-[340px] shrink-0 lg:border-r border-[rgba(17,19,21,0.09)] flex-col bg-[#FAF9F6] h-full overflow-hidden ${
+            className={`w-full lg:w-80 xl:w-[340px] shrink-0 lg:border-r border-line flex-col bg-canvas h-full overflow-hidden ${
               mobilePane === "list" ? "flex" : "hidden lg:flex"
             }`}
           >
             {/* Messages Header */}
             <div className="px-5 pt-4 pb-3 flex items-center justify-between shrink-0">
-              <h2 className="text-xl font-bold text-[#111315] tracking-tight">
+              <h2 className="text-xl font-semibold text-ink tracking-tight">
                 {lang === "en" ? "Messages" : "বার্তা"}
               </h2>
               <button
                 type="button"
                 title="Options"
-                className="w-8 h-8 rounded-full border border-[rgba(17,19,21,0.12)] bg-white flex items-center justify-center text-[#6B7278] hover:text-[#111315] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full border border-line-strong bg-white flex items-center justify-center text-ink-3 hover:text-ink hover:bg-subtle transition-colors cursor-pointer"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
@@ -326,19 +326,19 @@ export default function WorkspaceMessagesSection({
 
             {/* Search Bar */}
             <div className="px-4 pb-3 shrink-0">
-              <div className="relative rounded-xl bg-white border border-[rgba(17,19,21,0.10)] focus-within:border-[#0F6E50] focus-within:ring-2 focus-within:ring-[#0F6E50]/15 flex items-center px-3.5 py-2 gap-2 transition-all">
-                <Search className="w-4 h-4 text-[#8B9094] shrink-0" />
+              <div className="relative rounded-lg bg-white border border-line focus-within:border-brand focus-within:ring-2 focus-within:ring-brand/15 flex items-center px-3.5 py-2 gap-2 transition-all">
+                <Search className="w-4 h-4 text-ink-4 shrink-0" />
                 <input
                   type="text"
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
                   placeholder={lang === "en" ? "Search threads" : "অনুসন্ধান করুন"}
-                  className="w-full bg-transparent text-xs text-[#111315] placeholder-[#8B9094] focus:outline-none"
+                  className="w-full bg-transparent text-xs text-ink placeholder-ink-4 focus:outline-none"
                 />
                 <button
                   type="button"
                   title="Filter conversations"
-                  className="text-[#8B9094] hover:text-[#111315] shrink-0 cursor-pointer"
+                  className="text-ink-4 hover:text-ink shrink-0 cursor-pointer"
                 >
                   <SlidersHorizontal className="w-3.5 h-3.5" />
                 </button>
@@ -357,10 +357,10 @@ export default function WorkspaceMessagesSection({
                       setActiveThreadId(thread.id);
                       setMobilePane("chat");
                     }}
-                    className={`w-full text-left p-3.5 rounded-xl transition-all cursor-pointer flex items-start gap-3 relative border ${
+                    className={`w-full text-left p-3.5 rounded-lg transition-all cursor-pointer flex items-start gap-3 relative border ${
                       isSelected
-                        ? "bg-[#0B3B2E] border-[#0B3B2E] text-white shadow-xs"
-                        : "bg-white border-[rgba(17,19,21,0.08)] hover:border-[#0F6E50]/35 text-[#111315]"
+                        ? "bg-navy border-navy text-white shadow-xs"
+                        : "bg-white border-line hover:border-brand/35 text-ink"
                     }`}
                   >
                     <div className="relative shrink-0 mt-0.5">
@@ -368,14 +368,14 @@ export default function WorkspaceMessagesSection({
                         src={thread.participantAvatar}
                         alt={thread.participantName}
                         className={`w-10 h-10 rounded-full object-cover ${
-                          isSelected ? "ring-2 ring-white/80" : "ring-1 ring-[rgba(17,19,21,0.10)]"
+                          isSelected ? "ring-2 ring-white/80" : "ring-1 ring-[rgba(16,24,40,0.10)]"
                         }`}
                       />
                       <span
                         className={`absolute top-0 left-0 w-2.5 h-2.5 rounded-full ${
                           isSelected
-                            ? "bg-[#43D69E] ring-2 ring-[#0B3B2E]"
-                            : "bg-[#0F6E50] ring-2 ring-white"
+                            ? "bg-brand-light ring-2 ring-navy"
+                            : "bg-brand ring-2 ring-white"
                         }`}
                       />
                     </div>
@@ -385,12 +385,12 @@ export default function WorkspaceMessagesSection({
                         <div className="flex items-center gap-1 min-w-0">
                           <ArrowUpRight
                             className={`w-3.5 h-3.5 shrink-0 ${
-                              isSelected ? "text-[#43D69E]" : "text-[#8B9094]"
+                              isSelected ? "text-brand-light" : "text-ink-4"
                             }`}
                           />
                           <h4
-                            className={`text-xs font-bold truncate ${
-                              isSelected ? "text-white" : "text-[#111315]"
+                            className={`text-xs font-semibold truncate ${
+                              isSelected ? "text-white" : "text-ink"
                             }`}
                           >
                             {thread.participantName}
@@ -398,7 +398,7 @@ export default function WorkspaceMessagesSection({
                         </div>
                         <span
                           className={`text-[10px] font-mono mk-tabular font-semibold shrink-0 ${
-                            isSelected ? "text-[#43D69E]" : "text-[#6B7278]"
+                            isSelected ? "text-brand-light" : "text-ink-3"
                           }`}
                         >
                           ৳{thread.budgetBdt.toLocaleString()}
@@ -407,7 +407,7 @@ export default function WorkspaceMessagesSection({
 
                       <p
                         className={`text-[11px] font-medium truncate mb-0.5 ${
-                          isSelected ? "text-white/90" : "text-[#3F4448]"
+                          isSelected ? "text-white/90" : "text-ink-2"
                         }`}
                       >
                         {thread.contractTitle}
@@ -415,7 +415,7 @@ export default function WorkspaceMessagesSection({
 
                       <p
                         className={`text-[11px] truncate ${
-                          isSelected ? "text-white/75" : "text-[#6B7278]"
+                          isSelected ? "text-white/75" : "text-ink-3"
                         }`}
                       >
                         {thread.milestoneTitle} · {thread.milestoneStatus.replace(/_/g, " ")}
@@ -429,28 +429,28 @@ export default function WorkspaceMessagesSection({
 
           {/* COLUMN 2: Center Middle Chat Column */}
           <div
-            className={`flex-1 flex-col min-w-0 bg-white h-full overflow-hidden lg:border-r border-[rgba(17,19,21,0.09)] ${
+            className={`flex-1 flex-col min-w-0 bg-white h-full overflow-hidden lg:border-r border-line ${
               mobilePane === "chat" ? "flex" : "hidden lg:flex"
             }`}
           >
             {activeThread && talkOther ? (
               <>
                 {/* Header */}
-                <div className="px-4 sm:px-6 py-3.5 border-b border-[rgba(17,19,21,0.08)] flex items-center justify-between gap-3 bg-white shrink-0">
+                <div className="px-4 sm:px-6 py-3.5 border-b border-line flex items-center justify-between gap-3 bg-white shrink-0">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <button
                       type="button"
                       onClick={() => setMobilePane("list")}
-                      className="lg:hidden p-1.5 rounded-lg border border-[rgba(17,19,21,0.12)] text-[#3F4448] hover:text-[#111315] hover:bg-[#FAF9F6] cursor-pointer shrink-0"
+                      className="lg:hidden p-1.5 rounded-lg border border-line-strong text-ink-2 hover:text-ink hover:bg-canvas cursor-pointer shrink-0"
                       title="All conversations"
                     >
                       <ArrowLeft className="w-4 h-4" />
                     </button>
                     <div className="min-w-0">
-                      <h2 className="text-base sm:text-lg font-bold text-[#111315] truncate">
+                      <h2 className="text-base sm:text-lg font-semibold text-ink truncate">
                         {activeThread.participantName}
                       </h2>
-                      <p className="text-[11px] text-[#6B7278] truncate">
+                      <p className="text-[11px] text-ink-3 truncate">
                         {activeThread.contractTitle}
                       </p>
                     </div>
@@ -460,14 +460,14 @@ export default function WorkspaceMessagesSection({
                     <button
                       type="button"
                       title="Audio Call"
-                      className="hidden sm:flex w-9 h-9 rounded-full border border-[rgba(17,19,21,0.12)] items-center justify-center text-[#6B7278] hover:text-[#111315] hover:bg-[#FAF9F6] transition-colors cursor-pointer"
+                      className="hidden sm:flex w-9 h-9 rounded-full border border-line-strong items-center justify-center text-ink-3 hover:text-ink hover:bg-canvas transition-colors cursor-pointer"
                     >
                       <Phone className="w-4 h-4" />
                     </button>
                     <button
                       type="button"
                       title="Schedule Meeting"
-                      className="hidden sm:flex w-9 h-9 rounded-full border border-[rgba(17,19,21,0.12)] items-center justify-center text-[#6B7278] hover:text-[#111315] hover:bg-[#FAF9F6] transition-colors cursor-pointer"
+                      className="hidden sm:flex w-9 h-9 rounded-full border border-line-strong items-center justify-center text-ink-3 hover:text-ink hover:bg-canvas transition-colors cursor-pointer"
                     >
                       <Calendar className="w-4 h-4" />
                     </button>
@@ -475,7 +475,7 @@ export default function WorkspaceMessagesSection({
                       type="button"
                       onClick={() => setMobilePane("info")}
                       title="Contract details"
-                      className="lg:hidden w-9 h-9 rounded-full border border-[rgba(17,19,21,0.12)] flex items-center justify-center text-[#0B3B2E] bg-[#EAF5F0] cursor-pointer"
+                      className="lg:hidden w-9 h-9 rounded-full border border-line-strong flex items-center justify-center text-navy bg-brand-soft cursor-pointer"
                     >
                       <PanelRight className="w-4 h-4" />
                     </button>
@@ -485,8 +485,8 @@ export default function WorkspaceMessagesSection({
                       title={showContractInfo ? "Hide right panel" : "Show right panel"}
                       className={`hidden lg:flex w-9 h-9 rounded-full border items-center justify-center transition-colors cursor-pointer ${
                         showContractInfo
-                          ? "border-[#0F6E50] text-[#0B3B2E] bg-[#EAF5F0]"
-                          : "border-[rgba(17,19,21,0.12)] text-[#6B7278] hover:text-[#111315] hover:bg-[#FAF9F6]"
+                          ? "border-brand text-navy bg-brand-soft"
+                          : "border-line-strong text-ink-3 hover:text-ink hover:bg-canvas"
                       }`}
                     >
                       <PanelRight className="w-4 h-4" />
@@ -512,7 +512,7 @@ export default function WorkspaceMessagesSection({
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex flex-col items-center justify-center text-[#6B7278] text-xs p-6">
+              <div className="flex-1 flex flex-col items-center justify-center text-ink-3 text-xs p-6">
                 {lang === "en" ? "Select a conversation to begin chatting" : "চ্যাট শুরু করতে একটি কথোপকথন নির্বাচন করুন"}
               </div>
             )}
@@ -521,28 +521,28 @@ export default function WorkspaceMessagesSection({
           {/* COLUMN 3: Right Inspector Sidebar */}
           {activeThread && (
             <div
-              className={`w-full lg:w-72 xl:w-80 shrink-0 bg-[#FAF9F6] p-4 flex-col gap-4 overflow-y-auto ${
+              className={`w-full lg:w-72 xl:w-80 shrink-0 bg-canvas p-4 flex-col gap-4 overflow-y-auto ${
                 mobilePane === "info" ? "flex" : "hidden"
               } ${showContractInfo ? "lg:flex" : "lg:hidden"}`}
             >
               {/* Profile Card */}
-              <div className="bg-white rounded-2xl border border-[rgba(17,19,21,0.09)] p-4">
+              <div className="bg-white rounded-xl border border-line p-4">
                 <div className="flex items-center justify-between mb-1">
                   <button
                     type="button"
                     onClick={() => setMobilePane("chat")}
-                    className="lg:hidden inline-flex items-center gap-1 text-xs font-bold text-[#0F6E50] cursor-pointer"
+                    className="lg:hidden inline-flex items-center gap-1 text-xs font-semibold text-brand cursor-pointer"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     <span>Back to chat</span>
                   </button>
-                  <span className="hidden lg:inline-block text-[10px] font-bold uppercase tracking-wider text-[#6B7278]">
+                  <span className="hidden lg:inline-block mk-eyebrow text-ink-3">
                     Contract Inspector
                   </span>
                   <button
                     type="button"
                     onClick={() => setShowContractInfo(false)}
-                    className="hidden lg:inline-flex text-[#6B7278] hover:text-[#111315] p-1 rounded-md transition-colors cursor-pointer"
+                    className="hidden lg:inline-flex text-ink-3 hover:text-ink p-1 rounded-md transition-colors cursor-pointer"
                     title="Collapse details"
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -554,28 +554,28 @@ export default function WorkspaceMessagesSection({
                     <img
                       src={activeThread.participantAvatar}
                       alt={activeThread.participantName}
-                      className="w-16 h-16 rounded-full object-cover ring-2 ring-[#0F6E50]/20"
+                      className="w-16 h-16 rounded-full object-cover ring-2 ring-brand/20"
                     />
-                    <span className="absolute top-0 left-0 w-3 h-3 rounded-full bg-[#0F6E50] ring-2 ring-white" />
+                    <span className="absolute top-0 left-0 w-3 h-3 rounded-full bg-brand ring-2 ring-white" />
                   </div>
 
-                  <h3 className="text-base font-bold text-[#111315] leading-tight">
+                  <h3 className="text-base font-semibold text-ink leading-tight">
                     {activeThread.participantName}
                   </h3>
 
-                  <div className="flex items-center justify-center gap-1.5 text-xs text-[#6B7278] mt-1">
-                    <Building2 className="w-3.5 h-3.5 text-[#8B9094]" />
+                  <div className="flex items-center justify-center gap-1.5 text-xs text-ink-3 mt-1">
+                    <Building2 className="w-3.5 h-3.5 text-ink-4" />
                     <span>{activeThread.participantTitle || "Partner Enterprise"}</span>
                   </div>
 
-                  <div className="flex items-center justify-center gap-1.5 text-xs font-mono mk-tabular text-[#6B7278] mt-0.5">
-                    <Clock className="w-3.5 h-3.5 text-[#8B9094]" />
+                  <div className="flex items-center justify-center gap-1.5 text-xs font-mono mk-tabular text-ink-3 mt-0.5">
+                    <Clock className="w-3.5 h-3.5 text-ink-4" />
                     <span>{currentTime} (local time)</span>
                   </div>
 
                   <Link
                     href={`/contracts/${activeThread.contractId}`}
-                    className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/20 text-xs font-bold text-[#0B3B2E] hover:bg-[#0B3B2E] hover:text-white mt-3 transition-colors"
+                    className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-brand-soft border border-brand/20 text-xs font-semibold text-navy hover:bg-navy hover:text-white mt-3 transition-colors"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>{lang === "en" ? "View contract" : "কন্ট্রাক্ট দেখুন"}</span>
@@ -584,22 +584,22 @@ export default function WorkspaceMessagesSection({
               </div>
 
               {/* Activity Timeline Card */}
-              <div className="rounded-2xl border border-[rgba(17,19,21,0.09)] p-4 bg-white space-y-3">
+              <div className="rounded-xl border border-line p-4 bg-white space-y-3">
                 <button
                   type="button"
                   onClick={() => setTimelineOpen(!timelineOpen)}
                   className="w-full flex items-center justify-between text-left cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-[#0F6E50]" />
-                    <span className="text-xs font-bold text-[#111315]">
+                    <Clock className="w-4 h-4 text-brand" />
+                    <span className="text-xs font-semibold text-ink">
                       {lang === "en" ? "Activity timeline" : "অ্যাক্টিভিটি টাইমলাইন"}
                     </span>
                   </div>
                   {timelineOpen ? (
-                    <ChevronUp className="w-4 h-4 text-[#6B7278]" />
+                    <ChevronUp className="w-4 h-4 text-ink-3" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-[#6B7278]" />
+                    <ChevronDown className="w-4 h-4 text-ink-3" />
                   )}
                 </button>
 
@@ -607,37 +607,37 @@ export default function WorkspaceMessagesSection({
                   <div className="pt-2 space-y-1">
                     {/* Step 1: Contract Starts */}
                     <div className="flex items-start gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-xs font-bold text-[#111315] leading-snug">
+                        <p className="text-xs font-semibold text-ink leading-snug">
                           {lang === "en" ? "Contract starts" : "চুক্তি শুরু"}
                         </p>
-                        <p className="text-[11px] font-mono mk-tabular text-[#6B7278]">
+                        <p className="text-[11px] font-mono mk-tabular text-ink-3">
                           {activeThread.createdAt || "Active"}
                         </p>
                       </div>
                     </div>
 
                     {/* Connecting Line */}
-                    <div className="w-0.5 h-4 bg-[rgba(17,19,21,0.10)] ml-2 my-0.5" />
+                    <div className="w-0.5 h-4 bg-[rgba(16,24,40,0.10)] ml-2 my-0.5" />
 
                     {/* Step 2: Milestone */}
                     <div className="flex items-start gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-[#111315] leading-snug">
+                        <p className="text-xs font-semibold text-ink leading-snug">
                           {activeThread.milestoneTitle}
                         </p>
                         <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                          <span className="text-xs font-mono mk-tabular font-bold text-[#111315]">
+                          <span className="text-xs font-mono mk-tabular font-semibold text-ink">
                             ৳{activeThread.budgetBdt.toLocaleString()}
                           </span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF5F0] text-[#0B3B2E] border border-[#0F6E50]/20">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-soft text-navy border border-brand/20">
                             {activeThread.milestoneStatus.replace(/_/g, " ")}
                           </span>
                         </div>
                         {activeThread.escrowBdt > 0 && (
-                          <p className="text-[11px] font-mono mk-tabular text-[#0F6E50] font-semibold mt-1">
+                          <p className="text-[11px] font-mono mk-tabular text-brand font-semibold mt-1">
                             ৳{activeThread.escrowBdt.toLocaleString()} held in escrow
                           </p>
                         )}
@@ -645,28 +645,28 @@ export default function WorkspaceMessagesSection({
                     </div>
 
                     {/* Connecting Line */}
-                    <div className="w-0.5 h-4 bg-[rgba(17,19,21,0.10)] ml-2 my-0.5" />
+                    <div className="w-0.5 h-4 bg-[rgba(16,24,40,0.10)] ml-2 my-0.5" />
 
                     {/* Step 3: Manage milestone */}
                     <div className="flex items-center gap-2.5 py-1">
-                      <div className="w-4 h-4 rounded-full border border-dashed border-[#0F6E50] flex items-center justify-center text-[#0F6E50] shrink-0">
+                      <div className="w-4 h-4 rounded-full border border-dashed border-brand flex items-center justify-center text-brand shrink-0">
                         <Plus className="w-3 h-3" />
                       </div>
                       <Link
                         href={`/contracts/${activeThread.contractId}`}
-                        className="text-xs font-bold text-[#0F6E50] hover:text-[#0B3B2E] hover:underline"
+                        className="text-xs font-semibold text-brand hover:text-navy hover:underline"
                       >
                         {lang === "en" ? "Open milestone workspace" : "মাইলস্টোন ওয়ার্কস্পেস"}
                       </Link>
                     </div>
 
                     {/* Connecting Line */}
-                    <div className="w-0.5 h-4 bg-[rgba(17,19,21,0.10)] ml-2 my-0.5" />
+                    <div className="w-0.5 h-4 bg-[rgba(16,24,40,0.10)] ml-2 my-0.5" />
 
                     {/* Step 4: Contract ends */}
                     <div className="flex items-center gap-2.5">
-                      <CheckSquare className="w-4 h-4 text-[#8B9094] shrink-0" />
-                      <span className="text-xs font-medium text-[#6B7278]">
+                      <CheckSquare className="w-4 h-4 text-ink-4 shrink-0" />
+                      <span className="text-xs font-medium text-ink-3">
                         {lang === "en" ? "Contract settlement" : "চুক্তি সমাপ্তি"}
                       </span>
                     </div>
@@ -675,59 +675,59 @@ export default function WorkspaceMessagesSection({
               </div>
 
               {/* Accordion 1: Search Messages */}
-              <div className="rounded-xl border border-[rgba(17,19,21,0.09)] overflow-hidden bg-white">
+              <div className="rounded-lg border border-line overflow-hidden bg-white">
                 <button
                   type="button"
                   onClick={() => setSearchOpen(!searchOpen)}
-                  className="w-full p-3 flex items-center justify-between text-xs font-semibold text-[#111315] hover:bg-[#FAF9F6] transition-colors cursor-pointer"
+                  className="w-full p-3 flex items-center justify-between text-xs font-semibold text-ink hover:bg-canvas transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
-                    <Search className="w-4 h-4 text-[#6B7278]" />
+                    <Search className="w-4 h-4 text-ink-3" />
                     <span>{lang === "en" ? "Search messages" : "বার্তা খুঁজুন"}</span>
                   </div>
                   {searchOpen ? (
-                    <ChevronUp className="w-4 h-4 text-[#6B7278]" />
+                    <ChevronUp className="w-4 h-4 text-ink-3" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-[#6B7278]" />
+                    <ChevronDown className="w-4 h-4 text-ink-3" />
                   )}
                 </button>
                 {searchOpen && (
-                  <div className="p-3 pt-2 border-t border-[rgba(17,19,21,0.07)]">
+                  <div className="p-3 pt-2 border-t border-line">
                     <input
                       type="text"
                       placeholder="Type to filter..."
-                      className="w-full text-xs p-2 rounded-lg bg-[#FAF9F6] border border-[rgba(17,19,21,0.10)] focus:outline-none focus:ring-1 focus:ring-[#0F6E50]"
+                      className="w-full text-xs p-2 rounded-lg bg-canvas border border-line focus:outline-none focus:ring-1 focus:ring-brand"
                     />
                   </div>
                 )}
               </div>
 
               {/* Accordion 2: People */}
-              <div className="rounded-xl border border-[rgba(17,19,21,0.09)] overflow-hidden bg-white">
+              <div className="rounded-lg border border-line overflow-hidden bg-white">
                 <button
                   type="button"
                   onClick={() => setPeopleOpen(!peopleOpen)}
-                  className="w-full p-3 flex items-center justify-between text-xs font-semibold text-[#111315] hover:bg-[#FAF9F6] transition-colors cursor-pointer"
+                  className="w-full p-3 flex items-center justify-between text-xs font-semibold text-ink hover:bg-canvas transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-[#6B7278]" />
+                    <Users className="w-4 h-4 text-ink-3" />
                     <span>{lang === "en" ? "People" : "সদস্য"}</span>
                   </div>
                   {peopleOpen ? (
-                    <ChevronUp className="w-4 h-4 text-[#6B7278]" />
+                    <ChevronUp className="w-4 h-4 text-ink-3" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-[#6B7278]" />
+                    <ChevronDown className="w-4 h-4 text-ink-3" />
                   )}
                 </button>
                 {peopleOpen && (
-                  <div className="p-3 pt-2 border-t border-[rgba(17,19,21,0.07)] space-y-2 text-xs">
+                  <div className="p-3 pt-2 border-t border-line space-y-2 text-xs">
                     <div className="flex items-center gap-2">
                       <img
                         src={currentUserAvatar || DEFAULT_TALK_AVATAR}
                         alt="You"
                         className="w-6 h-6 rounded-full object-cover"
                       />
-                      <span className="font-semibold text-[#111315] truncate">{currentUserName} (You)</span>
+                      <span className="font-semibold text-ink truncate">{currentUserName} (You)</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <img
@@ -735,7 +735,7 @@ export default function WorkspaceMessagesSection({
                         alt={activeThread.participantName}
                         className="w-6 h-6 rounded-full object-cover"
                       />
-                      <span className="font-semibold text-[#111315] truncate">
+                      <span className="font-semibold text-ink truncate">
                         {activeThread.participantName} ({activeThread.participantRole})
                       </span>
                     </div>
@@ -744,24 +744,24 @@ export default function WorkspaceMessagesSection({
               </div>
 
               {/* Accordion 3: Files and links */}
-              <div className="rounded-xl border border-[rgba(17,19,21,0.09)] overflow-hidden bg-white">
+              <div className="rounded-lg border border-line overflow-hidden bg-white">
                 <button
                   type="button"
                   onClick={() => setFilesOpen(!filesOpen)}
-                  className="w-full p-3 flex items-center justify-between text-xs font-semibold text-[#111315] hover:bg-[#FAF9F6] transition-colors cursor-pointer"
+                  className="w-full p-3 flex items-center justify-between text-xs font-semibold text-ink hover:bg-canvas transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-2">
-                    <Paperclip className="w-4 h-4 text-[#6B7278]" />
+                    <Paperclip className="w-4 h-4 text-ink-3" />
                     <span>{lang === "en" ? "Files and links" : "ফাইল ও লিংক"}</span>
                   </div>
                   {filesOpen ? (
-                    <ChevronUp className="w-4 h-4 text-[#6B7278]" />
+                    <ChevronUp className="w-4 h-4 text-ink-3" />
                   ) : (
-                    <ChevronDown className="w-4 h-4 text-[#6B7278]" />
+                    <ChevronDown className="w-4 h-4 text-ink-3" />
                   )}
                 </button>
                 {filesOpen && (
-                  <div className="p-3 pt-2 border-t border-[rgba(17,19,21,0.07)] text-xs text-[#6B7278]">
+                  <div className="p-3 pt-2 border-t border-line text-xs text-ink-3">
                     <p className="py-1">No shared files in this conversation yet.</p>
                   </div>
                 )}

@@ -28,6 +28,7 @@ import {
   Clock,
 } from "lucide-react";
 import {
+  Avatar,
   Badge,
   EmptyState,
   FreelancerCardSkeleton,
@@ -134,88 +135,74 @@ export default function FreelancerDirectory({
     });
   }, [freelancers, searchQuery, rateFilter]);
 
+  const en = lang === "en";
+  const rateOptions = [
+    { id: "ALL" as const, label: en ? "Any rate" : "সব রেট" },
+    { id: "UNDER_1000" as const, label: "< ৳1,000/hr" },
+    { id: "1000_2500" as const, label: "৳1k – ৳2.5k" },
+    { id: "2500_PLUS" as const, label: "৳2,500+/hr" },
+  ];
+
   return (
-    <section
-      id="freelancers-section"
-      className="py-16 bg-[#F4F2EC]/65 border-t border-[rgba(17,19,21,0.08)] text-[#111315]"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="freelancers-section" className="py-20 sm:py-24 bg-white border-t border-line text-ink scroll-mt-16">
+      <div className="mk-container">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-7">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <UserCheck className="w-4 h-4 text-[#0F6E50]" />
-              <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#0F6E50]">
-                {lang === "en"
-                  ? "Vetted Bangladeshi Professionals"
-                  : "যাচাইকৃত বাংলাদেশি পেশাজীবী"}
-              </span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#111315]">
-              {lang === "en"
-                ? "Top Verified Bangladeshi Talent"
-                : "শীর্ষ ভেরিফাইড ফ্রিল্যান্সারগণ"}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 lg:mb-10">
+          <div className="max-w-2xl">
+            <span className="mk-eyebrow text-brand">{en ? "Find talent" : "ট্যালেন্ট খুঁজুন"}</span>
+            <h2 className="mk-h2 mt-4 text-ink">
+              {en ? "Verified professionals, ready to start." : "শীর্ষ ভেরিফাইড ফ্রিল্যান্সারগণ"}
             </h2>
-            <p className="mt-1 text-xs sm:text-sm text-[#686E78]">
-              {lang === "en"
-                ? "Hire available experts with NID Smart Card verification and transparent BDT hourly rates."
-                : "জাতীয় পরিচয়পত্র যাচাইকৃত নির্ভরযোগ্য দেশীয় এক্সপার্টদের সাথে সরাসরি কাজ করুন।"}
+            <p className="mt-4 text-[15px] text-ink-3">
+              {en
+                ? "Hire experts with Porichoy NID verification and transparent hourly rates in Taka."
+                : "জাতীয় পরিচয়পত্র যাচাইকৃত নির্ভরযোগ্য দেশীয় এক্সপার্টদের সাথে সরাসরি কাজ করুন।"}
             </p>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Badge variant="verified" pulse>
-              <ShieldCheck className="w-3.5 h-3.5 text-[#0F6E50]" />
-              {lang === "en" ? "Porichoy NID Verified" : "এনআইডি দ্বারা সত্যায়িত"}
-            </Badge>
-          </div>
+          <Badge variant="verified">
+            <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
+            {en ? "Porichoy NID verified" : "এনআইডি দ্বারা সত্যায়িত"}
+          </Badge>
         </div>
 
-        {/* Search & Rate Filter Bar */}
-        <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 mb-7 shadow-[0_1px_2px_rgba(17,19,21,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-[#949BA6] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+        {/* Search & rate filter */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
+          <div className="relative flex-1 max-w-lg">
+            <label htmlFor="talent-search" className="sr-only">
+              {en ? "Search talent" : "ট্যালেন্ট খুঁজুন"}
+            </label>
+            <Search className="w-4 h-4 text-ink-4 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true" />
             <input
+              id="talent-search"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={
-                lang === "en"
-                  ? "Search by name, skill (React, UI/UX), or city..."
-                  : "নাম, দক্ষতা বা শহর লিখে খুঁজুন..."
-              }
-              className="w-full pl-10 pr-8 py-2 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.11)] text-xs font-medium text-[#111315] placeholder:text-[#949BA6] focus:outline-none focus:bg-white focus:border-[#0F6E50]"
+              placeholder={en ? "Search by name, skill or city" : "নাম, দক্ষতা বা শহর লিখে খুঁজুন..."}
+              className="w-full h-11 pl-10 pr-9 rounded-lg bg-white border border-line-strong text-sm text-ink placeholder:text-ink-4 focus:outline-none focus:border-brand focus:ring-4 focus:ring-brand/12"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                aria-label="Clear search"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#949BA6] hover:text-[#111315] cursor-pointer"
+                aria-label={en ? "Clear search" : "খোঁজ মুছুন"}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-ink-4 hover:text-ink hover:bg-subtle cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#686E78] mr-1">
-              {lang === "en" ? "Rate:" : "রেট:"}
-            </span>
-            {[
-              { id: "ALL" as const, label: lang === "en" ? "All Rates" : "সব রেট" },
-              { id: "UNDER_1000" as const, label: "< ৳1,000/hr" },
-              { id: "1000_2500" as const, label: "৳1k – ৳2.5k" },
-              { id: "2500_PLUS" as const, label: "৳2,500+/hr" },
-            ].map((item) => (
+          <div role="group" aria-label={en ? "Hourly rate" : "রেট"} className="inline-flex items-center gap-1 p-1 rounded-lg bg-subtle border border-line overflow-x-auto max-w-full">
+            {rateOptions.map((item) => (
               <button
                 key={item.id}
                 type="button"
+                aria-pressed={rateFilter === item.id}
                 onClick={() => setRateFilter(item.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                className={`h-8 px-3 rounded-md text-[13px] font-medium whitespace-nowrap transition-colors cursor-pointer ${
                   rateFilter === item.id
-                    ? "bg-[#0B3B2E] text-white"
-                    : "bg-[#F4F2EC] text-[#3E434A] hover:text-[#111315] hover:bg-[#EAE7DF]"
+                    ? "bg-white text-ink shadow-[0_1px_2px_rgba(16,24,40,0.08)] border border-line"
+                    : "text-ink-3 hover:text-ink border border-transparent"
                 }`}
               >
                 {item.label}
@@ -224,9 +211,17 @@ export default function FreelancerDirectory({
           </div>
         </div>
 
+        {!isLoading && (
+          <p className="mb-3 text-[13px] text-ink-3 mk-tabular" aria-live="polite">
+            {en
+              ? `${filteredFreelancers.length} ${filteredFreelancers.length === 1 ? "professional" : "professionals"}`
+              : `${filteredFreelancers.length} জন পেশাজীবী`}
+          </p>
+        )}
+
         {/* Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <FreelancerCardSkeleton />
             <FreelancerCardSkeleton />
             <FreelancerCardSkeleton />
@@ -234,15 +229,11 @@ export default function FreelancerDirectory({
         ) : filteredFreelancers.length === 0 ? (
           <EmptyState
             icon={<UserCheck className="w-6 h-6" />}
-            title={
-              lang === "en"
-                ? "No matching freelancers found"
-                : "কোনো ফ্রিল্যান্সার পাওয়া যায়নি"
-            }
+            title={en ? "No matching freelancers found" : "কোনো ফ্রিল্যান্সার পাওয়া যায়নি"}
             description={
-              lang === "en"
+              en
                 ? "Try clearing your skill search or hourly rate filter to explore all verified professionals."
-                : "অন্য কোনো দক্ষতা বা রেট দিয়ে খুঁজুন।"
+                : "অন্য কোনো দক্ষতা বা রেট দিয়ে খুঁজুন।"
             }
             action={
               <button
@@ -251,147 +242,116 @@ export default function FreelancerDirectory({
                   setSearchQuery("");
                   setRateFilter("ALL");
                 }}
-                className="px-4 py-2 rounded-xl bg-[#0B3B2E] text-white font-semibold text-xs cursor-pointer"
+                className="h-10 px-4 rounded-lg bg-ink hover:bg-ink-hover text-white font-medium text-sm cursor-pointer"
               >
-                {lang === "en" ? "Reset Talent Filters" : "ফিল্টার রিসেট করুন"}
+                {en ? "Reset talent filters" : "ফিল্টার রিসেট করুন"}
               </button>
             }
           />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredFreelancers.map((freelancer) => {
               const isSaved = savedIds.includes(freelancer.id);
-
               return (
-                <div
-                  key={freelancer.id}
-                  onClick={() => openProfileModal(freelancer)}
-                  className="bg-white border border-[rgba(17,19,21,0.09)] hover:border-[#0F6E50]/45 rounded-2xl p-6 transition-all duration-150 shadow-[0_1px_2px_rgba(17,19,21,0.03)] hover:shadow-[0_14px_30px_-8px_rgba(17,19,21,0.08)] flex flex-col justify-between cursor-pointer group"
-                >
-                  <div>
+                <li key={freelancer.id}>
+                  <article className="group relative h-full bg-white border border-line hover:border-line-strong rounded-xl p-5 sm:p-6 flex flex-col transition-[border-color,box-shadow] duration-200 hover:shadow-[var(--mk-shadow-elevated)]">
                     <div className="flex items-start gap-3.5">
-                      <div className="relative shrink-0">
-                        <img
-                          src={freelancer.avatar}
-                          alt={freelancer.name}
-                          className="w-13 h-13 rounded-xl object-cover border border-[rgba(17,19,21,0.1)]"
-                        />
+                      <div className="relative">
+                        <Avatar src={freelancer.avatar} name={freelancer.name} className="w-14 h-14 rounded-lg text-base" />
                         {freelancer.isNidVerified && (
-                          <div
-                            className="absolute -bottom-1 -right-1 bg-[#0F6E50] text-white rounded-full p-0.5 ring-2 ring-white"
-                            title="NID Verified"
+                          <span
+                            className="absolute -bottom-1 -right-1 bg-brand text-white rounded-full p-0.5 ring-2 ring-white"
+                            title={en ? "NID verified" : "এনআইডি যাচাইকৃত"}
                           >
-                            <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" />
-                          </div>
+                            <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" aria-label={en ? "NID verified" : "এনআইডি যাচাইকৃত"} />
+                          </span>
                         )}
                       </div>
-
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="font-bold text-sm text-[#111315] group-hover:text-[#0F6E50] transition-colors truncate">
+                        <h3 className="text-[15px] font-semibold tracking-[-0.02em] text-ink truncate">
+                          <button
+                            type="button"
+                            onClick={() => openProfileModal(freelancer)}
+                            className="text-left hover:text-brand transition-colors cursor-pointer after:absolute after:inset-0 after:rounded-xl"
+                          >
                             {freelancer.name}
-                          </h3>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="flex items-center gap-0.5 text-[#A87224] font-bold text-xs mk-tabular">
-                              <Star className="w-3 h-3 fill-[#D4A24C] text-[#D4A24C]" />
-                              <span>{freelancer.rating.toFixed(1)}</span>
-                            </span>
-                            {clientId && (
-                              <button
-                                type="button"
-                                onClick={(e) => handleToggleSave(e, freelancer.id)}
-                                disabled={savingId === freelancer.id}
-                                aria-label={
-                                  isSaved ? "Remove from saved talent" : "Save talent"
-                                }
-                                className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-                                  isSaved
-                                    ? "bg-[#FFF1F3] border-[#FCCDD6] text-[#BE123C]"
-                                    : "bg-[#FAF9F6] border-[rgba(17,19,21,0.1)] text-[#949BA6] hover:text-[#BE123C]"
-                                }`}
-                              >
-                                <Heart
-                                  className={`w-3.5 h-3.5 ${
-                                    isSaved ? "fill-[#BE123C]" : ""
-                                  }`}
-                                />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                        <p className="text-xs font-semibold text-[#0F6E50] truncate mt-0.5">
-                          {freelancer.title}
+                          </button>
+                        </h3>
+                        <p className="text-[13px] text-ink-2 truncate mt-0.5">{freelancer.title}</p>
+                        <p className="flex items-center gap-1 mt-1 text-[12px] text-ink-3 truncate">
+                          <MapPin className="w-3 h-3 shrink-0" aria-hidden="true" />
+                          {freelancer.location}
                         </p>
-                        <div className="flex items-center gap-2 mt-1 text-[11px] text-[#686E78]">
-                          <span className="inline-flex items-center gap-1 truncate">
-                            <MapPin className="w-3 h-3 shrink-0" />
-                            {freelancer.location}
-                          </span>
-                          <span>•</span>
-                          <span className="text-[#0F6E50] font-semibold">
-                            {freelancer.successRate}% {lang === "en" ? "Success" : "সাফল্য"}
+                      </div>
+                      {clientId && (
+                        <button
+                          type="button"
+                          onClick={(e) => handleToggleSave(e, freelancer.id)}
+                          disabled={savingId === freelancer.id}
+                          aria-pressed={isSaved}
+                          aria-label={isSaved ? (en ? "Remove from saved talent" : "সংরক্ষণ বাতিল") : en ? "Save talent" : "সংরক্ষণ করুন"}
+                          className={`relative z-10 w-8 h-8 inline-flex items-center justify-center rounded-md border transition-colors cursor-pointer shrink-0 ${
+                            isSaved
+                              ? "bg-danger-soft border-danger-border text-danger-strong"
+                              : "bg-white border-line text-ink-4 hover:text-danger-strong"
+                          }`}
+                        >
+                          <Heart className={`w-3.5 h-3.5 ${isSaved ? "fill-danger-strong" : ""}`} aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+
+                    <dl className="mt-4 grid grid-cols-2 gap-px bg-line rounded-lg overflow-hidden border border-line">
+                      <div className="bg-canvas px-3 py-2">
+                        <dt className="text-[11px] text-ink-4">{en ? "Rating" : "রেটিং"}</dt>
+                        <dd className="mt-0.5 flex items-center gap-1 text-[13px] font-semibold text-ink mk-tabular">
+                          <Star className="w-3.5 h-3.5 fill-accent-bright text-accent-bright" aria-hidden="true" />
+                          {freelancer.rating.toFixed(1)}
+                        </dd>
+                      </div>
+                      <div className="bg-canvas px-3 py-2">
+                        <dt className="text-[11px] text-ink-4">{en ? "Job success" : "সাফল্য"}</dt>
+                        <dd className="mt-0.5 text-[13px] font-semibold text-ink mk-tabular">{freelancer.successRate}%</dd>
+                      </div>
+                    </dl>
+
+                    <p className="mt-4 text-[13.5px] text-ink-3 leading-relaxed line-clamp-3">{freelancer.bio}</p>
+
+                    <ul className="mt-4 flex flex-wrap gap-1.5" aria-label={en ? "Skills" : "দক্ষতা"}>
+                      {freelancer.skills.slice(0, 5).map((skill) => (
+                        <li key={skill} className="px-2 py-0.5 rounded-md text-[12px] font-medium bg-subtle text-ink-2">
+                          {skill}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="mt-auto pt-5">
+                      <div className="pt-4 border-t border-line flex items-end justify-between gap-3">
+                        <div>
+                          <span className="block text-[12px] text-ink-4">{en ? "Hourly rate" : "প্রতি ঘণ্টা"}</span>
+                          <span className="text-lg font-semibold tracking-[-0.03em] text-ink mk-tabular">
+                            ৳{freelancer.hourlyRateBdt.toLocaleString()}
+                            <span className="text-[13px] font-normal text-ink-3">/hr</span>
                           </span>
                         </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onHireDirect(freelancer.name);
+                          }}
+                          className="relative z-10 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md bg-ink hover:bg-ink-hover text-white font-medium text-[13px] transition-colors cursor-pointer"
+                        >
+                          {en ? "Invite" : "আমন্ত্রণ"}
+                          <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
+                        </button>
                       </div>
                     </div>
-
-                    <p className="mt-3.5 text-xs text-[#3E434A] leading-relaxed line-clamp-3">
-                      {freelancer.bio}
-                    </p>
-
-                    <div className="mt-3.5 flex flex-wrap gap-1.5">
-                      {freelancer.skills.slice(0, 5).map((skill) => (
-                        <span
-                          key={skill}
-                          className="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)] text-[#3E434A]"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-5 pt-3.5 border-t border-[rgba(17,19,21,0.07)] flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] text-[#686E78] block uppercase tracking-[0.07em] font-semibold">
-                        {lang === "en" ? "Hourly Rate" : "প্রতি ঘণ্টা"}
-                      </span>
-                      <span className="font-mono text-sm font-bold text-[#111315] mk-tabular">
-                        ৳{freelancer.hourlyRateBdt.toLocaleString()}
-                        <span className="font-sans text-xs font-normal text-[#686E78]">
-                          /hr
-                        </span>
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openProfileModal(freelancer);
-                        }}
-                        className="px-3 py-2 rounded-xl border border-[rgba(17,19,21,0.13)] hover:border-[rgba(17,19,21,0.25)] text-[#111315] font-semibold text-xs transition-colors cursor-pointer"
-                      >
-                        {lang === "en" ? "Profile" : "প্রোফাইল"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onHireDirect(freelancer.name);
-                        }}
-                        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white font-semibold text-xs transition-all cursor-pointer"
-                      >
-                        <span>{lang === "en" ? "Invite" : "আমন্ত্রণ"}</span>
-                        <ArrowRight className="w-3 h-3 text-[#7CE0B8]" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  </article>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
       </div>
 
@@ -406,12 +366,8 @@ export default function FreelancerDirectory({
         {selectedProfile && (
           <div className="space-y-5">
             {/* Profile Header Block */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 pb-4 border-b border-[rgba(17,19,21,0.08)]">
-              <img
-                src={selectedProfile.avatar}
-                alt={selectedProfile.name}
-                className="w-16 h-16 rounded-2xl object-cover border border-[rgba(17,19,21,0.1)]"
-              />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 pb-4 border-b border-[rgba(16,24,40,0.08)]">
+              <Avatar src={selectedProfile.avatar} name={selectedProfile.name} className="w-16 h-16 rounded-lg text-lg" />
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   {selectedProfile.isNidVerified && (
@@ -423,55 +379,55 @@ export default function FreelancerDirectory({
                     Available for Work
                   </Badge>
                 </div>
-                <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-[#686E78]">
+                <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-ink-3">
                   <span className="inline-flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-[#949BA6]" />
+                    <MapPin className="w-3.5 h-3.5 text-ink-4" />
                     {selectedProfile.location}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-[#A87224] font-semibold mk-tabular">
-                    <Star className="w-3.5 h-3.5 fill-[#D4A24C] text-[#D4A24C]" />
+                  <span className="inline-flex items-center gap-1 text-accent font-semibold mk-tabular">
+                    <Star className="w-3.5 h-3.5 fill-accent-bright text-accent-bright" />
                     {selectedProfile.rating.toFixed(1)} ({selectedProfile.reviewsCount}{" "}
                     {lang === "en" ? "reviews" : "রিভিউ"})
                   </span>
                 </div>
               </div>
               <div className="text-left sm:text-right shrink-0">
-                <span className="text-[10px] uppercase tracking-[0.07em] text-[#686E78] font-semibold block">
+                <span className="text-[10px] uppercase tracking-[0.07em] text-ink-3 font-semibold block">
                   {lang === "en" ? "Hourly Rate" : "রেট"}
                 </span>
-                <span className="font-mono text-xl font-bold text-[#111315] mk-tabular">
+                <span className="font-mono text-xl font-bold text-ink mk-tabular">
                   ৳{selectedProfile.hourlyRateBdt.toLocaleString()}
-                  <span className="font-sans text-xs font-normal text-[#686E78]">/hr</span>
+                  <span className="font-sans text-xs font-normal text-ink-3">/hr</span>
                 </span>
               </div>
             </div>
 
             {/* Key Stats Strip */}
             <div className="grid grid-cols-3 gap-3">
-              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)]">
-                <span className="text-[11px] text-[#686E78] font-medium flex items-center gap-1">
-                  <Award className="w-3.5 h-3.5 text-[#0F6E50]" />
+              <div className="p-3.5 rounded-lg bg-canvas border border-line">
+                <span className="text-[11px] text-ink-3 font-medium flex items-center gap-1">
+                  <Award className="w-3.5 h-3.5 text-brand" />
                   {lang === "en" ? "Job Success" : "সাফল্যের হার"}
                 </span>
-                <span className="font-mono text-base font-bold text-[#111315] mt-1 block mk-tabular">
+                <span className="font-mono text-base font-bold text-ink mt-1 block mk-tabular">
                   {selectedProfile.successRate}%
                 </span>
               </div>
-              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)]">
-                <span className="text-[11px] text-[#686E78] font-medium flex items-center gap-1">
-                  <Briefcase className="w-3.5 h-3.5 text-[#0F6E50]" />
+              <div className="p-3.5 rounded-lg bg-canvas border border-line">
+                <span className="text-[11px] text-ink-3 font-medium flex items-center gap-1">
+                  <Briefcase className="w-3.5 h-3.5 text-brand" />
                   {lang === "en" ? "Total Earned" : "মোট আয়"}
                 </span>
-                <span className="font-mono text-base font-bold text-[#111315] mt-1 block mk-tabular">
+                <span className="font-mono text-base font-bold text-ink mt-1 block mk-tabular">
                   ৳{selectedProfile.earnedBdt.toLocaleString()}
                 </span>
               </div>
-              <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)]">
-                <span className="text-[11px] text-[#686E78] font-medium flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-[#D4A24C]" />
+              <div className="p-3.5 rounded-lg bg-canvas border border-line">
+                <span className="text-[11px] text-ink-3 font-medium flex items-center gap-1">
+                  <Star className="w-3.5 h-3.5 text-accent-bright" />
                   {lang === "en" ? "Verified Reviews" : "ক্লায়েন্ট রিভিউ"}
                 </span>
-                <span className="font-mono text-base font-bold text-[#111315] mt-1 block mk-tabular">
+                <span className="font-mono text-base font-bold text-ink mt-1 block mk-tabular">
                   {selectedProfile.reviewsCount}
                 </span>
               </div>
@@ -491,23 +447,23 @@ export default function FreelancerDirectory({
             {profileModalTab === "overview" && (
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#686E78] mb-1.5">
+                  <h4 className="mk-eyebrow text-ink-4 mb-1.5">
                     {lang === "en" ? "Professional Biography" : "পেশাগত পরিচিতি"}
                   </h4>
-                  <p className="text-xs sm:text-[13px] text-[#3E434A] leading-relaxed">
+                  <p className="text-xs sm:text-[13px] text-ink-2 leading-relaxed">
                     {selectedProfile.bio}
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="text-[11px] font-bold uppercase tracking-[0.07em] text-[#686E78] mb-2">
+                  <h4 className="mk-eyebrow text-ink-4 mb-2">
                     {lang === "en" ? "Verified Core Skills" : "দক্ষতাসমূহ"}
                   </h4>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedProfile.skills.map((skill) => (
                       <span
                         key={skill}
-                        className="px-3 py-1 rounded-lg text-xs font-semibold bg-[#EAF5F0] text-[#0B3B2E] border border-[#C3E3D5]"
+                        className="px-3 py-1 rounded-lg text-xs font-semibold bg-brand-soft text-navy border border-brand-border"
                       >
                         {skill}
                       </span>
@@ -519,17 +475,17 @@ export default function FreelancerDirectory({
 
             {profileModalTab === "portfolio" && (
               <div className="space-y-3">
-                <div className="p-4 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)] space-y-2">
+                <div className="p-4 rounded-lg bg-canvas border border-line space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#111315] flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5 text-[#0F6E50]" />
+                    <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-brand" />
                       {lang === "en" ? "Core Engagement Tracks" : "প্রধান কাজের ধরন"}
                     </span>
-                    <span className="text-[11px] text-[#0F6E50] font-semibold">
+                    <span className="text-[11px] text-brand font-semibold">
                       BDT Escrow Ready
                     </span>
                   </div>
-                  <p className="text-xs text-[#3E434A] leading-relaxed">
+                  <p className="text-xs text-ink-2 leading-relaxed">
                     {lang === "en"
                       ? `${selectedProfile.name} accepts structured milestone and fixed-price contracts covering ${selectedProfile.skills.slice(0, 4).join(", ")}. Live deliverable links and repository walkthroughs are shared directly upon project invitation.`
                       : `${selectedProfile.name} মাইলস্টোন ও নির্দিষ্ট বাজেটের প্রজেক্টে ${selectedProfile.skills.slice(0, 3).join(", ")} বিষয়ে কাজ করেন।`}
@@ -539,10 +495,10 @@ export default function FreelancerDirectory({
                   {selectedProfile.skills.slice(0, 4).map((skill) => (
                     <div
                       key={skill}
-                      className="p-3 rounded-xl bg-white border border-[rgba(17,19,21,0.09)] flex items-center justify-between"
+                      className="p-3 rounded-xl bg-white border border-[rgba(16,24,40,0.09)] flex items-center justify-between"
                     >
-                      <span className="text-xs font-semibold text-[#111315]">{skill}</span>
-                      <span className="text-[10px] font-semibold text-[#0F6E50] bg-[#EAF5F0] px-2 py-0.5 rounded-full">
+                      <span className="text-xs font-semibold text-ink">{skill}</span>
+                      <span className="text-[10px] font-semibold text-brand bg-brand-soft px-2 py-0.5 rounded-full">
                         Verified
                       </span>
                     </div>
@@ -553,37 +509,37 @@ export default function FreelancerDirectory({
 
             {profileModalTab === "track" && (
               <div className="space-y-3">
-                <div className="p-4 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="p-4 rounded-lg bg-canvas border border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-2xl font-bold text-[#111315] mk-tabular">
+                      <span className="font-mono text-2xl font-bold text-ink mk-tabular">
                         {selectedProfile.rating.toFixed(1)}
                       </span>
-                      <div className="flex items-center gap-0.5 text-[#D4A24C]">
+                      <div className="flex items-center gap-0.5 text-accent-bright">
                         {[1, 2, 3, 4, 5].map((i) => (
                           <Star
                             key={i}
                             className={`w-4 h-4 ${
                               i <= Math.round(selectedProfile.rating)
-                                ? "fill-[#D4A24C]"
-                                : "text-[#E3DFD5]"
+                                ? "fill-accent-bright"
+                                : "text-muted"
                             }`}
                           />
                         ))}
                       </div>
                     </div>
-                    <p className="text-xs text-[#686E78] mt-1">
+                    <p className="text-xs text-ink-3 mt-1">
                       {lang === "en"
                         ? `Across ${selectedProfile.reviewsCount} completed client evaluations`
                         : `${selectedProfile.reviewsCount}টি ক্লায়েন্ট মূল্যায়নের ভিত্তিতে`}
                     </p>
                   </div>
                   <div className="text-left sm:text-right">
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#0F6E50]">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand">
                       <Clock className="w-3.5 h-3.5" />
                       {selectedProfile.successRate}% On-Scope Completion
                     </span>
-                    <p className="text-[11px] text-[#686E78] mt-0.5">
+                    <p className="text-[11px] text-ink-3 mt-0.5">
                       {selectedProfile.isNidVerified
                         ? "Porichoy Smart NID Verified"
                         : "Standard Account"}
@@ -594,12 +550,12 @@ export default function FreelancerDirectory({
             )}
 
             {/* Footer CTAs */}
-            <div className="pt-3.5 border-t border-[rgba(17,19,21,0.08)] flex flex-wrap items-center justify-between gap-2.5">
+            <div className="pt-3.5 border-t border-[rgba(16,24,40,0.08)] flex flex-wrap items-center justify-between gap-2.5">
               <Link
                 href="/messages"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[rgba(17,19,21,0.13)] hover:bg-[#FAF9F6] text-xs font-semibold text-[#111315]"
+                className="inline-flex items-center gap-1.5 h-10 px-4 rounded-lg border border-line-strong hover:bg-subtle text-sm font-medium text-ink"
               >
-                <MessageSquare className="w-3.5 h-3.5 text-[#0F6E50]" />
+                <MessageSquare className="w-3.5 h-3.5 text-brand" />
                 <span>{lang === "en" ? "Open Messages" : "মেসেজ করুন"}</span>
               </Link>
 
@@ -608,15 +564,15 @@ export default function FreelancerDirectory({
                   <button
                     type="button"
                     onClick={(e) => handleToggleSave(e, selectedProfile.id)}
-                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
+                    className={`inline-flex items-center gap-1.5 h-10 px-4 rounded-lg text-sm font-medium border transition-colors cursor-pointer ${
                       savedIds.includes(selectedProfile.id)
-                        ? "bg-[#FFF1F3] border-[#FCCDD6] text-[#BE123C]"
-                        : "bg-white border-[rgba(17,19,21,0.13)] text-[#3E434A] hover:bg-[#FAF9F6]"
+                        ? "bg-danger-soft border-danger-border text-danger-strong"
+                        : "bg-white border-[rgba(16,24,40,0.13)] text-ink-2 hover:bg-canvas"
                     }`}
                   >
                     <Heart
                       className={`w-3.5 h-3.5 ${
-                        savedIds.includes(selectedProfile.id) ? "fill-[#BE123C]" : ""
+                        savedIds.includes(selectedProfile.id) ? "fill-danger-strong" : ""
                       }`}
                     />
                     <span>
@@ -631,12 +587,12 @@ export default function FreelancerDirectory({
                     setSelectedProfile(null);
                     onHireDirect(name);
                   }}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white font-semibold text-xs cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-brand hover:bg-brand-hover text-white font-medium text-sm cursor-pointer"
                 >
                   <span>
                     {lang === "en" ? "Post Job & Invite" : "কাজ পোস্ট ও আমন্ত্রণ"}
                   </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#7CE0B8]" />
+                  <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
                 </button>
               </div>
             </div>

@@ -34,12 +34,12 @@ interface PaymentDetailModalProps {
 }
 
 const TONE_CLASSES: Record<string, string> = {
-  emerald: "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25",
-  sky: "bg-[#EEF5FA] text-[#1E5B88] border-[#1E5B88]/20",
-  amber: "bg-[#FEF6E6] text-[#A87224] border-[#A87224]/25",
-  rose: "bg-[#FEF2F2] text-[#DC2626] border-[#DC2626]/20",
-  indigo: "bg-[#F3EFFA] text-[#5B3E96] border-[#5B3E96]/20",
-  slate: "bg-[#F4F2EC] text-[#3E434A] border-[rgba(17,19,21,0.09)]",
+  emerald: "bg-brand-soft text-navy border-brand/25",
+  sky: "bg-brand-soft text-brand-strong border-brand-strong/20",
+  amber: "bg-accent-soft text-accent border-accent/25",
+  rose: "bg-danger-soft text-danger border-danger/20",
+  indigo: "bg-plum-soft text-plum border-plum/20",
+  slate: "bg-subtle text-ink-2 border-line",
 };
 
 function formatDateTime(iso?: string | null): string {
@@ -72,27 +72,27 @@ export default function PaymentDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-[#111315]/60 backdrop-blur-xs flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="payment-detail-title"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-[rgba(17,19,21,0.12)] space-y-5 max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-xl max-w-2xl w-full p-6 shadow-2xl border border-line-strong space-y-5 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 pb-4 border-b border-[rgba(17,19,21,0.09)]">
+        <div className="flex items-start justify-between gap-3 pb-4 border-b border-line">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/25 flex items-center justify-center shrink-0">
-              <Receipt className="w-5 h-5 text-[#0F6E50]" />
+            <div className="w-10 h-10 rounded-lg bg-brand-soft border border-brand/25 flex items-center justify-center shrink-0">
+              <Receipt className="w-5 h-5 text-brand" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h3
                   id="payment-detail-title"
-                  className="text-base font-semibold text-[#111315]"
+                  className="text-base font-semibold text-ink"
                 >
                   {lang === "en"
                     ? "Payment & Escrow Details"
@@ -106,7 +106,7 @@ export default function PaymentDetailModal({
                   {lang === "en" ? statusMeta.label : statusMeta.labelBn}
                 </span>
               </div>
-              <p className="text-xs font-mono mk-tabular text-[#686E78] mt-0.5">
+              <p className="text-xs font-mono mk-tabular text-ink-3 mt-0.5">
                 {payment.transaction_id} · {payment.contract_code}
               </p>
             </div>
@@ -116,7 +116,7 @@ export default function PaymentDetailModal({
             type="button"
             onClick={onClose}
             aria-label="Close payment details"
-            className="p-1.5 rounded-full text-[#686E78] hover:text-[#111315] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
+            className="p-1.5 rounded-full text-ink-3 hover:text-ink hover:bg-subtle transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -124,26 +124,26 @@ export default function PaymentDetailModal({
 
         {/* Fee Breakdown */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)]">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78] block">
+          <div className="p-3.5 rounded-lg bg-canvas border border-line">
+            <span className="mk-eyebrow text-ink-3 block">
               {lang === "en" ? "Contract Amount" : "মোট পরিমাণ"}
             </span>
-            <p className="text-lg font-bold text-[#111315] mt-1 font-mono mk-tabular">
+            <p className="text-lg font-semibold text-ink mt-1 font-mono mk-tabular">
               {formatBdt(payment.amount)}
             </p>
-            <span className="text-[11px] text-[#949BA6] font-mono">{payment.currency}</span>
+            <span className="text-[11px] text-ink-4 font-mono">{payment.currency}</span>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)]">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78] block font-mono mk-tabular">
+          <div className="p-3.5 rounded-lg bg-canvas border border-line">
+            <span className="mk-eyebrow text-ink-3 block font-mono mk-tabular">
               {lang === "en"
                 ? `Platform Commission (${payment.platform_fee_pct}%)`
                 : `প্ল্যাটফর্ম কমিশন (${payment.platform_fee_pct}%)`}
             </span>
-            <p className="text-lg font-bold text-[#111315] mt-1 font-mono mk-tabular">
+            <p className="text-lg font-semibold text-ink mt-1 font-mono mk-tabular">
               {formatBdt(payment.platform_fee)}
             </p>
-            <span className="text-[11px] text-[#949BA6]">
+            <span className="text-[11px] text-ink-4">
               {payment.status === "RELEASED"
                 ? lang === "en"
                   ? "Recorded on release"
@@ -154,29 +154,29 @@ export default function PaymentDetailModal({
             </span>
           </div>
 
-          <div className="p-3.5 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/25">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#0B3B2E] block">
+          <div className="p-3.5 rounded-lg bg-brand-soft border border-brand/25">
+            <span className="mk-eyebrow text-navy block">
               {lang === "en" ? "Freelancer Payable" : "ফ্রিল্যান্সার প্রাপ্য"}
             </span>
-            <p className="text-lg font-bold text-[#0B3B2E] mt-1 font-mono mk-tabular">
+            <p className="text-lg font-semibold text-navy mt-1 font-mono mk-tabular">
               {formatBdt(payment.freelancer_amount)}
             </p>
-            <span className="text-[11px] text-[#0F6E50] font-medium truncate block">
+            <span className="text-[11px] text-brand font-medium truncate block">
               {payment.freelancer_name}
             </span>
           </div>
         </div>
 
         {/* Metadata Grid */}
-        <div className="rounded-xl border border-[rgba(17,19,21,0.09)] bg-[#FAF9F6] p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div className="rounded-lg border border-line bg-canvas p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#949BA6] block">
+            <span className="mk-eyebrow text-ink-4 block">
               {lang === "en" ? "Contract" : "চুক্তি"}
             </span>
             <Link
               href={`/contracts/${payment.contract_id}`}
               onClick={onClose}
-              className="font-semibold text-[#111315] hover:text-[#0F6E50] hover:underline inline-flex items-center gap-1 mt-0.5"
+              className="font-semibold text-ink hover:text-brand hover:underline inline-flex items-center gap-1 mt-0.5"
             >
               <span>{payment.contract_title}</span>
               <ExternalLink className="w-3 h-3 shrink-0" />
@@ -184,20 +184,20 @@ export default function PaymentDetailModal({
           </div>
 
           <div>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#949BA6] block">
+            <span className="mk-eyebrow text-ink-4 block">
               {lang === "en" ? "Parties" : "পক্ষসমূহ"}
             </span>
-            <p className="font-semibold text-[#111315] mt-0.5">
+            <p className="font-semibold text-ink mt-0.5">
               {payment.client_name} → {payment.freelancer_name}
             </p>
           </div>
 
           <div>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#949BA6] block">
+            <span className="mk-eyebrow text-ink-4 block">
               {lang === "en" ? "Gateway & Method" : "গেটওয়ে ও মাধ্যম"}
             </span>
-            <p className="font-semibold text-[#111315] mt-0.5 flex items-center gap-1.5">
-              <CreditCard className="w-3.5 h-3.5 text-[#686E78]" />
+            <p className="font-semibold text-ink mt-0.5 flex items-center gap-1.5">
+              <CreditCard className="w-3.5 h-3.5 text-ink-3" />
               <span>
                 {payment.gateway} (Sandbox)
                 {payment.card_type ? ` · ${payment.card_type}` : ""}
@@ -207,26 +207,26 @@ export default function PaymentDetailModal({
           </div>
 
           <div>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#949BA6] block">
+            <span className="mk-eyebrow text-ink-4 block">
               {lang === "en" ? "Validation Reference" : "ভ্যালিডেশন আইডি"}
             </span>
-            <p className="font-mono mk-tabular text-[11px] font-semibold text-[#3E434A] mt-0.5 break-all">
+            <p className="font-mono mk-tabular text-[11px] font-semibold text-ink-2 mt-0.5 break-all">
               {payment.validation_id ? `val_id: ${payment.validation_id}` : "—"}
               {payment.bank_tran_id ? ` · bank: ${payment.bank_tran_id}` : ""}
             </p>
           </div>
 
           <div>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#949BA6] block">
+            <span className="mk-eyebrow text-ink-4 block">
               {lang === "en" ? "Initiated At" : "শুরু"}
             </span>
-            <p className="text-[#3E434A] font-medium font-mono mk-tabular mt-0.5">
+            <p className="text-ink-2 font-medium font-mono mk-tabular mt-0.5">
               {formatDateTime(payment.created_at)}
             </p>
           </div>
 
           <div>
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#949BA6] block">
+            <span className="mk-eyebrow text-ink-4 block">
               {payment.released_at
                 ? lang === "en"
                   ? "Released At"
@@ -239,7 +239,7 @@ export default function PaymentDetailModal({
                     ? "Funded At"
                     : "ফান্ডিংয়ের সময়"}
             </span>
-            <p className="text-[#3E434A] font-medium font-mono mk-tabular mt-0.5">
+            <p className="text-ink-2 font-medium font-mono mk-tabular mt-0.5">
               {formatDateTime(
                 payment.released_at || payment.refunded_at || payment.funded_at
               )}
@@ -249,8 +249,8 @@ export default function PaymentDetailModal({
 
         {/* Failure / Cancellation Reason */}
         {payment.failure_reason && (
-          <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#DC2626]/25 text-xs text-[#DC2626] flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-lg bg-danger-soft border border-danger/25 text-xs text-danger flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 text-danger shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold">
                 {lang === "en" ? "Gateway Failure / Note" : "গেটওয়ে ত্রুটি / তথ্য"}
@@ -262,17 +262,17 @@ export default function PaymentDetailModal({
 
         {/* Refund Information */}
         {payment.refund_request && (
-          <div className="p-4 rounded-xl bg-[#F3EFFA] border border-[#5B3E96]/25 text-xs text-[#311F54] space-y-1.5">
+          <div className="p-4 rounded-lg bg-plum-soft border border-plum/25 text-xs text-plum-strong space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 font-semibold">
-                <RotateCcw className="w-4 h-4 text-[#5B3E96]" />
+                <RotateCcw className="w-4 h-4 text-plum" />
                 <span>
                   {lang === "en"
                     ? "Refund Request Information"
                     : "রিফান্ড অনুরোধের তথ্য"}
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-white border border-[#5B3E96]/25 text-[#5B3E96] font-mono">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase bg-white border border-plum/25 text-plum font-mono">
                 {payment.refund_request.status} ·{" "}
                 {payment.refund_request.refund_mode}
               </span>
@@ -292,7 +292,7 @@ export default function PaymentDetailModal({
               </p>
             )}
             {payment.refund_request.gateway_refund_ref_id && (
-              <p className="font-mono mk-tabular text-[11px] text-[#5B3E96]">
+              <p className="font-mono mk-tabular text-[11px] text-plum">
                 Refund Ref: {payment.refund_request.gateway_refund_ref_id} (
                 {payment.refund_request.gateway_status ?? "RECORDED"})
               </p>
@@ -305,12 +305,12 @@ export default function PaymentDetailModal({
           payment.recent_transactions &&
           payment.recent_transactions.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#686E78] font-mono mk-tabular">
+              <h4 className="mk-eyebrow text-ink-3 font-mono mk-tabular">
                 {lang === "en"
                   ? `Gateway Callback Audit Log (${payment.recent_transactions.length})`
                   : `গেটওয়ে কলব্যাক লগ (${payment.recent_transactions.length})`}
               </h4>
-              <div className="border border-[rgba(17,19,21,0.09)] rounded-xl divide-y divide-[rgba(17,19,21,0.09)] max-h-44 overflow-y-auto">
+              <div className="border border-line rounded-lg divide-y divide-line max-h-44 overflow-y-auto">
                 {payment.recent_transactions.map((tx) => (
                   <div
                     key={tx.id}
@@ -319,18 +319,18 @@ export default function PaymentDetailModal({
                     <div className="flex items-center gap-2 min-w-0">
                       {tx.gateway_status === "VALID" ||
                       tx.gateway_status === "VALIDATED" ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#0F6E50] shrink-0" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-brand shrink-0" />
                       ) : (
-                        <Clock className="w-3.5 h-3.5 text-[#949BA6] shrink-0" />
+                        <Clock className="w-3.5 h-3.5 text-ink-4 shrink-0" />
                       )}
-                      <span className="font-mono mk-tabular text-[11px] font-semibold text-[#111315] truncate">
+                      <span className="font-mono mk-tabular text-[11px] font-semibold text-ink truncate">
                         {tx.event_type}
                       </span>
-                      <span className="text-[11px] text-[#686E78] truncate">
+                      <span className="text-[11px] text-ink-3 truncate">
                         ({tx.gateway_status})
                       </span>
                     </div>
-                    <span className="text-[10px] font-mono mk-tabular text-[#949BA6] shrink-0">
+                    <span className="text-[10px] font-mono mk-tabular text-ink-4 shrink-0">
                       {formatDateTime(tx.created_at)}
                     </span>
                   </div>
@@ -340,8 +340,8 @@ export default function PaymentDetailModal({
           )}
 
         {/* Academic Sandbox Disclosure */}
-        <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#FEF6E6] border border-[#A87224]/25 text-[11px] text-[#734C15]">
-          <Info className="w-4 h-4 text-[#A87224] shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-accent-soft border border-accent/25 text-[11px] text-accent-strong">
+          <Info className="w-4 h-4 text-accent shrink-0 mt-0.5" />
           <p className="leading-relaxed">
             {lang === "en"
               ? ESCROW_SIMULATION_DISCLAIMER
@@ -350,13 +350,13 @@ export default function PaymentDetailModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2 border-t border-[rgba(17,19,21,0.09)]">
+        <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2 border-t border-line">
           <Link
             href={`/contracts/${payment.contract_id}`}
             onClick={onClose}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#F4F2EC] hover:bg-[#EAE7DF] text-[#111315] text-xs font-semibold transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-subtle hover:bg-muted text-ink text-xs font-semibold transition-colors"
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-[#0F6E50]" />
+            <ShieldCheck className="w-3.5 h-3.5 text-brand" />
             <span>
               {lang === "en" ? "Open Contract" : "চুক্তি দেখুন"}
             </span>
@@ -367,7 +367,7 @@ export default function PaymentDetailModal({
               type="button"
               disabled={actionLoading}
               onClick={() => onVerifyPending(payment.transaction_id)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1E5B88] hover:bg-[#16476B] text-white text-xs font-semibold transition-colors cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-strong hover:bg-brand-strong text-white text-xs font-semibold transition-colors cursor-pointer disabled:opacity-60"
             >
               <RefreshCw
                 className={`w-3.5 h-3.5 ${actionLoading ? "animate-spin" : ""}`}
@@ -383,7 +383,7 @@ export default function PaymentDetailModal({
               type="button"
               disabled={actionLoading}
               onClick={() => onRetryPayment(payment.contract_id)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold transition-colors cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold transition-colors cursor-pointer disabled:opacity-60"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               <span>
@@ -395,7 +395,7 @@ export default function PaymentDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-[#111315] hover:bg-[#3E434A] text-white text-xs font-semibold transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-lg bg-ink hover:bg-ink-2 text-white text-xs font-semibold transition-colors cursor-pointer"
           >
             {lang === "en" ? "Close" : "বন্ধ করুন"}
           </button>

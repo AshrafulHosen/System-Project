@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { formatBdt } from "@/lib/format";
 import { getWorkStatusMeta } from "@/lib/payments/escrow";
-import { calculateContractFeeBreakdown } from "@/lib/payments/constants";
+import { calculateContractFeeBreakdown, DEFAULT_PLATFORM_FEE_PCT } from "@/lib/payments/constants";
 import type { WorkspaceContract } from "@/types";
 
 interface ReleaseActionResult {
@@ -75,7 +75,7 @@ export default function WorkDeliverySection({
   const workMeta = getWorkStatusMeta(workStatus);
   const breakdown = calculateContractFeeBreakdown(
     contract.totalBdt,
-    contract.platformFeePct || 10
+    contract.platformFeePct || DEFAULT_PLATFORM_FEE_PCT
   );
 
   const isFunded = paymentStatus === "FUNDED";
@@ -251,20 +251,20 @@ export default function WorkDeliverySection({
   ];
 
   return (
-    <section className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 shadow-xs space-y-5">
+    <section className="bg-white border border-line rounded-xl p-6 shadow-xs space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[rgba(17,19,21,0.09)]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-line">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#F4F2EC] border border-[rgba(17,19,21,0.09)] flex items-center justify-center shrink-0">
-            <Briefcase className="w-5 h-5 text-[#3E434A]" />
+          <div className="w-10 h-10 rounded-lg bg-subtle border border-line flex items-center justify-center shrink-0">
+            <Briefcase className="w-5 h-5 text-ink-2" />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-semibold text-[#111315]">
+            <h2 className="text-base sm:text-lg font-semibold text-ink">
               {lang === "en"
                 ? "Work Delivery & Client Approval"
                 : "কাজ ডেলিভারি ও ক্লায়েন্ট অনুমোদন"}
             </h2>
-            <p className="text-xs text-[#686E78] mt-0.5">
+            <p className="text-xs text-ink-3 mt-0.5">
               {lang === "en"
                 ? "Verified submission and review pipeline backed by Supabase contracts"
                 : "সুপাবেস কন্ট্রাক্টের সাথে সংযুক্ত কাজ জমা ও পর্যালোচনা ধাপ"}
@@ -286,10 +286,10 @@ export default function WorkDeliverySection({
         {stageSteps.map((step) => (
           <div
             key={step.label}
-            className={`px-3 py-2.5 rounded-xl border text-center text-xs font-semibold transition-colors font-mono mk-tabular ${
+            className={`px-3 py-2.5 rounded-lg border text-center text-xs font-semibold transition-colors font-mono mk-tabular ${
               step.active
-                ? "bg-[#EAF5F0] border-[#0F6E50]/30 text-[#0B3B2E]"
-                : "bg-[#FAF9F6] border-[rgba(17,19,21,0.09)] text-[#686E78]"
+                ? "bg-brand-soft border-brand/30 text-navy"
+                : "bg-canvas border-line text-ink-3"
             }`}
           >
             {step.label}
@@ -299,19 +299,19 @@ export default function WorkDeliverySection({
 
       {/* Feedback Alerts */}
       {errorMsg && (
-        <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#DC2626]/25 text-xs text-[#DC2626] font-semibold flex items-start gap-2">
+        <div className="p-3.5 rounded-lg bg-danger-soft border border-danger/25 text-xs text-danger font-semibold flex items-start gap-2">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{errorMsg}</span>
         </div>
       )}
       {successMsg && (
-        <div className="p-3.5 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/25 text-xs text-[#0B3B2E] font-semibold flex items-start gap-2">
+        <div className="p-3.5 rounded-lg bg-brand-soft border border-brand/25 text-xs text-navy font-semibold flex items-start gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{successMsg}</span>
         </div>
       )}
       {infoBanner && (
-        <div className="p-3.5 rounded-xl bg-[#FEF6E6] border border-[#A87224]/25 text-xs text-[#A87224] font-semibold flex items-start gap-2">
+        <div className="p-3.5 rounded-lg bg-accent-soft border border-accent/25 text-xs text-accent font-semibold flex items-start gap-2">
           <Clock className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{infoBanner}</span>
         </div>
@@ -319,8 +319,8 @@ export default function WorkDeliverySection({
 
       {/* Client Revision Feedback Callout */}
       {isRevision && contract.revisionFeedback && (
-        <div className="p-4 rounded-xl bg-[#FEF2F2] border border-[#DC2626]/25 space-y-1 text-xs">
-          <div className="flex items-center gap-1.5 font-semibold text-[#DC2626]">
+        <div className="p-4 rounded-lg bg-danger-soft border border-danger/25 space-y-1 text-xs">
+          <div className="flex items-center gap-1.5 font-semibold text-danger">
             <RotateCcw className="w-4 h-4" />
             <span>
               {lang === "en"
@@ -328,7 +328,7 @@ export default function WorkDeliverySection({
                 : "ক্লায়েন্ট রিভিশন চেয়েছেন"}
             </span>
           </div>
-          <p className="text-[#7F1D1D] leading-relaxed">
+          <p className="text-danger-ink leading-relaxed">
             {contract.revisionFeedback}
           </p>
         </div>
@@ -336,7 +336,7 @@ export default function WorkDeliverySection({
 
       {/* Refund Requested Pause Notice */}
       {hasOpenRefund && (
-        <div className="p-4 rounded-xl bg-[#FEF6E6] border border-[#A87224]/25 text-xs text-[#734C15] space-y-1">
+        <div className="p-4 rounded-lg bg-accent-soft border border-accent/25 text-xs text-accent-strong space-y-1">
           <p className="font-semibold">
             {lang === "en"
               ? "Refund Request Under Admin Review"
@@ -352,9 +352,9 @@ export default function WorkDeliverySection({
 
       {/* Waiting for Funding / Refunded State */}
       {!isFunded && !isReleased && (
-        <div className="rounded-xl border border-dashed border-[rgba(17,19,21,0.16)] bg-[#FAF9F6] p-6 text-center space-y-2">
-          <Clock className="w-7 h-7 text-[#949BA6] mx-auto" />
-          <p className="text-xs font-semibold text-[#111315]">
+        <div className="rounded-lg border border-dashed border-line-strong bg-canvas p-6 text-center space-y-2">
+          <Clock className="w-7 h-7 text-ink-4 mx-auto" />
+          <p className="text-xs font-semibold text-ink">
             {isRefunded
               ? lang === "en"
                 ? "Contract closed — Escrow refund has been recorded"
@@ -367,7 +367,7 @@ export default function WorkDeliverySection({
                   ? "Fund this contract first so the freelancer can begin and submit deliverables"
                   : "ফ্রিল্যান্সার কাজ শুরু করার আগে কন্ট্রাক্টটি ফান্ড করুন"}
           </p>
-          <p className="text-xs text-[#686E78] max-w-md mx-auto">
+          <p className="text-xs text-ink-3 max-w-md mx-auto">
             {isRefunded
               ? lang === "en"
                 ? "A REFUND entry exists in the internal escrow ledger. No further submissions or releases are permitted on this contract."
@@ -381,13 +381,13 @@ export default function WorkDeliverySection({
 
       {/* Submitted Deliverables Inspection View */}
       {(contract.submissionNotes || isSubmitted || isReleased) && (
-        <div className="rounded-xl border border-[rgba(17,19,21,0.09)] bg-[#FAF9F6] p-5 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[rgba(17,19,21,0.09)]">
+        <div className="rounded-lg border border-line bg-canvas p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-line">
             <div>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#686E78] block">
+              <span className="mk-eyebrow text-ink-3 block">
                 {lang === "en" ? "Deliverable Submission" : "জমা দেওয়া ডেলিভারি"}
               </span>
-              <h3 className="text-sm font-semibold text-[#111315]">
+              <h3 className="text-sm font-semibold text-ink">
                 {contract.freelancer.name} · {contract.freelancer.title}
               </h3>
             </div>
@@ -396,7 +396,7 @@ export default function WorkDeliverySection({
                 href={contract.submissionDemoUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[rgba(17,19,21,0.12)] text-xs font-semibold text-[#1E5B88] hover:bg-[#EEF5FA] transition-colors self-start sm:self-auto"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-line-strong text-xs font-semibold text-brand-strong hover:bg-brand-soft transition-colors self-start sm:self-auto"
               >
                 <span>{lang === "en" ? "Open Live Demo" : "লাইভ ডেমো দেখুন"}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -405,23 +405,23 @@ export default function WorkDeliverySection({
           </div>
 
           {contract.submissionNotes && (
-            <p className="text-xs text-[#3E434A] bg-white p-3.5 rounded-xl border border-[rgba(17,19,21,0.09)] leading-relaxed whitespace-pre-wrap">
+            <p className="text-xs text-ink-2 bg-white p-3.5 rounded-lg border border-line leading-relaxed whitespace-pre-wrap">
               {contract.submissionNotes}
             </p>
           )}
 
           {contract.submissionFiles && contract.submissionFiles.length > 0 && (
             <div className="space-y-1.5">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#686E78] block">
+              <span className="mk-eyebrow text-ink-3 block">
                 {lang === "en" ? "Attached Deliverables" : "সংযুক্ত ডেলিভারি"}
               </span>
               <div className="flex flex-wrap gap-2">
                 {contract.submissionFiles.map((file, idx) => (
                   <span
                     key={`${file}-${idx}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[rgba(17,19,21,0.12)] text-xs font-medium text-[#3E434A]"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-line-strong text-xs font-medium text-ink-2"
                   >
-                    <FileText className="w-3.5 h-3.5 text-[#0F6E50]" />
+                    <FileText className="w-3.5 h-3.5 text-brand" />
                     <span>{file}</span>
                   </span>
                 ))}
@@ -429,24 +429,24 @@ export default function WorkDeliverySection({
             </div>
           )}
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 border-t border-[rgba(17,19,21,0.09)] text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2 border-t border-line text-xs">
             <div>
-              <span className="text-[#686E78] block">Contract Amount</span>
-              <span className="font-bold text-[#111315] font-mono mk-tabular">
+              <span className="text-ink-3 block">Contract Amount</span>
+              <span className="font-semibold text-ink font-mono mk-tabular">
                 {formatBdt(breakdown.grossAmount)}
               </span>
             </div>
             <div>
-              <span className="text-[#686E78] block font-mono mk-tabular">
+              <span className="text-ink-3 block font-mono mk-tabular">
                 Platform Fee ({breakdown.platformFeePct}%)
               </span>
-              <span className="font-semibold text-[#3E434A] font-mono mk-tabular">
+              <span className="font-semibold text-ink-2 font-mono mk-tabular">
                 {formatBdt(breakdown.platformFeeAmount)}
               </span>
             </div>
             <div>
-              <span className="text-[#686E78] block">Freelancer Payable</span>
-              <span className="font-bold text-[#0F6E50] font-mono mk-tabular">
+              <span className="text-ink-3 block">Freelancer Payable</span>
+              <span className="font-semibold text-brand font-mono mk-tabular">
                 {formatBdt(breakdown.freelancerPayableAmount)}
               </span>
             </div>
@@ -456,16 +456,16 @@ export default function WorkDeliverySection({
 
       {/* Phase 7: Internal Release Completed Banner */}
       {isReleased && (
-        <div className="rounded-xl border border-[#0F6E50]/25 bg-[#EAF5F0] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="rounded-lg border border-brand/25 bg-brand-soft p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-start gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-4 h-4 text-brand shrink-0 mt-0.5" />
             <div className="space-y-0.5">
-              <p className="font-semibold text-[#0B3B2E]">
+              <p className="font-semibold text-navy">
                 {lang === "en"
                   ? "Work Approved & Internal Escrow Release Completed"
                   : "কাজ অনুমোদিত ও অভ্যন্তরীণ এসক্রো রিলিজ সম্পন্ন হয়েছে"}
               </p>
-              <p className="text-[#0B3B2E]/85 font-mono mk-tabular">
+              <p className="text-navy/85 font-mono mk-tabular">
                 {lang === "en"
                   ? `Internal ledger operation only: Gross ${formatBdt(breakdown.grossAmount)}, Platform Commission (${breakdown.platformFeePct}%) ${formatBdt(contract.platformFeeAmount ?? breakdown.platformFeeAmount)}, Freelancer Simulated Earnings +${formatBdt(contract.netEarningsBdt || breakdown.freelancerPayableAmount)}. No external bank payout occurs.`
                   : `অভ্যন্তরীণ লেজার এন্ট্রি সম্পন্ন — ফ্রিল্যান্সারের সিমুলেটেড আয় +${formatBdt(contract.netEarningsBdt || breakdown.freelancerPayableAmount)}।`}
@@ -483,7 +483,7 @@ export default function WorkDeliverySection({
               type="button"
               disabled={submittingAction}
               onClick={handleStartWork}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#111315] hover:bg-[#3E434A] text-white text-xs font-semibold transition-all cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-ink hover:bg-ink-2 text-white text-xs font-semibold transition-all cursor-pointer disabled:opacity-60"
             >
               {submittingAction ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -504,7 +504,7 @@ export default function WorkDeliverySection({
                 setFiles(contract.submissionFiles ?? []);
                 setSubmitModalOpen(true);
               }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-60"
             >
               <Upload className="w-3.5 h-3.5" />
               <span>
@@ -525,9 +525,9 @@ export default function WorkDeliverySection({
                 type="button"
                 disabled={submittingAction}
                 onClick={() => setRevisionModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[rgba(17,19,21,0.12)] hover:bg-[#FAF9F6] text-[#3E434A] text-xs font-semibold transition-all cursor-pointer disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg border border-line-strong hover:bg-canvas text-ink-2 text-xs font-semibold transition-all cursor-pointer disabled:opacity-60"
               >
-                <RotateCcw className="w-3.5 h-3.5 text-[#A87224]" />
+                <RotateCcw className="w-3.5 h-3.5 text-accent" />
                 <span>
                   {lang === "en" ? "Request Revision" : "রিভিশন চান"}
                 </span>
@@ -537,7 +537,7 @@ export default function WorkDeliverySection({
                 type="button"
                 disabled={submittingAction}
                 onClick={() => setApproveModalOpen(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-60 font-mono mk-tabular"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-60 font-mono mk-tabular"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>
@@ -554,30 +554,30 @@ export default function WorkDeliverySection({
       {/* Modal 1: Freelancer Work Submission */}
       {submitModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#111315]/60 backdrop-blur-xs p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xs p-4"
           role="dialog"
           aria-modal="true"
           onClick={() => setSubmitModalOpen(false)}
         >
           <div
-            className="bg-white border border-[rgba(17,19,21,0.12)] rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white border border-line-strong rounded-xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-5 border-b border-[rgba(17,19,21,0.09)] flex items-center justify-between bg-[#FAF9F6]">
+            <div className="p-5 border-b border-line flex items-center justify-between bg-canvas">
               <div>
-                <h3 className="text-sm font-semibold text-[#111315]">
+                <h3 className="text-sm font-semibold text-ink">
                   {lang === "en"
                     ? "Submit Completed Work for Client Review"
                     : "ক্লায়েন্ট রিভিউয়ের জন্য কাজ জমা দিন"}
                 </h3>
-                <p className="text-[11px] text-[#686E78] mt-0.5">
+                <p className="text-[11px] text-ink-3 mt-0.5">
                   Contract: {contract.title}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setSubmitModalOpen(false)}
-                className="p-1.5 rounded-xl text-[#686E78] hover:text-[#111315] hover:bg-[#F4F2EC] cursor-pointer"
+                className="p-1.5 rounded-lg text-ink-3 hover:text-ink hover:bg-subtle cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -585,7 +585,7 @@ export default function WorkDeliverySection({
 
             <form onSubmit={handleSubmitWork} className="p-5 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#111315] mb-1">
+                <label className="block text-xs font-semibold text-ink mb-1">
                   {lang === "en"
                     ? "Completion Description *"
                     : "সম্পন্ন কাজের বিবরণ *"}
@@ -597,12 +597,12 @@ export default function WorkDeliverySection({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Summarize completed deliverables, instructions, and test notes..."
-                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-[rgba(17,19,21,0.12)] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#0F6E50]/20 focus:border-[#0F6E50]"
+                  className="w-full px-3.5 py-2.5 text-xs bg-white border border-line-strong rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand/20 focus:border-brand"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#111315] mb-1">
+                <label className="block text-xs font-semibold text-ink mb-1">
                   {lang === "en"
                     ? "Demo / Repository URL (Optional)"
                     : "ডেমো / রিপোজিটরি লিংক (ঐচ্ছিক)"}
@@ -612,12 +612,12 @@ export default function WorkDeliverySection({
                   value={demoUrl}
                   onChange={(e) => setDemoUrl(e.target.value)}
                   placeholder="https://..."
-                  className="w-full px-3.5 py-2 text-xs bg-white border border-[rgba(17,19,21,0.12)] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#0F6E50]/20 focus:border-[#0F6E50]"
+                  className="w-full px-3.5 py-2 text-xs bg-white border border-line-strong rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand/20 focus:border-brand"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#111315] mb-1">
+                <label className="block text-xs font-semibold text-ink mb-1">
                   {lang === "en"
                     ? "Deliverable Files / Artifact References"
                     : "ডেলিভারি ফাইলের তালিকা"}
@@ -628,7 +628,7 @@ export default function WorkDeliverySection({
                     value={newFileTag}
                     onChange={(e) => setNewFileTag(e.target.value)}
                     placeholder="e.g. final-build-v1.zip or Figma link"
-                    className="flex-1 px-3 py-2 text-xs bg-white border border-[rgba(17,19,21,0.12)] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#0F6E50]/20 focus:border-[#0F6E50]"
+                    className="flex-1 px-3 py-2 text-xs bg-white border border-line-strong rounded-lg focus:outline-hidden focus:ring-2 focus:ring-brand/20 focus:border-brand"
                   />
                   <button
                     type="button"
@@ -639,7 +639,7 @@ export default function WorkDeliverySection({
                         setNewFileTag("");
                       }
                     }}
-                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#F4F2EC] hover:bg-[#EAE7DF] text-xs font-semibold text-[#111315] cursor-pointer"
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-lg bg-subtle hover:bg-muted text-xs font-semibold text-ink cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Add</span>
@@ -650,7 +650,7 @@ export default function WorkDeliverySection({
                     {files.map((item, idx) => (
                       <span
                         key={`${item}-${idx}`}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F4F2EC] text-xs font-medium text-[#3E434A]"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-subtle text-xs font-medium text-ink-2"
                       >
                         <span>{item}</span>
                         <button
@@ -658,7 +658,7 @@ export default function WorkDeliverySection({
                           onClick={() =>
                             setFiles(files.filter((_, i) => i !== idx))
                           }
-                          className="text-[#949BA6] hover:text-[#DC2626] cursor-pointer"
+                          className="text-ink-4 hover:text-danger cursor-pointer"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -668,18 +668,18 @@ export default function WorkDeliverySection({
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[rgba(17,19,21,0.09)]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-line">
                 <button
                   type="button"
                   onClick={() => setSubmitModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#686E78] hover:bg-[#F4F2EC] cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-3 hover:bg-subtle cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingAction}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold cursor-pointer disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold cursor-pointer disabled:opacity-60"
                 >
                   {submittingAction ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -699,23 +699,23 @@ export default function WorkDeliverySection({
       {/* Modal 2: Client Revision Request */}
       {revisionModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#111315]/60 backdrop-blur-xs p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xs p-4"
           role="dialog"
           aria-modal="true"
           onClick={() => setRevisionModalOpen(false)}
         >
           <div
-            className="bg-white border border-[rgba(17,19,21,0.12)] rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-white border border-line-strong rounded-xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-5 border-b border-[rgba(17,19,21,0.09)] flex items-center justify-between bg-[#FEF6E6]">
-              <h3 className="text-sm font-semibold text-[#111315]">
+            <div className="p-5 border-b border-line flex items-center justify-between bg-accent-soft">
+              <h3 className="text-sm font-semibold text-ink">
                 {lang === "en" ? "Request Revision" : "রিভিশনের অনুরোধ"}
               </h3>
               <button
                 type="button"
                 onClick={() => setRevisionModalOpen(false)}
-                className="p-1.5 rounded-xl text-[#686E78] hover:text-[#111315] cursor-pointer"
+                className="p-1.5 rounded-lg text-ink-3 hover:text-ink cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -728,20 +728,20 @@ export default function WorkDeliverySection({
                 value={revisionText}
                 onChange={(e) => setRevisionText(e.target.value)}
                 placeholder="Describe clearly what changes the freelancer should make before approval..."
-                className="w-full px-3.5 py-2.5 text-xs bg-white border border-[rgba(17,19,21,0.12)] rounded-xl focus:outline-hidden focus:ring-2 focus:ring-[#A87224]/25 focus:border-[#A87224]"
+                className="w-full px-3.5 py-2.5 text-xs bg-white border border-line-strong rounded-lg focus:outline-hidden focus:ring-2 focus:ring-accent/25 focus:border-accent"
               />
               <div className="flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setRevisionModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#686E78] hover:bg-[#F4F2EC] cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-3 hover:bg-subtle cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingAction}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-[#A87224] hover:bg-[#8E5F1D] text-white text-xs font-semibold cursor-pointer disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg bg-accent hover:bg-accent-strong text-white text-xs font-semibold cursor-pointer disabled:opacity-60"
                 >
                   <span>
                     {submittingAction ? "Sending..." : "Send Revision Request"}
@@ -756,21 +756,21 @@ export default function WorkDeliverySection({
       {/* Modal 3: Client Approve Work Confirmation */}
       {approveModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#111315]/60 backdrop-blur-xs p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/60 backdrop-blur-xs p-4"
           role="dialog"
           aria-modal="true"
           onClick={() => setApproveModalOpen(false)}
         >
           <div
-            className="bg-white border border-[rgba(17,19,21,0.12)] rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+            className="bg-white border border-line-strong rounded-xl w-full max-w-md shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/25 text-[#0F6E50] flex items-center justify-center">
+                <div className="w-9 h-9 rounded-lg bg-brand-soft border border-brand/25 text-brand flex items-center justify-center">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
-                <h3 className="text-sm font-semibold text-[#111315]">
+                <h3 className="text-sm font-semibold text-ink">
                   {lang === "en"
                     ? "Confirm Work Approval & Release"
                     : "কাজ অনুমোদন ও রিলিজ নিশ্চিত করুন"}
@@ -779,43 +779,43 @@ export default function WorkDeliverySection({
               <button
                 type="button"
                 onClick={() => setApproveModalOpen(false)}
-                className="p-1 text-[#686E78] hover:text-[#111315] cursor-pointer"
+                className="p-1 text-ink-3 hover:text-ink cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-4 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] text-xs space-y-2">
+            <div className="p-4 rounded-lg bg-canvas border border-line text-xs space-y-2">
               <div className="flex justify-between">
-                <span className="text-[#686E78]">Contract Amount:</span>
-                <span className="font-bold text-[#111315] font-mono mk-tabular">
+                <span className="text-ink-3">Contract Amount:</span>
+                <span className="font-semibold text-ink font-mono mk-tabular">
                   {formatBdt(breakdown.grossAmount)}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#686E78] font-mono mk-tabular">
+                <span className="text-ink-3 font-mono mk-tabular">
                   Platform Fee ({breakdown.platformFeePct}%):
                 </span>
-                <span className="font-bold text-[#DC2626] font-mono mk-tabular">
+                <span className="font-semibold text-danger font-mono mk-tabular">
                   -{formatBdt(breakdown.platformFeeAmount)}
                 </span>
               </div>
-              <div className="flex justify-between pt-2 border-t border-[rgba(17,19,21,0.09)] font-bold text-[#111315]">
+              <div className="flex justify-between pt-2 border-t border-line font-semibold text-ink">
                 <span>Freelancer Simulated Credit:</span>
-                <span className="text-[#0F6E50] font-mono mk-tabular">
+                <span className="text-brand font-mono mk-tabular">
                   {formatBdt(breakdown.freelancerPayableAmount)}
                 </span>
               </div>
             </div>
 
-            <p className="text-[11px] text-[#686E78] leading-relaxed">
+            <p className="text-[11px] text-ink-3 leading-relaxed">
               This action records an internal ledger RELEASE entry and updates the
               freelancer&apos;s simulated platform earnings. No external bank payout
               transfer occurs in sandbox mode.
             </p>
 
             {errorMsg && (
-              <div className="p-3 rounded-xl bg-[#FEF2F2] border border-[#DC2626]/25 text-xs text-[#DC2626] font-semibold flex items-start gap-2">
+              <div className="p-3 rounded-lg bg-danger-soft border border-danger/25 text-xs text-danger font-semibold flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>{errorMsg}</span>
               </div>
@@ -825,7 +825,7 @@ export default function WorkDeliverySection({
               <button
                 type="button"
                 onClick={() => setApproveModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#686E78] hover:bg-[#F4F2EC] cursor-pointer"
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-3 hover:bg-subtle cursor-pointer"
               >
                 Cancel
               </button>
@@ -833,7 +833,7 @@ export default function WorkDeliverySection({
                 type="button"
                 disabled={submittingAction}
                 onClick={handleApproveConfirm}
-                className="px-5 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold cursor-pointer disabled:opacity-60"
+                className="px-5 py-2 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold cursor-pointer disabled:opacity-60"
               >
                 {submittingAction
                   ? "Processing..."

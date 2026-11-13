@@ -155,16 +155,16 @@ export default function JobPostWizard({
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-xl p-10 text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-[#EAF5F0] text-[#0F6E50] flex items-center justify-center mx-auto border border-[#0F6E50]/25">
+      <div className="min-h-screen bg-canvas flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white border border-line rounded-xl shadow-xl p-10 text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-brand-soft text-brand flex items-center justify-center mx-auto border border-brand/25">
             <Check className="w-9 h-9" />
           </div>
-          <h2 className="text-2xl font-bold text-[#111315]">Job Posted Successfully</h2>
-          <p className="text-xs text-[#6B7278] leading-relaxed">
+          <h2 className="text-2xl font-semibold text-ink">Job Posted Successfully</h2>
+          <p className="text-xs text-ink-3 leading-relaxed">
             Your job is now live on the marketplace. Verified freelancers can now apply.
           </p>
-          <p className="text-[11px] text-[#0F6E50] font-bold pt-1">
+          <p className="text-[11px] text-brand font-semibold pt-1">
             Redirecting to your client dashboard...
           </p>
         </div>
@@ -192,7 +192,7 @@ export default function JobPostWizard({
       onBack={onExit ? () => (step === 0 ? onExit() : setStep(step - 1)) : () => setStep(step - 1)}
       backLabel={step === 0 ? "Exit" : "Back"}
       headerRight={
-        <span className="hidden sm:flex items-center gap-1.5 text-[#A87224] font-semibold">
+        <span className="hidden sm:flex items-center gap-1.5 text-accent font-semibold">
           <Phone className="w-3.5 h-3.5" />
           Phone verification required to publish
         </span>
@@ -203,13 +203,13 @@ export default function JobPostWizard({
           <button
             type="button"
             onClick={() => (step === 0 && onExit ? onExit() : setStep(step - 1))}
-            className="text-xs font-bold text-[#6B7278] hover:text-[#111315] transition-colors cursor-pointer"
+            className="text-xs font-semibold text-ink-3 hover:text-ink transition-colors cursor-pointer"
           >
             Back
           </button>
 
           {publishError && (
-            <p className="flex-1 text-center text-[11px] font-semibold text-[#DC2626] px-2">
+            <p className="flex-1 text-center text-[11px] font-semibold text-danger px-2">
               {publishError}
             </p>
           )}
@@ -218,7 +218,7 @@ export default function JobPostWizard({
             type="button"
             onClick={handleNext}
             disabled={!canContinue || isPublishing}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] disabled:opacity-40 text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-navy hover:bg-brand disabled:opacity-40 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
           >
             {step < STEPS.length - 1
               ? `Next: ${STEPS[step + 1].label}`
@@ -236,9 +236,9 @@ export default function JobPostWizard({
     >
       <div className="space-y-5">
         {/* Phone verification notice */}
-        <div className="flex items-start gap-2.5 bg-[#FEF6E6] border border-[#A87224]/25 rounded-xl p-3">
-          <ShieldCheck className="w-4 h-4 text-[#A87224] shrink-0 mt-0.5" />
-          <p className="text-[11px] text-[#A87224] leading-relaxed font-medium">
+        <div className="flex items-start gap-2.5 bg-accent-soft border border-accent/25 rounded-lg p-3">
+          <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+          <p className="text-[11px] text-accent leading-relaxed font-medium">
             {lang === "bn"
               ? "আপনার জব পোস্টটি প্রকাশ করতে ফোন নম্বর যাচাই করতে হবে।"
               : "Just a reminder to publish your job post, you'll need to verify your phone number."}
@@ -249,10 +249,10 @@ export default function JobPostWizard({
         {step === 0 && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-[#111315]">
+              <label className="block text-xs font-semibold text-ink">
                 {lang === "bn" ? "একটি আকর্ষণীয় শিরোনাম দিয়ে শুরু করুন।" : "Let's start with a strong title."}
               </label>
-              <p className="text-[11px] text-[#6B7278] leading-relaxed">
+              <p className="text-[11px] text-ink-3 leading-relaxed">
                 {lang === "bn" ? "এটি প্রার্থীরা সবার আগে দেখতে পাবে, তাই সঠিকভাবে লিখুন!" : "It's the first thing candidates will see, so make it count!"}
               </p>
               <input
@@ -260,20 +260,20 @@ export default function JobPostWizard({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={lang === "bn" ? "আপনার কাজের জন্য একটি শিরোনাম লিখুন" : "Write a title for your job post"}
-                className="w-full px-3.5 py-3 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-sm font-semibold text-[#111315] placeholder-[#8B9094] focus:outline-none focus:ring-2 focus:ring-[#0F6E50] focus:bg-white"
+                className="w-full px-3.5 py-3 bg-canvas border border-line-strong rounded-lg text-sm font-semibold text-ink placeholder-ink-4 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white"
               />
               <div className="flex items-center justify-between">
                 <span
-                  className={`text-[10px] font-medium ${title.length > 0 && title.length < 8 ? "text-[#A87224]" : "text-[#8B9094]"}`}
+                  className={`text-[10px] font-medium ${title.length > 0 && title.length < 8 ? "text-accent" : "text-ink-4"}`}
                 >
                   {title.length < 8 ? "At least 8 characters" : "Good title"}
                 </span>
-                <span className="text-[10px] font-mono mk-tabular text-[#8B9094]">{title.length}/120</span>
+                <span className="text-[10px] font-mono mk-tabular text-ink-4">{title.length}/120</span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-[#6B7278]">
+              <span className="block mk-eyebrow text-ink-3">
                 Category
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -282,10 +282,10 @@ export default function JobPostWizard({
                     key={c.name}
                     type="button"
                     onClick={() => setCategory(c.name)}
-                    className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
                       category === c.name
-                        ? "bg-[#0B3B2E] border-[#0B3B2E] text-white"
-                        : "bg-white border-[rgba(17,19,21,0.12)] text-[#3F4448] hover:border-[#0F6E50]/40 hover:bg-[#FAF9F6]"
+                        ? "bg-navy border-navy text-white"
+                        : "bg-white border-line-strong text-ink-2 hover:border-brand/40 hover:bg-canvas"
                     }`}
                   >
                     {lang === "bn" ? c.nameBn : c.name}
@@ -296,8 +296,8 @@ export default function JobPostWizard({
 
             <div className="space-y-2">
               <div className="flex items-center gap-1.5">
-                <Lightbulb className="w-3.5 h-3.5 text-[#A87224]" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7278]">
+                <Lightbulb className="w-3.5 h-3.5 text-accent" />
+                <span className="mk-eyebrow text-ink-3">
                   Example titles
                 </span>
               </div>
@@ -306,7 +306,7 @@ export default function JobPostWizard({
                   key={t}
                   type="button"
                   onClick={() => setTitle(t)}
-                  className="w-full text-left px-3.5 py-2.5 rounded-xl bg-[#FAF9F6] hover:bg-[#EAF5F0] border border-[rgba(17,19,21,0.08)] hover:border-[#0F6E50]/30 text-[11px] text-[#3F4448] hover:text-[#0B3B2E] transition-all cursor-pointer"
+                  className="w-full text-left px-3.5 py-2.5 rounded-lg bg-canvas hover:bg-brand-soft border border-line hover:border-brand/30 text-[11px] text-ink-2 hover:text-navy transition-all cursor-pointer"
                 >
                   {t}
                 </button>
@@ -319,32 +319,32 @@ export default function JobPostWizard({
         {step === 1 && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <div className="relative">
-              <Search className="w-4 h-4 text-[#8B9094] absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-ink-4 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="search"
                 value={skillQuery}
                 onChange={(e) => setSkillQuery(e.target.value)}
                 placeholder={lang === "bn" ? "দক্ষতা খুঁজুন বা নিজে যোগ করুন" : "Search skills or add your own"}
-                className="w-full pl-10 pr-3.5 py-2.5 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-xs font-semibold text-[#111315] placeholder-[#8B9094] focus:outline-none focus:ring-2 focus:ring-[#0F6E50] focus:bg-white"
+                className="w-full pl-10 pr-3.5 py-2.5 bg-canvas border border-line-strong rounded-lg text-xs font-semibold text-ink placeholder-ink-4 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white"
               />
             </div>
 
             {skills.length > 0 && (
-              <div className="rounded-2xl border border-[#0F6E50]/20 bg-[#EAF5F0] p-3.5">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#0B3B2E] mb-2.5 font-mono mk-tabular">
+              <div className="rounded-xl border border-brand/20 bg-brand-soft p-3.5">
+                <span className="block mk-eyebrow text-navy mb-2.5 font-mono mk-tabular">
                   Selected skills ({skills.length})
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {skills.map((s) => (
                     <span
                       key={s}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-[#0F6E50]/25 text-[11px] font-bold text-[#0B3B2E]"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-brand/25 text-[11px] font-semibold text-navy"
                     >
                       {s}
                       <button
                         type="button"
                         onClick={() => toggleSkill(s)}
-                        className="text-[#0F6E50] hover:text-[#0B3B2E] cursor-pointer"
+                        className="text-brand hover:text-navy cursor-pointer"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -355,7 +355,7 @@ export default function JobPostWizard({
             )}
 
             <div className="space-y-2">
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-[#6B7278]">
+              <span className="block mk-eyebrow text-ink-3">
                 Popular skills for {category}
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -366,10 +366,10 @@ export default function JobPostWizard({
                       key={s}
                       type="button"
                       onClick={() => toggleSkill(s)}
-                      className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition-all cursor-pointer ${
+                      className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
                         isSelected
-                          ? "bg-[#0B3B2E] border-[#0B3B2E] text-white"
-                          : "bg-white border-[rgba(17,19,21,0.12)] text-[#3F4448] hover:border-[#0F6E50]/40 hover:bg-[#FAF9F6]"
+                          ? "bg-navy border-navy text-white"
+                          : "bg-white border-line-strong text-ink-2 hover:border-brand/40 hover:bg-canvas"
                       }`}
                     >
                       {s}
@@ -385,7 +385,7 @@ export default function JobPostWizard({
         {step === 2 && (
           <div className="space-y-5 animate-in fade-in duration-200">
             <div className="space-y-2.5">
-              <label className="block text-xs font-bold text-[#111315]">
+              <label className="block text-xs font-semibold text-ink">
                 How long will your work take?
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -394,10 +394,10 @@ export default function JobPostWizard({
                     key={opt.value}
                     type="button"
                     onClick={() => setDuration(opt.value)}
-                    className={`px-3 py-3 rounded-xl border-2 text-left text-xs font-bold transition-all cursor-pointer ${
+                    className={`px-3 py-3 rounded-lg border-2 text-left text-xs font-semibold transition-all cursor-pointer ${
                       duration === opt.value
-                        ? "border-[#0F6E50] bg-[#EAF5F0] text-[#0B3B2E]"
-                        : "border-[rgba(17,19,21,0.10)] bg-white text-[#3F4448] hover:border-[rgba(17,19,21,0.20)]"
+                        ? "border-brand bg-brand-soft text-navy"
+                        : "border-line bg-white text-ink-2 hover:border-line-strong"
                     }`}
                   >
                     {lang === "bn" ? opt.labelBn : opt.label}
@@ -407,10 +407,10 @@ export default function JobPostWizard({
             </div>
 
             <div className="space-y-2.5">
-              <label className="block text-xs font-bold text-[#111315]">
+              <label className="block text-xs font-semibold text-ink">
                 What level of experience will it need?
               </label>
-              <p className="text-[11px] text-[#6B7278] leading-relaxed">
+              <p className="text-[11px] text-ink-3 leading-relaxed">
                 {lang === "bn" ? "এটি কোনো প্রস্তাবকে সীমাবদ্ধ করবে না, তবে আপনার বাজেটের সাথে দক্ষতা মেলাতে সাহায্য করে।" : "This won't restrict any proposals, but helps match expertise to your budget."}
               </p>
               <div className="space-y-2">
@@ -419,17 +419,17 @@ export default function JobPostWizard({
                     key={opt.value}
                     type="button"
                     onClick={() => setExperience(opt.value)}
-                    className={`w-full flex items-start gap-2.5 px-3.5 py-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                    className={`w-full flex items-start gap-2.5 px-3.5 py-3 rounded-lg border-2 text-left transition-all cursor-pointer ${
                       experience === opt.value
-                        ? "border-[#0F6E50] bg-[#EAF5F0]"
-                        : "border-[rgba(17,19,21,0.10)] bg-white hover:border-[rgba(17,19,21,0.20)]"
+                        ? "border-brand bg-brand-soft"
+                        : "border-line bg-white hover:border-line-strong"
                     }`}
                   >
                     <span
                       className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
                         experience === opt.value
-                          ? "border-[#0F6E50] bg-[#0F6E50]"
-                          : "border-[#8B9094]"
+                          ? "border-brand bg-brand"
+                          : "border-ink-4"
                       }`}
                     >
                       {experience === opt.value && (
@@ -438,13 +438,13 @@ export default function JobPostWizard({
                     </span>
                     <span className="min-w-0">
                       <span
-                        className={`block text-xs font-bold ${
-                          experience === opt.value ? "text-[#0B3B2E]" : "text-[#111315]"
+                        className={`block text-xs font-semibold ${
+                          experience === opt.value ? "text-navy" : "text-ink"
                         }`}
                       >
                         {lang === "bn" ? opt.labelBn : opt.label}
                       </span>
-                      <span className="block text-[11px] text-[#6B7278] mt-0.5">
+                      <span className="block text-[11px] text-ink-3 mt-0.5">
                         {lang === "bn" ? opt.hintBn : opt.hint}
                       </span>
                     </span>
@@ -453,16 +453,16 @@ export default function JobPostWizard({
               </div>
             </div>
 
-            <label className="flex items-start gap-2.5 cursor-pointer p-3 rounded-xl bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)]">
+            <label className="flex items-start gap-2.5 cursor-pointer p-3 rounded-lg bg-canvas border border-line">
               <input
                 type="checkbox"
                 checked={contractToHire}
                 onChange={(e) => setContractToHire(e.target.checked)}
-                className="mt-0.5 rounded border-[rgba(17,19,21,0.25)] accent-[#0F6E50]"
+                className="mt-0.5 rounded border-line-strong accent-brand"
               />
-              <span className="text-xs font-bold text-[#111315]">
+              <span className="text-xs font-semibold text-ink">
                 {lang === "bn" ? "এটি কি চুক্তিতে নিয়োগের সুযোগ?" : "Is this job a contract-to-hire opportunity?"}
-                <span className="block text-[11px] font-normal text-[#6B7278] mt-0.5">
+                <span className="block text-[11px] font-normal text-ink-3 mt-0.5">
                   This helps set expectations with talent and won&apos;t restrict who can submit
                   proposals.
                 </span>
@@ -483,20 +483,20 @@ export default function JobPostWizard({
                   key={p.id}
                   type="button"
                   onClick={() => setPricing(p.id as "fixed" | "hourly")}
-                  className={`px-3.5 py-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                  className={`px-3.5 py-3 rounded-lg border-2 text-left transition-all cursor-pointer ${
                     pricing === p.id
-                      ? "border-[#0F6E50] bg-[#EAF5F0]"
-                      : "border-[rgba(17,19,21,0.10)] bg-white hover:border-[rgba(17,19,21,0.20)]"
+                      ? "border-brand bg-brand-soft"
+                      : "border-line bg-white hover:border-line-strong"
                   }`}
                 >
                   <span
-                    className={`block text-xs font-bold ${
-                      pricing === p.id ? "text-[#0B3B2E]" : "text-[#111315]"
+                    className={`block text-xs font-semibold ${
+                      pricing === p.id ? "text-navy" : "text-ink"
                     }`}
                   >
                     {lang === "bn" ? p.labelBn : p.label}
                   </span>
-                  <span className="block text-[11px] text-[#6B7278] mt-0.5">{lang === "bn" ? (p.id === "fixed" ? "নির্দিষ্ট লক্ষ্য অর্জনের জন্য" : "ধারাবাহিক সহযোগিতার জন্য") : p.hint}</span>
+                  <span className="block text-[11px] text-ink-3 mt-0.5">{lang === "bn" ? (p.id === "fixed" ? "নির্দিষ্ট লক্ষ্য অর্জনের জন্য" : "ধারাবাহিক সহযোগিতার জন্য") : p.hint}</span>
                 </button>
               ))}
             </div>
@@ -505,9 +505,9 @@ export default function JobPostWizard({
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-[#111315]">{lang === "bn" ? "শুরু" : "From"}</label>
+                    <label className="block text-xs font-semibold text-ink">{lang === "bn" ? "শুরু" : "From"}</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-[#6B7278]">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-semibold text-ink-3">
                         ৳
                       </span>
                       <input
@@ -516,14 +516,14 @@ export default function JobPostWizard({
                         min={0}
                         value={minBudget}
                         onChange={(e) => setMinBudget(Number(e.target.value))}
-                        className="w-full pl-7 pr-3 py-2.5 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-sm font-mono mk-tabular font-bold text-[#111315] focus:outline-none focus:ring-2 focus:ring-[#0F6E50] focus:bg-white"
+                        className="w-full pl-7 pr-3 py-2.5 bg-canvas border border-line-strong rounded-lg text-sm font-mono mk-tabular font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white"
                       />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-[#111315]">{lang === "bn" ? "সর্বোচ্চ" : "To"}</label>
+                    <label className="block text-xs font-semibold text-ink">{lang === "bn" ? "সর্বোচ্চ" : "To"}</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-[#6B7278]">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-semibold text-ink-3">
                         ৳
                       </span>
                       <input
@@ -532,19 +532,19 @@ export default function JobPostWizard({
                         min={0}
                         value={maxBudget}
                         onChange={(e) => setMaxBudget(Number(e.target.value))}
-                        className="w-full pl-7 pr-3 py-2.5 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-sm font-mono mk-tabular font-bold text-[#111315] focus:outline-none focus:ring-2 focus:ring-[#0F6E50] focus:bg-white"
+                        className="w-full pl-7 pr-3 py-2.5 bg-canvas border border-line-strong rounded-lg text-sm font-mono mk-tabular font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white"
                       />
                     </div>
                   </div>
                 </div>
 
-                <p className="text-[11px] text-[#6B7278] leading-relaxed font-mono mk-tabular">
+                <p className="text-[11px] text-ink-3 leading-relaxed font-mono mk-tabular">
                   Professionals on MuktoKormo typically charge ৳{hourlyMin.toLocaleString()} - ৳
                   {hourlyMax.toLocaleString()}/hour for {category} projects like yours.
                 </p>
 
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-[#111315]">
+                  <label className="block text-xs font-semibold text-ink">
                     Milestone escrow split
                   </label>
                   <div className="flex items-center gap-3">
@@ -554,13 +554,13 @@ export default function JobPostWizard({
                       max={6}
                       value={milestones}
                       onChange={(e) => setMilestones(Number(e.target.value))}
-                      className="flex-1 accent-[#0F6E50]"
+                      className="flex-1 accent-brand"
                     />
-                    <span className="text-xs font-mono mk-tabular font-bold text-[#111315] w-24 text-right">
+                    <span className="text-xs font-mono mk-tabular font-semibold text-ink w-24 text-right">
                       {lang === "bn" ? `${milestones}টি মাইলস্টোন` : `${milestones} milestones`}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#6B7278]">
+                  <p className="text-[11px] text-ink-3">
                     {lang === "bn" ? "তহবিল মাইলস্টোন অনুযায়ী মুক্ত করা হয়, অনুমোদনের আগ পর্যন্ত বিডিটি এসক্রোতে সংরক্ষিত থাকে।" : "Funds are released per milestone, held in BDT escrow until you approve."}
                   </p>
                 </div>
@@ -569,9 +569,9 @@ export default function JobPostWizard({
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-[#111315]">From /hr</label>
+                    <label className="block text-xs font-semibold text-ink">From /hr</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-[#6B7278]">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-semibold text-ink-3">
                         ৳
                       </span>
                       <input
@@ -580,14 +580,14 @@ export default function JobPostWizard({
                         min={0}
                         value={hourlyMin}
                         onChange={(e) => setHourlyMin(Number(e.target.value))}
-                        className="w-full pl-7 pr-3 py-2.5 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-sm font-mono mk-tabular font-bold text-[#111315] focus:outline-none focus:ring-2 focus:ring-[#0F6E50] focus:bg-white"
+                        className="w-full pl-7 pr-3 py-2.5 bg-canvas border border-line-strong rounded-lg text-sm font-mono mk-tabular font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white"
                       />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-[#111315]">To /hr</label>
+                    <label className="block text-xs font-semibold text-ink">To /hr</label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-[#6B7278]">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-semibold text-ink-3">
                         ৳
                       </span>
                       <input
@@ -596,36 +596,36 @@ export default function JobPostWizard({
                         min={0}
                         value={hourlyMax}
                         onChange={(e) => setHourlyMax(Number(e.target.value))}
-                        className="w-full pl-7 pr-3 py-2.5 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-sm font-mono mk-tabular font-bold text-[#111315] focus:outline-none focus:ring-2 focus:ring-[#0F6E50] focus:bg-white"
+                        className="w-full pl-7 pr-3 py-2.5 bg-canvas border border-line-strong rounded-lg text-sm font-mono mk-tabular font-semibold text-ink focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-[rgba(17,19,21,0.10)] bg-[#FAF9F6] divide-y divide-[rgba(17,19,21,0.08)] overflow-hidden">
+                <div className="rounded-lg border border-line bg-canvas divide-y divide-line overflow-hidden">
                   {[
                     { label: "Estimated monthly cost (160 hrs)", value: hourlyMax * 160 },
                     { label: "MuktoKormo service fee (7%)", value: Math.round(hourlyMax * 160 * 0.07) },
                   ].map((row) => (
                     <div key={row.label} className="px-4 py-3 flex items-center justify-between">
-                      <span className="text-xs font-semibold text-[#3F4448]">{row.label}</span>
-                      <span className="text-xs font-mono mk-tabular font-bold text-[#111315]">
+                      <span className="text-xs font-semibold text-ink-2">{row.label}</span>
+                      <span className="text-xs font-mono mk-tabular font-semibold text-ink">
                         {formatBdt(row.value)}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                <p className="text-[11px] text-[#6B7278] leading-relaxed">
+                <p className="text-[11px] text-ink-3 leading-relaxed">
                   Hourly budgets are best for broader projects and ongoing collaboration, with
                   flexibility to change scope and weekly hour limits.
                 </p>
               </div>
             )}
 
-            <div className="flex items-start gap-2.5 bg-[#EAF5F0] border border-[#0F6E50]/20 rounded-xl p-3">
-              <Lock className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
-              <p className="text-[11px] text-[#0B3B2E] leading-relaxed font-medium">
+            <div className="flex items-start gap-2.5 bg-brand-soft border border-brand/20 rounded-lg p-3">
+              <Lock className="w-4 h-4 text-brand shrink-0 mt-0.5" />
+              <p className="text-[11px] text-navy leading-relaxed font-medium">
                 MuktoKormo BDT Escrow: funds are held securely in Taka and released only when you
                 approve each milestone.
               </p>
@@ -637,13 +637,13 @@ export default function JobPostWizard({
         {step === 4 && (
           <div className="space-y-4 animate-in fade-in duration-200">
             <div className="space-y-2">
-              <span className="block text-xs font-bold text-[#111315]">
+              <span className="block text-xs font-semibold text-ink">
                 Start the conversation.
               </span>
               <ul className="space-y-1">
                 {DESCRIPTION_HINTS.map((h) => (
-                  <li key={h} className="flex items-start gap-1.5 text-[11px] text-[#6B7278]">
-                    <Check className="w-3 h-3 text-[#0F6E50] shrink-0 mt-0.5" />
+                  <li key={h} className="flex items-start gap-1.5 text-[11px] text-ink-3">
+                    <Check className="w-3 h-3 text-brand shrink-0 mt-0.5" />
                     {h}
                   </li>
                 ))}
@@ -651,7 +651,7 @@ export default function JobPostWizard({
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-[#111315]">
+              <label className="block text-xs font-semibold text-ink">
                 Already have a description? Paste it here!
               </label>
               <textarea
@@ -659,21 +659,21 @@ export default function JobPostWizard({
                 value={description}
                 onChange={(e) => setDescription(e.target.value.slice(0, MAX_DESCRIPTION))}
                 placeholder="Describe what you need"
-                className="w-full px-3.5 py-3 bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl text-xs text-[#111315] placeholder-[#8B9094] focus:outline-none focus:ring-2 focus:ring-[#0F6E50] focus:bg-white"
+                className="w-full px-3.5 py-3 bg-canvas border border-line-strong rounded-lg text-xs text-ink placeholder-ink-4 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white"
               />
               <div className="flex items-center justify-between">
                 <span
                   className={`text-[10px] font-medium ${
                     description.length > 0 && description.length < 20
-                      ? "text-[#A87224]"
-                      : "text-[#8B9094]"
+                      ? "text-accent"
+                      : "text-ink-4"
                   }`}
                 >
                   {description.length < 20
                     ? "At least 20 characters"
                     : `${(MAX_DESCRIPTION - description.length).toLocaleString()} characters left`}
                 </span>
-                <span className="text-[10px] font-mono mk-tabular text-[#8B9094]">
+                <span className="text-[10px] font-mono mk-tabular text-ink-4">
                   {description.length.toLocaleString()}/{MAX_DESCRIPTION.toLocaleString()}
                 </span>
               </div>
@@ -688,9 +688,9 @@ export default function JobPostWizard({
               />
               <label
                 htmlFor="job-attachment"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[rgba(17,19,21,0.12)] bg-[#FAF9F6] hover:bg-[#EAF5F0] hover:border-[#0F6E50]/30 text-xs font-bold text-[#3F4448] hover:text-[#0B3B2E] transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-line-strong bg-canvas hover:bg-brand-soft hover:border-brand/30 text-xs font-semibold text-ink-2 hover:text-navy transition-all cursor-pointer"
               >
-                <Paperclip className="w-3.5 h-3.5 text-[#6B7278]" />
+                <Paperclip className="w-3.5 h-3.5 text-ink-3" />
                 {attachment || "Attach file"}
               </label>
             </div>

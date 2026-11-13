@@ -1,4 +1,4 @@
-export const DEFAULT_PLATFORM_FEE_PCT = 10;
+export const DEFAULT_PLATFORM_FEE_PCT = 7;
 export const SUPPORTED_CURRENCY = "BDT" as const;
 export const MIN_SSLCOMMERZ_AMOUNT_BDT = 10;
 

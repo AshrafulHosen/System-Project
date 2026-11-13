@@ -29,6 +29,7 @@ import {
   Home,
 } from "lucide-react";
 import Logo from "@/components/Logo";
+import { Avatar } from "@/components/ui";
 import { NavItem } from "@/types";
 import type { NotificationRecord } from "@/types/payment";
 
@@ -329,423 +330,413 @@ export default function DashboardShell({
     router.push("/login");
   };
 
+  const en = lang === "en";
+  const activeItem = nav.find((n) => n.id === active);
+
+  const actionButton = (className: string) =>
+    action ? (
+      action.onAction ? (
+        <button type="button" onClick={action.onAction} className={className}>
+          <PlusCircle className="w-4 h-4" aria-hidden="true" />
+          <span>{en ? action.label : action.labelBn}</span>
+        </button>
+      ) : (
+        <Link href={action.href ?? "/"} className={className}>
+          <PlusCircle className="w-4 h-4" aria-hidden="true" />
+          <span>{en ? action.label : action.labelBn}</span>
+        </Link>
+      )
+    ) : null;
+
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-[#111315] flex flex-col">
-      {/* Top Bar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[rgba(17,19,21,0.08)]">
-        <div className="h-16 px-4 sm:px-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              type="button"
-              onClick={() => setMobileNavOpen(!mobileNavOpen)}
-              className="lg:hidden p-2 -ml-2 text-[#3E434A] hover:text-[#111315] rounded-lg hover:bg-[#F4F2EC] transition-colors cursor-pointer"
-              aria-label="Toggle navigation"
-            >
-              {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+    <div className="min-h-screen bg-canvas text-ink flex">
+      {/* Mobile backdrop */}
+      {mobileNavOpen && (
+        <button
+          type="button"
+          aria-label={en ? "Close navigation menu" : "মেনু বন্ধ করুন"}
+          onClick={() => setMobileNavOpen(false)}
+          className="fixed inset-0 bg-navy-ink/40 backdrop-blur-[2px] z-40 lg:hidden mk-fade-in"
+        />
+      )}
 
-            <Link href="/" className="shrink-0">
-              <Logo size="sm" />
-            </Link>
-
-            {/* Search */}
-            <div className="hidden md:flex items-center relative flex-1 max-w-sm lg:max-w-md ml-2">
-              <Search className="w-4 h-4 text-[#686E78] absolute left-3.5 pointer-events-none" />
-              <input
-                type="search"
-                value={currentSearch}
-                onChange={(e) => handleSearchInput(e.target.value)}
-                placeholder={
-                  role === "client"
-                    ? lang === "en"
-                      ? "Search jobs, talent, contracts"
-                      : "কাজ, ট্যালেন্ট, চুক্তি খুঁজুন"
-                    : role === "admin"
-                      ? lang === "en"
-                        ? "Search users, jobs, contracts"
-                        : "ইউজার, কাজ, চুক্তি খুঁজুন"
-                      : lang === "en"
-                        ? "Search open jobs"
-                        : "চলমান কাজ খুঁজুন"
-                }
-                className="w-full pl-10 pr-4 py-2 bg-[#FAF9F6] border border-[rgba(17,19,21,0.1)] focus:bg-white focus:border-[#0F6E50] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:ring-2 focus:ring-[#0F6E50]/15 transition-all"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <button
-              type="button"
-              onClick={handleToggleLang}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#111315] bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] hover:border-[rgba(17,19,21,0.2)] transition-all cursor-pointer"
-            >
-              <Globe className="w-3.5 h-3.5 text-[#0F6E50]" />
-              <span>{lang === "en" ? "বাংলা" : "English"}</span>
-            </button>
-
-            {/* Wallet chip */}
-            {role !== "admin" && walletLabel && (
-              <button
-                type="button"
-                onClick={() => handleTabClick(role === "client" ? "payments" : "wallet")}
-                className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#EAF5F0] border border-[#0F6E50]/20 text-xs font-semibold text-[#0B3B2E] hover:bg-[#DDF0E6] transition-all cursor-pointer"
-              >
-                <Wallet className="w-3.5 h-3.5 text-[#0F6E50]" />
-                <span className="font-mono mk-tabular font-bold">
-                  ৳{walletBdt.toLocaleString()}
-                </span>
-                <span className="text-[#0F6E50] font-medium hidden md:inline">{walletLabel}</span>
-              </button>
-            )}
-
-            {/* Primary action */}
-            {action &&
-              (action.onAction ? (
-                <button
-                  type="button"
-                  onClick={action.onAction}
-                  className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
-                >
-                  <PlusCircle className="w-3.5 h-3.5 stroke-[2.25]" />
-                  <span>{lang === "en" ? action.label : action.labelBn}</span>
-                </button>
-              ) : (
-                <Link
-                  href={action.href ?? "/"}
-                  className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white text-xs font-semibold shadow-xs transition-all"
-                >
-                  <PlusCircle className="w-3.5 h-3.5 stroke-[2.25]" />
-                  <span>{lang === "en" ? action.label : action.labelBn}</span>
-                </Link>
-              ))}
-
-            {/* Notifications */}
-            <div ref={notificationsRef} className="relative">
-              <button
-                type="button"
-                onClick={handleNotificationToggle}
-                className="relative p-2 rounded-xl text-[#3E434A] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
-                aria-label="Notifications"
-              >
-                <Bell className="w-[18px] h-[18px]" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-0.5 right-0.5 min-w-4 h-4 px-1 rounded-full bg-[#0F6E50] text-white text-[9px] font-bold font-mono mk-tabular flex items-center justify-center">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </button>
-
-              {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl border border-[rgba(17,19,21,0.1)] shadow-[0_18px_40px_-16px_rgba(11,59,46,0.18)] overflow-hidden z-50">
-                  <div className="px-4 py-3 border-b border-[rgba(17,19,21,0.08)] bg-[#FAF9F6] flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-bold text-[#111315]">
-                        {lang === "en" ? "Notifications" : "বিজ্ঞপ্তি"}
-                      </h4>
-                      <span className="text-[10px] font-semibold font-mono mk-tabular text-[#0B3B2E] bg-[#EAF5F0] px-2 py-0.5 rounded-md border border-[#0F6E50]/20">
-                        {unreadCount} {lang === "en" ? "unread" : "নতুন"}
-                      </span>
-                    </div>
-
-                    {isLiveNotifications && (
-                      <div className="flex items-center gap-1.5">
-                        {liveUnreadCount > 0 && (
-                          <button
-                            type="button"
-                            disabled={markingAllRead}
-                            onClick={handleMarkAllRead}
-                            className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-[rgba(17,19,21,0.1)] hover:bg-[#F4F2EC] text-[#111315] text-[10px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
-                          >
-                            <CheckCheck className="w-3 h-3 text-[#0F6E50]" />
-                            <span>{lang === "en" ? "Mark all read" : "সব পঠিত"}</span>
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          disabled={loadingNotifications}
-                          onClick={() => void fetchNotificationsFromApi()}
-                          aria-label="Refresh notifications"
-                          className="p-1.5 rounded-lg text-[#686E78] hover:text-[#111315] hover:bg-[#F4F2EC] transition-colors cursor-pointer disabled:opacity-50"
-                        >
-                          <RefreshCw className={`w-3 h-3 ${loadingNotifications ? "animate-spin" : ""}`} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="max-h-80 overflow-y-auto divide-y divide-[rgba(17,19,21,0.06)]">
-                    {isLiveNotifications ? (
-                      liveNotifications.length === 0 ? (
-                        <div className="px-4 py-8 text-center space-y-1.5">
-                          <Bell className="w-5 h-5 text-[#949BA6] mx-auto" />
-                          <p className="text-xs font-semibold text-[#111315]">
-                            {lang === "en" ? "No notifications yet" : "এখনো কোনো বিজ্ঞপ্তি নেই"}
-                          </p>
-                          <p className="text-[11px] text-[#686E78]">
-                            {lang === "en"
-                              ? "Payment, submission, approval release, and refund alerts appear here."
-                              : "পেমেন্ট, কাজ জমা, রিলিজ ও রিফান্ড বিজ্ঞপ্তি এখানে দেখাবে।"}
-                          </p>
-                        </div>
-                      ) : (
-                        liveNotifications.map((n) => {
-                          const titleText = lang === "bn" && n.title_bn ? n.title_bn : n.title;
-                          const bodyText = lang === "bn" && n.message_bn ? n.message_bn : n.message;
-                          return (
-                            <button
-                              key={n.id}
-                              type="button"
-                              onClick={() => void handleMarkNotificationRead(n)}
-                              className={`w-full text-left px-4 py-3 hover:bg-[#FAF9F6] transition-colors flex gap-2.5 cursor-pointer ${
-                                !n.is_read ? "bg-[#EAF5F0]/45" : ""
-                              }`}
-                            >
-                              <span
-                                className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
-                                  !n.is_read ? "bg-[#0F6E50]" : "bg-[rgba(17,19,21,0.16)]"
-                                }`}
-                              />
-                              <div className="min-w-0 flex-1 space-y-0.5">
-                                <div className="flex items-center justify-between gap-2">
-                                  <p className="text-xs font-semibold text-[#111315] truncate">
-                                    {titleText}
-                                  </p>
-                                  {n.contract_id && (
-                                    <ExternalLink className="w-3 h-3 text-[#686E78] shrink-0" />
-                                  )}
-                                </div>
-                                <p className="text-[11px] text-[#3E434A] leading-relaxed line-clamp-2">
-                                  {bodyText}
-                                </p>
-                                <span className="text-[10px] text-[#949BA6] block font-mono mk-tabular">
-                                  {formatNotificationDate(n.created_at)}
-                                </span>
-                              </div>
-                            </button>
-                          );
-                        })
-                      )
-                    ) : (
-                      previewNotifications.map((n) => (
-                        <div
-                          key={n.id}
-                          className="px-4 py-3 hover:bg-[#FAF9F6] transition-colors flex gap-2.5"
-                        >
-                          <span
-                            className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
-                              n.unread ? "bg-[#0F6E50]" : "bg-[rgba(17,19,21,0.16)]"
-                            }`}
-                          />
-                          <div className="min-w-0 flex-1 space-y-0.5">
-                            <p className="text-xs font-semibold text-[#111315]">
-                              {lang === "en" ? n.title : n.titleBn}
-                            </p>
-                            <p className="text-[11px] text-[#3E434A] leading-relaxed">
-                              {lang === "en" ? n.text : n.textBn}
-                            </p>
-                            <span className="text-[10px] text-[#949BA6]">{n.time}</span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Avatar + Profile Dropdown */}
-            <div ref={profileRef} className="relative pl-2 sm:pl-3 border-l border-[rgba(17,19,21,0.09)]">
-              <button
-                type="button"
-                onClick={() => {
-                  setProfileMenuOpen((v) => !v);
-                  setNotificationsOpen(false);
-                }}
-                className="flex items-center gap-2 py-1 px-1.5 rounded-xl hover:bg-[#F4F2EC] transition-colors cursor-pointer"
-                aria-expanded={profileMenuOpen}
-                aria-label="Account menu"
-              >
-                <img
-                  src={avatar}
-                  alt={userName}
-                  className="w-8 h-8 rounded-full object-cover ring-2 ring-[#0F6E50]/20"
-                />
-                <div className="hidden lg:block text-left leading-tight">
-                  <p className="text-xs font-semibold text-[#111315] truncate max-w-[125px]">
-                    {userName}
-                  </p>
-                  <p className="text-[10px] text-[#686E78] truncate max-w-[125px]">{userMeta}</p>
-                </div>
-                <ChevronDown className="w-3.5 h-3.5 text-[#686E78] hidden lg:block" />
-              </button>
-
-              {profileMenuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl border border-[rgba(17,19,21,0.1)] shadow-[0_18px_40px_-16px_rgba(11,59,46,0.18)] overflow-hidden z-50 p-1.5">
-                  <div className="px-3 py-2 border-b border-[rgba(17,19,21,0.08)] mb-1">
-                    <p className="text-xs font-bold text-[#111315] truncate">{userName}</p>
-                    <p className="text-[10px] text-[#686E78] truncate">{userMeta}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleTabClick(nav[0]?.id ?? "overview");
-                      setProfileMenuOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#111315] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5 text-[#0F6E50]" />
-                    <span>{lang === "en" ? "Dashboard Overview" : "ড্যাশবোর্ড ওভারভিউ"}</span>
-                  </button>
-                  <Link
-                    href="/contracts"
-                    onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#111315] hover:bg-[#F4F2EC] transition-colors"
-                  >
-                    <Handshake className="w-3.5 h-3.5 text-[#0F6E50]" />
-                    <span>{lang === "en" ? "Contracts & Escrow" : "কন্ট্রাক্ট ও এসক্রো"}</span>
-                  </Link>
-                  <Link
-                    href="/messages"
-                    onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#111315] hover:bg-[#F4F2EC] transition-colors"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5 text-[#0F6E50]" />
-                    <span>{lang === "en" ? "Messages" : "মেসেজ"}</span>
-                  </Link>
-                  <Link
-                    href="/"
-                    onClick={() => setProfileMenuOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-[#111315] hover:bg-[#F4F2EC] transition-colors"
-                  >
-                    <Home className="w-3.5 h-3.5 text-[#686E78]" />
-                    <span>{lang === "en" ? "Public Marketplace" : "মূল মার্কেটপ্লেস"}</span>
-                  </Link>
-                  <div className="my-1 border-t border-[rgba(17,19,21,0.08)]" />
-                  <button
-                    type="button"
-                    onClick={() => void handleSignOut()}
-                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#DC2626] hover:bg-[#FEF2F2] transition-colors cursor-pointer"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>{lang === "en" ? "Log Out" : "লগ আউট"}</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex-1 flex min-w-0 relative">
-        {/* Mobile Backdrop */}
-        {mobileNavOpen && (
+      {/* ---------------- Sidebar ---------------- */}
+      <aside
+        aria-label={en ? "Dashboard navigation" : "ড্যাশবোর্ড নেভিগেশন"}
+        className={`${
+          mobileNavOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        } fixed lg:sticky top-0 left-0 z-50 lg:z-auto h-dvh w-[264px] shrink-0 bg-white border-r border-line flex flex-col transition-transform duration-200`}
+      >
+        <div className="h-16 px-5 flex items-center justify-between border-b border-line">
+          <Link href="/" className="shrink-0" aria-label="Muktokormo home">
+            <Logo size="sm" />
+          </Link>
           <button
             type="button"
-            aria-label="Close navigation menu"
             onClick={() => setMobileNavOpen(false)}
-            className="fixed inset-0 bg-[#111315]/35 backdrop-blur-[2px] z-30 lg:hidden"
-          />
-        )}
+            className="lg:hidden w-8 h-8 inline-flex items-center justify-center rounded-md text-ink-3 hover:text-ink hover:bg-subtle cursor-pointer"
+            aria-label={en ? "Close navigation menu" : "মেনু বন্ধ করুন"}
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
-        {/* Sidebar */}
-        <aside
-          className={`${
-            mobileNavOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-          } fixed lg:static inset-y-0 left-0 top-16 lg:top-0 z-40 lg:z-auto w-64 shrink-0 bg-white border-r border-[rgba(17,19,21,0.08)] flex flex-col justify-between transition-transform duration-200 overflow-y-auto`}
-        >
-          <div className="p-4 space-y-4">
-            <div className="px-3 pt-1">
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-[#686E78]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0F6E50]" />
-                {roleBadgeLabel}
-              </span>
-            </div>
-
-            <nav className="space-y-1">
+        <div className="flex-1 overflow-y-auto px-3 py-5">
+          <p className="px-3 mb-3 mk-eyebrow text-ink-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand" aria-hidden="true" />
+            {roleBadgeLabel}
+          </p>
+          <nav>
+            <ul className="space-y-0.5">
               {nav.map((item) => {
                 const Icon = ICONS[item.icon] || LayoutDashboard;
                 const isActive = active === item.id;
                 return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => {
-                      handleTabClick(item.id);
-                      setMobileNavOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                      isActive
-                        ? "bg-[#0B3B2E] text-white shadow-xs"
-                        : "text-[#3E434A] hover:bg-[#F4F2EC] hover:text-[#111315]"
-                    }`}
-                  >
-                    <Icon
-                      className={`w-4 h-4 shrink-0 ${
-                        isActive ? "text-[#A7E6CE]" : "text-[#686E78]"
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      aria-current={isActive ? "page" : undefined}
+                      onClick={() => {
+                        handleTabClick(item.id);
+                        setMobileNavOpen(false);
+                      }}
+                      className={`relative w-full flex items-center gap-3 h-10 px-3 rounded-md text-[13.5px] transition-colors cursor-pointer ${
+                        isActive
+                          ? "bg-subtle text-ink font-semibold"
+                          : "text-ink-2 font-medium hover:bg-subtle/70 hover:text-ink"
                       }`}
-                    />
-                    <span className="flex-1 text-left truncate">
-                      {lang === "en" ? item.label : item.labelBn}
-                    </span>
-                    {item.badge ? (
-                      <span
-                        className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold font-mono mk-tabular ${
-                          isActive
-                            ? "bg-white/15 text-white"
-                            : "bg-[#F4F2EC] text-[#3E434A]"
-                        }`}
-                      >
-                        {item.badge}
-                      </span>
-                    ) : null}
-                  </button>
+                    >
+                      {isActive && (
+                        <span aria-hidden="true" className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-brand" />
+                      )}
+                      <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-brand" : "text-ink-4"}`} />
+                      <span className="flex-1 text-left truncate">{en ? item.label : item.labelBn}</span>
+                      {item.badge ? (
+                        <span
+                          className={`min-w-5 h-5 px-1.5 rounded text-[11px] font-semibold mk-tabular inline-flex items-center justify-center ${
+                            isActive ? "bg-brand text-white" : "bg-subtle text-ink-3"
+                          }`}
+                        >
+                          {item.badge}
+                        </span>
+                      ) : null}
+                    </button>
+                  </li>
                 );
               })}
-            </nav>
-          </div>
+            </ul>
+          </nav>
+        </div>
 
-          <div className="p-4 border-t border-[rgba(17,19,21,0.08)] space-y-1.5">
+        <div className="p-3 border-t border-line space-y-2">
+          {role !== "admin" && walletLabel && (
             <button
               type="button"
-              onClick={handleToggleLang}
-              className="sm:hidden w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-[#3E434A] hover:bg-[#F4F2EC] transition-all cursor-pointer"
+              onClick={() => {
+                handleTabClick(role === "client" ? "payments" : "wallet");
+                setMobileNavOpen(false);
+              }}
+              className="w-full text-left rounded-lg mk-dark-card px-4 py-3.5 cursor-pointer hover:brightness-110 transition-[filter]"
             >
-              <Globe className="w-4 h-4 text-[#0F6E50]" />
-              <span>{lang === "en" ? "Switch to বাংলা" : "Switch to English"}</span>
+              <span className="flex items-center justify-between">
+                <span className="text-[12px] text-white/60">{walletLabel}</span>
+                <Wallet className="w-4 h-4 text-brand-light" aria-hidden="true" />
+              </span>
+              <span className="mt-1 block text-xl font-semibold tracking-[-0.03em] text-white mk-tabular">
+                ৳{walletBdt.toLocaleString()}
+              </span>
             </button>
+          )}
+          <button
+            type="button"
+            onClick={handleToggleLang}
+            className="sm:hidden w-full flex items-center gap-3 h-10 px-3 rounded-md text-[13.5px] font-medium text-ink-2 hover:bg-subtle transition-colors cursor-pointer"
+          >
+            <Globe className="w-4 h-4 text-ink-4" aria-hidden="true" />
+            {en ? "Switch to বাংলা" : "Switch to English"}
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleSignOut()}
+            className="w-full flex items-center gap-3 h-10 px-3 rounded-md text-[13.5px] font-medium text-ink-2 hover:bg-danger-soft hover:text-danger-strong transition-colors cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" aria-hidden="true" />
+            {en ? "Log out" : "লগ আউট"}
+          </button>
+        </div>
+      </aside>
 
-            <button
-              type="button"
-              onClick={() => void handleSignOut()}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-[#3E434A] hover:bg-[#FEF2F2] hover:text-[#DC2626] transition-all cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>{lang === "en" ? "Log Out" : "লগ আউট"}</span>
-            </button>
-          </div>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 max-w-[1440px]">
-          {action &&
-            (action.onAction ? (
+      {/* ---------------- Main column ---------------- */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        <header className="sticky top-0 z-30 mk-glass border-b border-line">
+          <div className="h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <button
                 type="button"
-                onClick={action.onAction}
-                className="md:hidden flex items-center justify-center gap-2 w-full py-3 mb-4 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white text-xs font-semibold shadow-xs cursor-pointer"
+                onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                className="lg:hidden w-9 h-9 inline-flex items-center justify-center rounded-md border border-line text-ink-2 hover:text-ink hover:bg-subtle transition-colors cursor-pointer"
+                aria-label={en ? "Open navigation" : "মেনু খুলুন"}
+                aria-expanded={mobileNavOpen}
               >
-                <PlusCircle className="w-4 h-4 stroke-[2.25]" />
-                <span>{lang === "en" ? action.label : action.labelBn}</span>
+                <Menu className="w-4.5 h-4.5" />
               </button>
-            ) : (
-              <Link
-                href={action.href ?? "/"}
-                className="md:hidden flex items-center justify-center gap-2 w-full py-3 mb-4 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white text-xs font-semibold shadow-xs"
+
+              {/* Breadcrumb */}
+              <nav aria-label="Breadcrumb" className="hidden sm:flex items-center gap-1.5 text-[13px] min-w-0 shrink-0">
+                <span className="text-ink-4 truncate">{roleBadgeLabel}</span>
+                <span className="text-ink-4" aria-hidden="true">/</span>
+                <span className="font-medium text-ink truncate">
+                  {activeItem ? (en ? activeItem.label : activeItem.labelBn) : ""}
+                </span>
+              </nav>
+
+              {/* Search */}
+              <div className="hidden md:flex items-center relative flex-1 max-w-sm ml-auto lg:ml-6">
+                <Search className="w-4 h-4 text-ink-4 absolute left-3 pointer-events-none" aria-hidden="true" />
+                <input
+                  type="search"
+                  aria-label={en ? "Search" : "খুঁজুন"}
+                  value={currentSearch}
+                  onChange={(e) => handleSearchInput(e.target.value)}
+                  placeholder={
+                    role === "client"
+                      ? en
+                        ? "Search jobs, talent, contracts"
+                        : "কাজ, ট্যালেন্ট, চুক্তি খুঁজুন"
+                      : role === "admin"
+                        ? en
+                          ? "Search users, jobs, contracts"
+                          : "ইউজার, কাজ, চুক্তি খুঁজুন"
+                        : en
+                          ? "Search open jobs"
+                          : "চলমান কাজ খুঁজুন"
+                  }
+                  className="w-full h-9 pl-9 pr-3 bg-white border border-line focus:border-brand rounded-md text-[13px] text-ink placeholder-ink-4 focus:outline-none focus:ring-4 focus:ring-brand/12 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button
+                type="button"
+                onClick={handleToggleLang}
+                className="hidden sm:inline-flex items-center gap-1.5 h-9 px-2.5 rounded-md text-[13px] font-medium text-ink-2 hover:text-ink hover:bg-subtle transition-colors cursor-pointer"
               >
-                <PlusCircle className="w-4 h-4 stroke-[2.25]" />
-                <span>{lang === "en" ? action.label : action.labelBn}</span>
-              </Link>
-            ))}
+                <Globe className="w-3.5 h-3.5 text-ink-4" aria-hidden="true" />
+                {en ? "বাংলা" : "English"}
+              </button>
+
+              {actionButton(
+                "hidden md:inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md bg-brand hover:bg-brand-hover text-white text-[13px] font-medium transition-colors cursor-pointer"
+              )}
+
+              {/* Notifications */}
+              <div ref={notificationsRef} className="relative">
+                <button
+                  type="button"
+                  onClick={handleNotificationToggle}
+                  className="relative w-9 h-9 inline-flex items-center justify-center rounded-md text-ink-2 hover:text-ink hover:bg-subtle transition-colors cursor-pointer"
+                  aria-label={
+                    en
+                      ? `Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ""}`
+                      : "বিজ্ঞপ্তি"
+                  }
+                  aria-expanded={notificationsOpen}
+                >
+                  <Bell className="w-[18px] h-[18px]" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-danger text-white text-[9px] font-bold mk-tabular flex items-center justify-center ring-2 ring-white">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {notificationsOpen && (
+                  <div className="absolute right-0 mt-2 w-[min(24rem,calc(100vw-2rem))] bg-white rounded-xl border border-line shadow-[var(--mk-shadow-popover)] overflow-hidden z-50 mk-zoom-in">
+                    <div className="px-4 py-3 border-b border-line flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-[14px] font-semibold text-ink">{en ? "Notifications" : "বিজ্ঞপ্তি"}</h2>
+                        <span className="text-[11px] font-medium mk-tabular text-ink-3 bg-subtle px-1.5 py-0.5 rounded">
+                          {unreadCount} {en ? "unread" : "নতুন"}
+                        </span>
+                      </div>
+
+                      {isLiveNotifications && (
+                        <div className="flex items-center gap-1">
+                          {liveUnreadCount > 0 && (
+                            <button
+                              type="button"
+                              disabled={markingAllRead}
+                              onClick={handleMarkAllRead}
+                              className="inline-flex items-center gap-1 h-7 px-2 rounded-md hover:bg-subtle text-ink-2 text-[12px] font-medium transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                              <CheckCheck className="w-3.5 h-3.5 text-brand" aria-hidden="true" />
+                              {en ? "Mark all read" : "সব পঠিত"}
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            disabled={loadingNotifications}
+                            onClick={() => void fetchNotificationsFromApi()}
+                            aria-label={en ? "Refresh notifications" : "রিফ্রেশ"}
+                            className="w-7 h-7 inline-flex items-center justify-center rounded-md text-ink-3 hover:text-ink hover:bg-subtle transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            <RefreshCw className={`w-3.5 h-3.5 ${loadingNotifications ? "animate-spin" : ""}`} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="max-h-96 overflow-y-auto divide-y divide-line">
+                      {isLiveNotifications ? (
+                        liveNotifications.length === 0 ? (
+                          <div className="px-6 py-10 text-center">
+                            <Bell className="w-5 h-5 text-ink-4 mx-auto" aria-hidden="true" />
+                            <p className="mt-3 text-[13px] font-semibold text-ink">
+                              {en ? "No notifications yet" : "এখনো কোনো বিজ্ঞপ্তি নেই"}
+                            </p>
+                            <p className="mt-1 text-[12px] text-ink-3">
+                              {en
+                                ? "Payment, submission, approval release, and refund alerts appear here."
+                                : "পেমেন্ট, কাজ জমা, রিলিজ ও রিফান্ড বিজ্ঞপ্তি এখানে দেখাবে।"}
+                            </p>
+                          </div>
+                        ) : (
+                          liveNotifications.map((n) => {
+                            const titleText = lang === "bn" && n.title_bn ? n.title_bn : n.title;
+                            const bodyText = lang === "bn" && n.message_bn ? n.message_bn : n.message;
+                            return (
+                              <button
+                                key={n.id}
+                                type="button"
+                                onClick={() => void handleMarkNotificationRead(n)}
+                                className={`w-full text-left px-4 py-3 hover:bg-subtle/60 transition-colors flex gap-3 cursor-pointer ${
+                                  !n.is_read ? "bg-brand-soft/40" : ""
+                                }`}
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${!n.is_read ? "bg-brand" : "bg-muted-2"}`}
+                                />
+                                <span className="min-w-0 flex-1">
+                                  <span className="flex items-center justify-between gap-2">
+                                    <span className="text-[13px] font-semibold text-ink truncate">
+                                      {!n.is_read && <span className="sr-only">{en ? "Unread: " : "নতুন: "}</span>}
+                                      {titleText}
+                                    </span>
+                                    {n.contract_id && <ExternalLink className="w-3 h-3 text-ink-4 shrink-0" aria-hidden="true" />}
+                                  </span>
+                                  <span className="mt-0.5 block text-[12px] text-ink-3 leading-relaxed line-clamp-2">{bodyText}</span>
+                                  <span className="mt-1 block text-[11px] text-ink-4 font-mono mk-tabular">
+                                    {formatNotificationDate(n.created_at)}
+                                  </span>
+                                </span>
+                              </button>
+                            );
+                          })
+                        )
+                      ) : (
+                        previewNotifications.map((n) => (
+                          <div key={n.id} className="px-4 py-3 flex gap-3">
+                            <span
+                              aria-hidden="true"
+                              className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${n.unread ? "bg-brand" : "bg-muted-2"}`}
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[13px] font-semibold text-ink">{en ? n.title : n.titleBn}</p>
+                              <p className="mt-0.5 text-[12px] text-ink-3 leading-relaxed">{en ? n.text : n.textBn}</p>
+                              <span className="mt-1 block text-[11px] text-ink-4">{n.time}</span>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Account */}
+              <div ref={profileRef} className="relative pl-2 ml-0.5 border-l border-line">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProfileMenuOpen((v) => !v);
+                    setNotificationsOpen(false);
+                  }}
+                  className="flex items-center gap-2 h-10 pl-1 pr-1.5 rounded-md hover:bg-subtle transition-colors cursor-pointer"
+                  aria-expanded={profileMenuOpen}
+                  aria-haspopup="menu"
+                  aria-label={en ? "Account menu" : "অ্যাকাউন্ট মেনু"}
+                >
+                  <Avatar src={avatar} name={userName} className="w-8 h-8 rounded-md text-[12px]" />
+                  <span className="hidden xl:block text-left leading-tight">
+                    <span className="block text-[13px] font-medium text-ink truncate max-w-[140px]">{userName}</span>
+                    <span className="block text-[11px] text-ink-3 truncate max-w-[140px]">{userMeta}</span>
+                  </span>
+                  <ChevronDown className="w-3.5 h-3.5 text-ink-4 hidden xl:block" aria-hidden="true" />
+                </button>
+
+                {profileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-60 bg-white rounded-xl border border-line shadow-[var(--mk-shadow-popover)] overflow-hidden z-50 p-1.5 mk-zoom-in">
+                    <div className="px-3 py-2.5 border-b border-line mb-1">
+                      <p className="text-[13px] font-semibold text-ink truncate">{userName}</p>
+                      <p className="text-[12px] text-ink-3 truncate">{userMeta}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleTabClick(nav[0]?.id ?? "overview");
+                        setProfileMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 h-9 rounded-md text-[13px] font-medium text-ink hover:bg-subtle transition-colors cursor-pointer"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-ink-4" aria-hidden="true" />
+                      {en ? "Dashboard overview" : "ড্যাশবোর্ড ওভারভিউ"}
+                    </button>
+                    <Link
+                      href="/contracts"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3 h-9 rounded-md text-[13px] font-medium text-ink hover:bg-subtle transition-colors"
+                    >
+                      <Handshake className="w-4 h-4 text-ink-4" aria-hidden="true" />
+                      {en ? "Contracts & escrow" : "কন্ট্রাক্ট ও এসক্রো"}
+                    </Link>
+                    <Link
+                      href="/messages"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3 h-9 rounded-md text-[13px] font-medium text-ink hover:bg-subtle transition-colors"
+                    >
+                      <MessageSquare className="w-4 h-4 text-ink-4" aria-hidden="true" />
+                      {en ? "Messages" : "মেসেজ"}
+                    </Link>
+                    <Link
+                      href="/"
+                      onClick={() => setProfileMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3 h-9 rounded-md text-[13px] font-medium text-ink hover:bg-subtle transition-colors"
+                    >
+                      <Home className="w-4 h-4 text-ink-4" aria-hidden="true" />
+                      {en ? "Public marketplace" : "মূল মার্কেটপ্লেস"}
+                    </Link>
+                    <div className="my-1 border-t border-line" />
+                    <button
+                      type="button"
+                      onClick={() => void handleSignOut()}
+                      className="w-full flex items-center gap-2.5 px-3 h-9 rounded-md text-[13px] font-medium text-danger-strong hover:bg-danger-soft transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" aria-hidden="true" />
+                      {en ? "Log out" : "লগ আউট"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 min-w-0 w-full max-w-[1440px] mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+          {actionButton(
+            "md:hidden flex items-center justify-center gap-2 w-full h-11 mb-5 rounded-lg bg-brand hover:bg-brand-hover text-white text-sm font-medium cursor-pointer"
+          )}
           {children}
         </main>
       </div>

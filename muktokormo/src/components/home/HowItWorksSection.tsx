@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   FileEdit,
   UserCheck,
@@ -14,9 +15,11 @@ import {
 
 interface HowItWorksSectionProps {
   lang: "en" | "bn";
+  /** Show a link to the full /how-it-works page (used on the homepage). */
+  showPageLink?: boolean;
 }
 
-export default function HowItWorksSection({ lang }: HowItWorksSectionProps) {
+export default function HowItWorksSection({ lang, showPageLink = false }: HowItWorksSectionProps) {
   const [track, setTrack] = useState<"client" | "freelancer">("client");
 
   const clientSteps = [
@@ -98,86 +101,87 @@ export default function HowItWorksSection({ lang }: HowItWorksSectionProps) {
   ];
 
   const steps = track === "client" ? clientSteps : freelancerSteps;
+  const en = lang === "en";
 
   return (
-    <section className="py-20 bg-[#FAF9F6] border-b border-[rgba(17,19,21,0.08)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#0F6E50] block mb-1.5">
-              {lang === "en" ? "Operational Workflow" : "কার্যপদ্ধতি"}
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-[#111315]">
-              {lang === "en" ? (
-                <>
-                  How{" "}
-                  <span className="font-serif italic font-normal text-[#0F6E50]">
-                    MuktoKormo
-                  </span>{" "}
-                  works
-                </>
-              ) : (
-                <>মুক্তকর্ম যেভাবে কাজ করে</>
-              )}
+    <section id="how-it-works" className="py-20 sm:py-24 lg:py-28 bg-white border-y border-line">
+      <div className="mk-container">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end mb-12 lg:mb-16">
+          <div className="lg:col-span-7">
+            <span className="mk-eyebrow text-brand">{en ? "How it works" : "কার্যপদ্ধতি"}</span>
+            <h2 className="mk-h2 mt-4 text-ink">
+              {en ? "Four steps. No guesswork." : "চারটি ধাপ। কোনো অনিশ্চয়তা নেই।"}
             </h2>
+            {showPageLink && (
+              <Link
+                href="/how-it-works"
+                className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-brand hover:text-brand-hover"
+              >
+                {en ? "Read the full guide — escrow, fees and FAQ" : "সম্পূর্ণ গাইড পড়ুন — এসক্রো, ফি ও প্রশ্নোত্তর"}
+                <span aria-hidden="true">→</span>
+              </Link>
+            )}
           </div>
-
-          <div className="inline-flex items-center bg-[#F4F2EC] border border-[rgba(17,19,21,0.09)] p-1 rounded-xl self-start">
-            <button
-              type="button"
-              onClick={() => setTrack("client")}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                track === "client"
-                  ? "bg-[#0B3B2E] text-white shadow-xs"
-                  : "text-[#686E78] hover:text-[#111315]"
-              }`}
+          <div className="lg:col-span-5 lg:justify-self-end">
+            <div
+              role="tablist"
+              aria-label={en ? "Choose your role" : "আপনার ভূমিকা"}
+              className="inline-flex items-center bg-subtle border border-line p-1 rounded-lg"
             >
-              {lang === "en" ? "For Clients" : "ক্লায়েন্টদের জন্য"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setTrack("freelancer")}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                track === "freelancer"
-                  ? "bg-[#0B3B2E] text-white shadow-xs"
-                  : "text-[#686E78] hover:text-[#111315]"
-              }`}
-            >
-              {lang === "en" ? "For Freelancers" : "ফ্রিল্যান্সারদের জন্য"}
-            </button>
+              {(
+                [
+                  { id: "client", label: en ? "For clients" : "ক্লায়েন্টদের জন্য" },
+                  { id: "freelancer", label: en ? "For freelancers" : "ফ্রিল্যান্সারদের জন্য" },
+                ] as const
+              ).map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={track === t.id}
+                  onClick={() => setTrack(t.id)}
+                  className={`h-9 px-4 rounded-md text-[13px] font-medium transition-colors cursor-pointer ${
+                    track === t.id
+                      ? "bg-white text-ink shadow-[0_1px_2px_rgba(16,24,40,0.08)] border border-line"
+                      : "text-ink-3 hover:text-ink border border-transparent"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {steps.map((s) => {
+        <ol key={track} className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
+          {/* connecting rule on desktop */}
+          <span aria-hidden="true" className="hidden lg:block absolute top-5 left-0 right-0 h-px bg-line-strong" />
+          {steps.map((s, idx) => {
             const IconComp = s.icon;
+            const isLast = idx === steps.length - 1;
             return (
-              <div
-                key={s.num}
-                className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 flex flex-col justify-between shadow-[0_1px_2px_rgba(17,19,21,0.03)]"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="w-10 h-10 rounded-xl bg-[#EAF5F0] border border-[#C3E3D5] text-[#0F6E50] flex items-center justify-center">
-                      <IconComp className="w-4.5 h-4.5" />
-                    </div>
-                    <span className="font-mono text-xs font-bold text-[#686E78]">
-                      {s.num}
-                    </span>
-                  </div>
-                  <h3 className="text-base font-bold text-[#111315] leading-snug">
-                    {s.title}
-                  </h3>
-                  <p className="mt-2 text-xs sm:text-[13px] text-[#3E434A] leading-relaxed">
-                    {s.desc}
-                  </p>
+              <li key={s.num} className="relative mk-fade-up" style={{ animationDelay: `${idx * 70}ms` }}>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`relative z-10 w-10 h-10 rounded-md flex items-center justify-center ${
+                      isLast ? "bg-brand text-white" : "bg-ink text-white"
+                    }`}
+                  >
+                    <IconComp className="w-4.5 h-4.5" aria-hidden="true" />
+                  </span>
+                  <span className="relative z-10 bg-white pr-3 font-mono text-[12px] text-ink-4">
+                    {en ? "Step" : "ধাপ"} {s.num}
+                  </span>
                 </div>
-              </div>
+                <h3 className="mt-6 text-xl font-semibold tracking-[-0.025em] text-ink leading-snug">
+                  {s.title}
+                </h3>
+                <p className="mt-2 text-[14px] text-ink-3 leading-relaxed">{s.desc}</p>
+              </li>
             );
           })}
-        </div>
+        </ol>
       </div>
     </section>
   );
 }
-

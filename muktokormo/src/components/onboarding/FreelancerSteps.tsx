@@ -63,10 +63,10 @@ export function FreelancerAccountStep({
   return (
     <div className="space-y-5">
       <div className="text-center space-y-1">
-        <h2 className="text-lg font-bold tracking-tight text-[#111315]">
+        <h2 className="text-lg font-semibold tracking-tight text-ink">
           {lang === "bn" ? "আপনার পছন্দের কাজ খুঁজতে সাইন আপ করুন" : "Sign up to find work you love"}
         </h2>
-        <p className="text-xs text-[#686E78]">
+        <p className="text-xs text-ink-3">
           {lang === "bn"
             ? "আপনার ফ্রি মুক্তকর্ম ফ্রিল্যান্সার অ্যাকাউন্ট তৈরি করুন"
             : "Create your free MuktoKormo freelancer account"}
@@ -75,65 +75,65 @@ export function FreelancerAccountStep({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <label className="block text-xs font-semibold text-[#111315]">First name</label>
+          <label className="block text-xs font-semibold text-ink">First name</label>
           <input
             type="text"
             value={value.firstName}
             onChange={(e) => set("firstName", e.target.value)}
             placeholder="Ahad"
-            className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
+            className="w-full px-3.5 py-2.5 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink placeholder-ink-4 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition-colors"
           />
         </div>
         <div className="space-y-1.5">
-          <label className="block text-xs font-semibold text-[#111315]">Last name</label>
+          <label className="block text-xs font-semibold text-ink">Last name</label>
           <input
             type="text"
             value={value.lastName}
             onChange={(e) => set("lastName", e.target.value)}
             placeholder="Abdul"
-            className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
+            className="w-full px-3.5 py-2.5 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink placeholder-ink-4 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition-colors"
           />
         </div>
       </div>
 
       <div className="space-y-1.5">
-        <label className="block text-xs font-semibold text-[#111315]">Email</label>
+        <label className="block text-xs font-semibold text-ink">Email</label>
         <div className="relative">
-          <Mail className="w-4 h-4 text-[#686E78] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Mail className="w-4 h-4 text-ink-3 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="email"
             value={value.email}
             onChange={(e) => set("email", e.target.value)}
             placeholder="name@example.com"
-            className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
+            className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink placeholder-ink-4 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition-colors"
           />
         </div>
       </div>
 
       <div className="space-y-1.5">
-        <label className="block text-xs font-semibold text-[#111315]">
-          Password <span className="text-[#686E78] font-normal">(8 or more characters)</span>
+        <label className="block text-xs font-semibold text-ink">
+          Password <span className="text-ink-3 font-normal">(8 or more characters)</span>
         </label>
         <div className="relative">
-          <Lock className="w-4 h-4 text-[#686E78] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Lock className="w-4 h-4 text-ink-3 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type={showPassword ? "text" : "password"}
             value={value.password}
             onChange={(e) => set("password", e.target.value)}
             placeholder="••••••••"
-            className="w-full pl-10 pr-10 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
+            className="w-full pl-10 pr-10 py-2.5 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink placeholder-ink-4 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition-colors"
           />
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
             aria-label={showPassword ? "Hide password" : "Show password"}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#686E78] hover:text-[#111315] cursor-pointer"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink cursor-pointer"
           >
             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
         </div>
         {value.password.length > 0 && value.password.length < 8 && (
-          <p className="text-[11px] font-medium text-[#A87224]">
+          <p className="text-[11px] font-medium text-accent">
             {8 - value.password.length} more character
             {8 - value.password.length === 1 ? "" : "s"} needed
           </p>
@@ -141,13 +141,13 @@ export function FreelancerAccountStep({
       </div>
 
       <div className="space-y-1.5">
-        <label className="block text-xs font-semibold text-[#111315]">Country</label>
+        <label className="block text-xs font-semibold text-ink">Country</label>
         <div className="relative">
-          <MapPin className="w-4 h-4 text-[#686E78] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <MapPin className="w-4 h-4 text-ink-3 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <select
             value={value.country}
             onChange={(e) => set("country", e.target.value)}
-            className="w-full pl-10 pr-3 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
+            className="w-full pl-10 pr-3 py-2.5 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition-colors"
           >
             <option>Bangladesh</option>
             <option>India</option>
@@ -166,9 +166,9 @@ export function FreelancerAccountStep({
             type="checkbox"
             checked={value.marketingOptIn}
             onChange={(e) => set("marketingOptIn", e.target.checked)}
-            className="mt-0.5 rounded border-[rgba(17,19,21,0.25)] accent-[#0B3B2E]"
+            className="mt-0.5 rounded border-line-strong accent-navy"
           />
-          <span className="text-[11px] text-[#3E434A] leading-relaxed">
+          <span className="text-[11px] text-ink-2 leading-relaxed">
             Send me helpful emails to find rewarding work and job leads.
           </span>
         </label>
@@ -178,9 +178,9 @@ export function FreelancerAccountStep({
             type="checkbox"
             checked={value.agreedTerms}
             onChange={(e) => set("agreedTerms", e.target.checked)}
-            className="mt-0.5 rounded border-[rgba(17,19,21,0.25)] accent-[#0B3B2E]"
+            className="mt-0.5 rounded border-line-strong accent-navy"
           />
-          <span className="text-[11px] text-[#3E434A] leading-relaxed">
+          <span className="text-[11px] text-ink-2 leading-relaxed">
             Yes, I understand and agree to the MuktoKormo Terms of Service, including the User
             Agreement and Privacy Policy.
           </span>
@@ -191,7 +191,7 @@ export function FreelancerAccountStep({
         type="button"
         onClick={onNext}
         disabled={!valid || isLoading}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] disabled:opacity-40 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-navy hover:bg-navy-ink disabled:opacity-40 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
       >
         {isLoading
           ? "Creating account..."
@@ -202,11 +202,11 @@ export function FreelancerAccountStep({
       </button>
 
       <div className="flex items-center justify-center gap-1.5 pt-1">
-        <span className="text-[11px] text-[#686E78]">Here to hire talent?</span>
+        <span className="text-[11px] text-ink-3">Here to hire talent?</span>
         <button
           type="button"
           onClick={onSwitchToClient}
-          className="text-[11px] font-semibold text-[#0F6E50] hover:text-[#0B3B2E] hover:underline cursor-pointer"
+          className="text-[11px] font-semibold text-brand hover:text-navy hover:underline cursor-pointer"
         >
           Join as a Client
         </button>
@@ -241,10 +241,10 @@ export function ResumeImportStep({
   return (
     <div className="space-y-5">
       <div className="text-center space-y-1">
-        <h2 className="text-lg font-bold tracking-tight text-[#111315]">
+        <h2 className="text-lg font-semibold tracking-tight text-ink">
           How would you like to start building your profile?
         </h2>
-        <p className="text-xs text-[#686E78] leading-relaxed">
+        <p className="text-xs text-ink-3 leading-relaxed">
           A strong, complete profile helps clients find you and increases your chances of getting
           hired.
         </p>
@@ -255,22 +255,22 @@ export function ResumeImportStep({
         <button
           type="button"
           onClick={() => setMode("upload")}
-          className={`p-5 rounded-xl border text-left transition-all cursor-pointer relative ${
+          className={`p-5 rounded-lg border text-left transition-all cursor-pointer relative ${
             mode === "upload"
-              ? "border-[#0B3B2E] bg-[#EAF5F0] shadow-xs"
-              : "border-[rgba(17,19,21,0.12)] bg-white hover:border-[rgba(17,19,21,0.25)]"
+              ? "border-navy bg-brand-soft shadow-xs"
+              : "border-line-strong bg-white hover:border-line-strong"
           }`}
         >
           {mode === "upload" && (
-            <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-[#0B3B2E] text-white flex items-center justify-center">
+            <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-navy text-white flex items-center justify-center">
               <Check className="w-2.5 h-2.5 stroke-[3]" />
             </span>
           )}
-          <div className="w-10 h-10 rounded-xl bg-white border border-[rgba(17,19,21,0.09)] text-[#0F6E50] flex items-center justify-center mb-3">
+          <div className="w-10 h-10 rounded-lg bg-white border border-line text-brand flex items-center justify-center mb-3">
             <Upload className="w-5 h-5" />
           </div>
-          <p className="text-xs font-bold text-[#111315]">Upload resume</p>
-          <p className="text-[11px] text-[#686E78] mt-1 leading-relaxed">
+          <p className="text-xs font-semibold text-ink">Upload resume</p>
+          <p className="text-[11px] text-ink-3 mt-1 leading-relaxed">
             We&apos;ll pre-fill your profile from your CV in seconds.
           </p>
         </button>
@@ -278,22 +278,22 @@ export function ResumeImportStep({
         <button
           type="button"
           onClick={onManual}
-          className={`p-5 rounded-xl border text-left transition-all cursor-pointer relative ${
+          className={`p-5 rounded-lg border text-left transition-all cursor-pointer relative ${
             mode === "manual"
-              ? "border-[#0B3B2E] bg-[#EAF5F0] shadow-xs"
-              : "border-[rgba(17,19,21,0.12)] bg-white hover:border-[rgba(17,19,21,0.25)]"
+              ? "border-navy bg-brand-soft shadow-xs"
+              : "border-line-strong bg-white hover:border-line-strong"
           }`}
         >
           {mode === "manual" && (
-            <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-[#0B3B2E] text-white flex items-center justify-center">
+            <span className="absolute top-3 right-3 w-4 h-4 rounded-full bg-navy text-white flex items-center justify-center">
               <Check className="w-2.5 h-2.5 stroke-[3]" />
             </span>
           )}
-          <div className="w-10 h-10 rounded-xl bg-[#F4F2EC] text-[#3E434A] flex items-center justify-center mb-3">
+          <div className="w-10 h-10 rounded-lg bg-subtle text-ink-2 flex items-center justify-center mb-3">
             <PenLine className="w-5 h-5" />
           </div>
-          <p className="text-xs font-bold text-[#111315]">Fill out manually</p>
-          <p className="text-[11px] text-[#686E78] mt-1 leading-relaxed">
+          <p className="text-xs font-semibold text-ink">Fill out manually</p>
+          <p className="text-[11px] text-ink-3 mt-1 leading-relaxed">
             Answer a few questions and build it from scratch.
           </p>
         </button>
@@ -312,12 +312,12 @@ export function ResumeImportStep({
             setDragging(false);
             acceptFile(e.dataTransfer.files?.[0]);
           }}
-          className={`block border-2 border-dashed rounded-xl p-7 text-center transition-all cursor-pointer ${
+          className={`block border-2 border-dashed rounded-lg p-7 text-center transition-all cursor-pointer ${
             dragging
-              ? "border-[#0F6E50] bg-[#EAF5F0]"
+              ? "border-brand bg-brand-soft"
               : fileName
-                ? "border-[#0F6E50]/40 bg-[#EAF5F0]/50"
-                : "border-[rgba(17,19,21,0.18)] bg-[#FAF9F6] hover:border-[#0F6E50]/50"
+                ? "border-brand/40 bg-brand-soft/50"
+                : "border-line-strong bg-canvas hover:border-brand/50"
           }`}
         >
           <input
@@ -329,33 +329,33 @@ export function ResumeImportStep({
 
           {fileName ? (
             <>
-              <div className="w-11 h-11 rounded-xl bg-[#EAF5F0] border border-[#0F6E50]/20 text-[#0F6E50] flex items-center justify-center mx-auto mb-3">
+              <div className="w-11 h-11 rounded-lg bg-brand-soft border border-brand/20 text-brand flex items-center justify-center mx-auto mb-3">
                 <FileText className="w-5 h-5" />
               </div>
-              <p className="text-xs font-bold text-[#111315]">{fileName}</p>
-              <p className="text-[11px] text-[#0F6E50] font-semibold mt-1">
+              <p className="text-xs font-semibold text-ink">{fileName}</p>
+              <p className="text-[11px] text-brand font-semibold mt-1">
                 Resume ready to parse
               </p>
             </>
           ) : (
             <>
-              <div className="w-11 h-11 rounded-xl bg-white border border-[rgba(17,19,21,0.1)] text-[#686E78] flex items-center justify-center mx-auto mb-3">
+              <div className="w-11 h-11 rounded-lg bg-white border border-line text-ink-3 flex items-center justify-center mx-auto mb-3">
                 <Upload className="w-5 h-5" />
               </div>
-              <p className="text-xs font-semibold text-[#111315]">
+              <p className="text-xs font-semibold text-ink">
                 Drag &amp; drop your resume here, or click to browse
               </p>
-              <p className="text-[11px] text-[#686E78] mt-1">PDF or DOCX · max 5MB</p>
+              <p className="text-[11px] text-ink-3 mt-1">PDF or DOCX · max 5MB</p>
             </>
           )}
         </label>
       )}
 
-      <div className="flex items-center justify-between gap-3 pt-2 border-t border-[rgba(17,19,21,0.08)]">
+      <div className="flex items-center justify-between gap-3 pt-2 border-t border-line">
         <button
           type="button"
           onClick={onBack}
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-[#3E434A] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
+          className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-2 hover:bg-subtle transition-colors cursor-pointer"
         >
           Back
         </button>
@@ -364,7 +364,7 @@ export function ResumeImportStep({
           type="button"
           onClick={onNext}
           disabled={mode === "upload" && !fileName}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] disabled:opacity-40 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-navy hover:bg-navy-ink disabled:opacity-40 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
         >
           Next
           <ArrowRight className="w-3.5 h-3.5" />
@@ -421,12 +421,12 @@ export function CategoriesSkillsStep({
   return (
     <div className="space-y-5">
       <div className="space-y-1">
-        <h2 className="text-base font-bold tracking-tight text-[#111315]">
+        <h2 className="text-base font-semibold tracking-tight text-ink">
           {lang === "bn"
             ? "আপনার কাজের জন্য প্রধান দক্ষতাগুলো কী?"
             : "What are the main skills required for your work?"}
         </h2>
-        <p className="text-xs text-[#686E78] leading-relaxed">
+        <p className="text-xs text-ink-3 leading-relaxed">
           Choose the category that best describes your work. It&apos;s OK if it&apos;s not a perfect
           match.
         </p>
@@ -434,27 +434,27 @@ export function CategoriesSkillsStep({
 
       {/* Search */}
       <div className="relative">
-        <Search className="w-4 h-4 text-[#686E78] absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <Search className="w-4 h-4 text-ink-3 absolute left-3.5 top-1/2 -translate-y-1/2" />
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search skills or add your own"
-          className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
+          className="w-full pl-10 pr-3.5 py-2.5 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink placeholder-ink-4 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition-colors"
         />
       </div>
 
       {/* Selected skills */}
       {skills.length > 0 && (
-        <div className="rounded-xl border border-[#0F6E50]/20 bg-[#EAF5F0] p-3.5">
+        <div className="rounded-lg border border-brand/20 bg-brand-soft p-3.5">
           <div className="flex items-center justify-between mb-2.5">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#0B3B2E] font-mono mk-tabular">
+            <span className="mk-eyebrow text-navy font-mono mk-tabular">
               Selected skills ({skills.length}/15)
             </span>
             <button
               type="button"
               onClick={() => onSkillsChange([])}
-              className="text-[11px] font-semibold text-[#0F6E50] hover:underline cursor-pointer"
+              className="text-[11px] font-semibold text-brand hover:underline cursor-pointer"
             >
               Clear all
             </button>
@@ -463,13 +463,13 @@ export function CategoriesSkillsStep({
             {skills.map((s) => (
               <span
                 key={s}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-[#0F6E50]/20 text-[11px] font-semibold text-[#0B3B2E]"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-brand/20 text-[11px] font-semibold text-navy"
               >
                 {s}
                 <button
                   type="button"
                   onClick={() => toggleSkill(s)}
-                  className="text-[#0F6E50] hover:text-[#0B3B2E] cursor-pointer"
+                  className="text-brand hover:text-navy cursor-pointer"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -481,7 +481,7 @@ export function CategoriesSkillsStep({
 
       {/* Category groups */}
       <div className="space-y-2.5">
-        <span className="block text-xs font-semibold text-[#111315]">
+        <span className="block text-xs font-semibold text-ink">
           {lang === "bn" ? "আপনি যে ধরণের কাজ করেন" : "Type of work you do"}
         </span>
         <div className="flex flex-wrap gap-1.5">
@@ -496,8 +496,8 @@ export function CategoriesSkillsStep({
               }}
               className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
                 g.group === category && !query
-                  ? "bg-[#0B3B2E] border-[#0B3B2E] text-white"
-                  : "bg-white border-[rgba(17,19,21,0.12)] text-[#3E434A] hover:border-[rgba(17,19,21,0.25)]"
+                  ? "bg-navy border-navy text-white"
+                  : "bg-white border-line-strong text-ink-2 hover:border-line-strong"
               }`}
             >
               {lang === "bn" ? g.groupBn : g.group}
@@ -509,11 +509,11 @@ export function CategoriesSkillsStep({
       {/* Sub categories / search results */}
       {query ? (
         <div className="space-y-2">
-          <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#686E78] font-mono mk-tabular">
+          <span className="block mk-eyebrow text-ink-3 font-mono mk-tabular">
             {searchResults.length} result{searchResults.length === 1 ? "" : "s"}
           </span>
           {searchResults.length === 0 ? (
-            <p className="text-[11px] text-[#686E78] py-4 text-center bg-[#F4F2EC] rounded-xl">
+            <p className="text-[11px] text-ink-3 py-4 text-center bg-subtle rounded-lg">
               No matches for &quot;{query}&quot;. Try a different keyword.
             </p>
           ) : (
@@ -527,8 +527,8 @@ export function CategoriesSkillsStep({
                     onClick={() => toggleSkill(en)}
                     className={`px-3 py-2 rounded-lg text-[11px] font-semibold border text-left transition-all cursor-pointer ${
                       isSelected
-                        ? "bg-[#EAF5F0] border-[#0F6E50] text-[#0B3B2E]"
-                        : "bg-[#FAF9F6] border-[rgba(17,19,21,0.1)] text-[#3E434A] hover:border-[rgba(17,19,21,0.22)]"
+                        ? "bg-brand-soft border-brand text-navy"
+                        : "bg-canvas border-line text-ink-2 hover:border-line-strong"
                     }`}
                   >
                     {lang === "bn" ? bn : en}
@@ -550,8 +550,8 @@ export function CategoriesSkillsStep({
                 onClick={() => toggleSkill(en)}
                 className={`px-3 py-2 rounded-lg text-[11px] font-semibold border text-left transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-[#EAF5F0] border-[#0F6E50] text-[#0B3B2E]"
-                    : "bg-[#FAF9F6] border-[rgba(17,19,21,0.1)] text-[#3E434A] hover:border-[rgba(17,19,21,0.22)]"
+                    ? "bg-brand-soft border-brand text-navy"
+                    : "bg-canvas border-line text-ink-2 hover:border-line-strong"
                 }`}
               >
                 {label}
@@ -563,7 +563,7 @@ export function CategoriesSkillsStep({
 
       {/* Popular skills */}
       <div className="space-y-2">
-        <span className="block text-[10px] font-semibold uppercase tracking-wider text-[#686E78]">
+        <span className="block mk-eyebrow text-ink-3">
           Popular skills
         </span>
         <div className="flex flex-wrap gap-1.5">
@@ -576,8 +576,8 @@ export function CategoriesSkillsStep({
                 onClick={() => toggleSkill(s)}
                 className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-[#0B3B2E] border-[#0B3B2E] text-white"
-                    : "bg-white border-[rgba(17,19,21,0.12)] text-[#3E434A] hover:border-[#0F6E50]"
+                    ? "bg-navy border-navy text-white"
+                    : "bg-white border-line-strong text-ink-2 hover:border-brand"
                 }`}
               >
                 {s}
@@ -585,16 +585,16 @@ export function CategoriesSkillsStep({
             );
           })}
         </div>
-        <p className="text-[10px] text-[#686E78]">
+        <p className="text-[10px] text-ink-3">
           For the best results, add 3–5 skills
         </p>
       </div>
 
-      <div className="flex items-center justify-between gap-3 pt-2 border-t border-[rgba(17,19,21,0.08)]">
+      <div className="flex items-center justify-between gap-3 pt-2 border-t border-line">
         <button
           type="button"
           onClick={onBack}
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-[#3E434A] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
+          className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-2 hover:bg-subtle transition-colors cursor-pointer"
         >
           Back
         </button>
@@ -603,7 +603,7 @@ export function CategoriesSkillsStep({
           type="button"
           onClick={onNext}
           disabled={skills.length === 0}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] disabled:opacity-40 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-navy hover:bg-navy-ink disabled:opacity-40 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
         >
           Next
           <ArrowRight className="w-3.5 h-3.5" />
@@ -661,16 +661,16 @@ export function ProfileInfoSteps({
   return (
     <div className="space-y-5">
       <div className="space-y-1">
-        <h2 className="text-base font-bold tracking-tight text-[#111315]">
+        <h2 className="text-base font-semibold tracking-tight text-ink">
           {lang === "bn" ? "এরপর, আপনার প্রোফাইল সম্পূর্ণ করুন" : "Next, fill out your profile"}
         </h2>
-        <p className="text-xs text-[#686E78]">
+        <p className="text-xs text-ink-3">
           Highlight what you&apos;re good at and how you can help clients.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 overflow-x-auto pb-1 border-b border-[rgba(17,19,21,0.09)] -mx-1 px-1">
+      <div className="flex gap-1 overflow-x-auto pb-1 border-b border-line -mx-1 px-1">
         {PROFILE_TABS.map((t, i) => (
           <button
             key={t.id}
@@ -678,12 +678,12 @@ export function ProfileInfoSteps({
             onClick={() => setTab(t.id)}
             className={`shrink-0 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
               tab === t.id
-                ? "border-[#0B3B2E] text-[#0B3B2E]"
-                : "border-transparent text-[#686E78] hover:text-[#111315]"
+                ? "border-navy text-navy"
+                : "border-transparent text-ink-3 hover:text-ink"
             }`}
           >
             {lang === "bn" ? t.labelBn : t.label}
-            <span className="ml-1.5 text-[10px] font-mono mk-tabular text-[#949BA6]">{i + 1}</span>
+            <span className="ml-1.5 text-[10px] font-mono mk-tabular text-ink-4">{i + 1}</span>
           </button>
         ))}
       </div>
@@ -691,37 +691,37 @@ export function ProfileInfoSteps({
       {/* About */}
       {tab === "about" && (
         <div className="space-y-4 animate-in fade-in duration-200">
-          <p className="text-[11px] text-[#686E78] leading-relaxed">
+          <p className="text-[11px] text-ink-3 leading-relaxed">
             What you share here will be visible to clients.
           </p>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-[#111315]">Title *</label>
+            <label className="block text-xs font-semibold text-ink">Title *</label>
             <input
               type="text"
               value={value.title}
               onChange={(e) => set("title", e.target.value)}
               placeholder="e.g. Senior Full-Stack Developer"
-              className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
+              className="w-full px-3.5 py-2.5 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink placeholder-ink-4 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition-colors"
             />
-            <p className="text-[10px] text-[#686E78]">Example: Web, Mobile &amp; Software Dev</p>
+            <p className="text-[10px] text-ink-3">Example: Web, Mobile &amp; Software Dev</p>
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-[#111315]">Introduction *</label>
+            <label className="block text-xs font-semibold text-ink">Introduction *</label>
             <textarea
               rows={5}
               value={value.intro}
               onChange={(e) => set("intro", e.target.value)}
               placeholder="Enter your top skills, experiences, and interests."
-              className="w-full px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs text-[#111315] placeholder-[#949BA6] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
+              className="w-full px-3.5 py-2.5 bg-white border border-line-strong rounded-lg text-xs text-ink placeholder-ink-4 focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition-colors"
             />
             <div className="flex items-center justify-between">
               <p
                 className={`text-[10px] font-medium ${
                   value.intro.length > 0 && value.intro.length < 100
-                    ? "text-[#A87224]"
-                    : "text-[#0F6E50]"
+                    ? "text-accent"
+                    : "text-brand"
                 }`}
               >
                 {value.intro.length === 0
@@ -730,14 +730,14 @@ export function ProfileInfoSteps({
                     ? `At least 100 characters (${value.intro.length}/100)`
                     : "Looks good"}
               </p>
-              <span className="text-[10px] font-mono mk-tabular text-[#686E78]">
+              <span className="text-[10px] font-mono mk-tabular text-ink-3">
                 {value.intro.length} chars
               </span>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-[#111315]">Portfolio links</label>
+            <label className="block text-xs font-semibold text-ink">Portfolio links</label>
             {value.portfolioUrls.map((url, i) => (
               <div key={i} className="flex items-center gap-2">
                 <input
@@ -749,7 +749,7 @@ export function ProfileInfoSteps({
                     set("portfolioUrls", next);
                   }}
                   placeholder="https://"
-                  className="flex-1 px-3.5 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
+                  className="flex-1 px-3.5 py-2 bg-white border border-line-strong rounded-lg text-xs text-ink focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition-colors"
                 />
                 <button
                   type="button"
@@ -759,7 +759,7 @@ export function ProfileInfoSteps({
                       value.portfolioUrls.filter((_, idx) => idx !== i)
                     )
                   }
-                  className="p-2 rounded-lg text-[#686E78] hover:text-[#DC2626] hover:bg-[#FEF2F2] transition-colors cursor-pointer"
+                  className="p-2 rounded-lg text-ink-3 hover:text-danger hover:bg-danger-soft transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -768,7 +768,7 @@ export function ProfileInfoSteps({
             <button
               type="button"
               onClick={() => set("portfolioUrls", [...value.portfolioUrls, ""])}
-              className="text-[11px] font-semibold text-[#0F6E50] hover:underline cursor-pointer"
+              className="text-[11px] font-semibold text-brand hover:underline cursor-pointer"
             >
               + Add link
             </button>
@@ -780,13 +780,13 @@ export function ProfileInfoSteps({
       {tab === "rate" && (
         <div className="space-y-4 animate-in fade-in duration-200">
           <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-[#111315]">Hourly rate</label>
-            <p className="text-[11px] text-[#686E78] leading-relaxed">
+            <label className="block text-xs font-semibold text-ink">Hourly rate</label>
+            <p className="text-[11px] text-ink-3 leading-relaxed">
               Clients will see your rate on your profile and in search results. You can adjust it
               for each job.
             </p>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#686E78]">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-ink-3">
                 ৳
               </span>
               <input
@@ -795,20 +795,20 @@ export function ProfileInfoSteps({
                 step={50}
                 value={value.hourlyRate}
                 onChange={(e) => set("hourlyRate", Number(e.target.value))}
-                className="w-full pl-8 pr-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-sm font-bold font-mono mk-tabular text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15 transition-colors"
+                className="w-full pl-8 pr-3.5 py-2.5 bg-white border border-line-strong rounded-lg text-sm font-semibold font-mono mk-tabular text-ink focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition-colors"
               />
             </div>
           </div>
 
-          <div className="rounded-xl border border-[rgba(17,19,21,0.09)] divide-y divide-[rgba(17,19,21,0.06)] overflow-hidden">
+          <div className="rounded-lg border border-line divide-y divide-line overflow-hidden">
             {[
-              { label: "Hourly rate", value: value.hourlyRate, cls: "text-[#111315]" },
-              { label: "MuktoKormo service fee (7%)", value: fee, cls: "text-[#A87224]" },
-              { label: "Estimated take-home", value: earnings, cls: "text-[#0F6E50]" },
+              { label: "Hourly rate", value: value.hourlyRate, cls: "text-ink" },
+              { label: "MuktoKormo service fee (7%)", value: fee, cls: "text-accent" },
+              { label: "Estimated take-home", value: earnings, cls: "text-brand" },
             ].map((row) => (
               <div key={row.label} className="px-4 py-3 flex items-center justify-between bg-white">
-                <span className="text-xs font-medium text-[#3E434A]">{row.label}</span>
-                <span className={`text-xs font-bold font-mono mk-tabular ${row.cls}`}>
+                <span className="text-xs font-medium text-ink-2">{row.label}</span>
+                <span className={`text-xs font-semibold font-mono mk-tabular ${row.cls}`}>
                   ৳{row.value.toLocaleString()}
                 </span>
               </div>
@@ -820,7 +820,7 @@ export function ProfileInfoSteps({
       {/* Employment */}
       {tab === "employment" && (
         <div className="space-y-3 animate-in fade-in duration-200">
-          <p className="text-[11px] text-[#686E78] leading-relaxed">
+          <p className="text-[11px] text-ink-3 leading-relaxed">
             Add any experience that shows your skills. Freelance projects, past jobs, internships,
             and volunteer work all count.
           </p>
@@ -828,10 +828,10 @@ export function ProfileInfoSteps({
           {value.employment.map((emp) => (
             <div
               key={emp.id}
-              className="rounded-xl border border-[rgba(17,19,21,0.1)] bg-[#FAF9F6]/60 p-4 space-y-2.5"
+              className="rounded-lg border border-line bg-canvas/60 p-4 space-y-2.5"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78]">
+                <span className="mk-eyebrow text-ink-3">
                   {emp.company || "New role"}
                 </span>
                 <button
@@ -842,7 +842,7 @@ export function ProfileInfoSteps({
                       value.employment.filter((e) => e.id !== emp.id)
                     )
                   }
-                  className="p-1 text-[#686E78] hover:text-[#DC2626] cursor-pointer"
+                  className="p-1 text-ink-3 hover:text-danger cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -860,7 +860,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="Company"
-                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs font-medium text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
+                  className="px-3 py-2 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
                 />
                 <input
                   value={emp.title}
@@ -873,7 +873,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="Job title"
-                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs font-medium text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
+                  className="px-3 py-2 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
                 />
               </div>
 
@@ -889,7 +889,7 @@ export function ProfileInfoSteps({
                       )
                     )
                   }
-                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] font-mono mk-tabular"
+                  className="px-3 py-2 bg-white border border-line-strong rounded-lg text-xs text-ink font-mono mk-tabular"
                 />
                 <input
                   type="month"
@@ -902,7 +902,7 @@ export function ProfileInfoSteps({
                       )
                     )
                   }
-                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] font-mono mk-tabular"
+                  className="px-3 py-2 bg-white border border-line-strong rounded-lg text-xs text-ink font-mono mk-tabular"
                 />
               </div>
 
@@ -918,7 +918,7 @@ export function ProfileInfoSteps({
                   )
                 }
                 placeholder="What did you do there?"
-                className="w-full px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
+                className="w-full px-3 py-2 bg-white border border-line-strong rounded-lg text-xs text-ink focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
               />
             </div>
           ))}
@@ -938,7 +938,7 @@ export function ProfileInfoSteps({
                 },
               ])
             }
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-[rgba(17,19,21,0.2)] text-xs font-semibold text-[#0F6E50] hover:bg-[#EAF5F0] transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-dashed border-line-strong text-xs font-semibold text-brand hover:bg-brand-soft transition-all cursor-pointer"
           >
             + Add employment
           </button>
@@ -948,7 +948,7 @@ export function ProfileInfoSteps({
       {/* Education */}
       {tab === "education" && (
         <div className="space-y-3 animate-in fade-in duration-200">
-          <p className="text-[11px] text-[#686E78] leading-relaxed">
+          <p className="text-[11px] text-ink-3 leading-relaxed">
             This doesn&apos;t just have to be a degree. Adding any relevant education helps clients
             understand your expertise.
           </p>
@@ -956,10 +956,10 @@ export function ProfileInfoSteps({
           {value.education.map((edu) => (
             <div
               key={edu.id}
-              className="rounded-xl border border-[rgba(17,19,21,0.1)] bg-[#FAF9F6]/60 p-4 space-y-2.5"
+              className="rounded-lg border border-line bg-canvas/60 p-4 space-y-2.5"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78]">
+                <span className="mk-eyebrow text-ink-3">
                   {edu.school || "New school"}
                 </span>
                 <button
@@ -970,7 +970,7 @@ export function ProfileInfoSteps({
                       value.education.filter((e) => e.id !== edu.id)
                     )
                   }
-                  className="p-1 text-[#686E78] hover:text-[#DC2626] cursor-pointer"
+                  className="p-1 text-ink-3 hover:text-danger cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -988,7 +988,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="School / University"
-                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs font-medium text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
+                  className="px-3 py-2 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
                 />
                 <input
                   value={edu.degree}
@@ -1001,7 +1001,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="Degree"
-                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs font-medium text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
+                  className="px-3 py-2 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
                 />
               </div>
 
@@ -1017,7 +1017,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="Field of study"
-                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
+                  className="px-3 py-2 bg-white border border-line-strong rounded-lg text-xs text-ink focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
                 />
                 <input
                   value={edu.start}
@@ -1030,7 +1030,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="Start"
-                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] font-mono mk-tabular"
+                  className="px-3 py-2 bg-white border border-line-strong rounded-lg text-xs text-ink font-mono mk-tabular"
                 />
                 <input
                   value={edu.end}
@@ -1043,7 +1043,7 @@ export function ProfileInfoSteps({
                     )
                   }
                   placeholder="End"
-                  className="px-3 py-2 bg-white border border-[rgba(17,19,21,0.14)] rounded-lg text-xs text-[#111315] font-mono mk-tabular"
+                  className="px-3 py-2 bg-white border border-line-strong rounded-lg text-xs text-ink font-mono mk-tabular"
                 />
               </div>
             </div>
@@ -1064,7 +1064,7 @@ export function ProfileInfoSteps({
                 },
               ])
             }
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-[rgba(17,19,21,0.2)] text-xs font-semibold text-[#0F6E50] hover:bg-[#EAF5F0] transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-dashed border-line-strong text-xs font-semibold text-brand hover:bg-brand-soft transition-all cursor-pointer"
           >
             + Add education
           </button>
@@ -1074,7 +1074,7 @@ export function ProfileInfoSteps({
       {/* Language */}
       {tab === "language" && (
         <div className="space-y-3 animate-in fade-in duration-200">
-          <p className="text-[11px] text-[#686E78] leading-relaxed">
+          <p className="text-[11px] text-ink-3 leading-relaxed">
             Help clients connect with you more easily. English is required, but any level is welcome.
           </p>
 
@@ -1091,7 +1091,7 @@ export function ProfileInfoSteps({
                   )
                 }
                 placeholder="Language"
-                className="flex-1 px-3.5 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315] focus:outline-none focus:border-[#0F6E50] focus:ring-2 focus:ring-[#0F6E50]/15"
+                className="flex-1 px-3.5 py-2.5 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
               />
               <select
                 value={langEntry.proficiency}
@@ -1103,7 +1103,7 @@ export function ProfileInfoSteps({
                     )
                   )
                 }
-                className="px-3 py-2.5 bg-white border border-[rgba(17,19,21,0.14)] rounded-xl text-xs font-medium text-[#111315]"
+                className="px-3 py-2.5 bg-white border border-line-strong rounded-lg text-xs font-medium text-ink"
               >
                 {PROFICIENCY_OPTIONS.map((p) => (
                   <option key={p} value={p}>
@@ -1119,7 +1119,7 @@ export function ProfileInfoSteps({
                     value.languages.filter((l) => l.id !== langEntry.id)
                   )
                 }
-                className="p-2 rounded-lg text-[#686E78] hover:text-[#DC2626] hover:bg-[#FEF2F2] transition-colors cursor-pointer"
+                className="p-2 rounded-lg text-ink-3 hover:text-danger hover:bg-danger-soft transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1139,7 +1139,7 @@ export function ProfileInfoSteps({
                   },
                 ])
               }
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-dashed border-[rgba(17,19,21,0.2)] text-xs font-semibold text-[#0F6E50] hover:bg-[#EAF5F0] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-dashed border-line-strong text-xs font-semibold text-brand hover:bg-brand-soft transition-all cursor-pointer"
             >
               + Add language
             </button>
@@ -1153,7 +1153,7 @@ export function ProfileInfoSteps({
                     { id: `lang-en-${Date.now()}`, name: "English", proficiency: "Fluent" },
                   ])
                 }
-                className="flex items-center gap-1 text-[11px] font-semibold text-[#A87224] hover:underline cursor-pointer"
+                className="flex items-center gap-1 text-[11px] font-semibold text-accent hover:underline cursor-pointer"
               >
                 English is required
                 <ChevronRight className="w-3 h-3" />
@@ -1164,11 +1164,11 @@ export function ProfileInfoSteps({
       )}
 
       {/* Tab nav */}
-      <div className="flex items-center justify-between gap-3 pt-3 border-t border-[rgba(17,19,21,0.08)]">
+      <div className="flex items-center justify-between gap-3 pt-3 border-t border-line">
         <button
           type="button"
           onClick={tabIndex > 0 ? () => setTab(PROFILE_TABS[tabIndex - 1].id) : onBack}
-          className="px-4 py-2 rounded-xl text-xs font-semibold text-[#3E434A] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
+          className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-2 hover:bg-subtle transition-colors cursor-pointer"
         >
           Back
         </button>
@@ -1177,7 +1177,7 @@ export function ProfileInfoSteps({
           <button
             type="button"
             onClick={() => setTab(PROFILE_TABS[tabIndex + 1].id)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#111315] hover:bg-[#0B3B2E] text-white text-xs font-semibold transition-all cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-ink hover:bg-navy text-white text-xs font-semibold transition-all cursor-pointer"
           >
             Next
             <ArrowRight className="w-3.5 h-3.5" />
@@ -1186,7 +1186,7 @@ export function ProfileInfoSteps({
           <button
             type="button"
             onClick={onFinish}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
+            className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-navy hover:bg-navy-ink text-white text-xs font-semibold shadow-sm transition-all cursor-pointer"
           >
             {isFinal ? "Save & go to dashboard" : "Save profile"}
             <ArrowRight className="w-3.5 h-3.5" />

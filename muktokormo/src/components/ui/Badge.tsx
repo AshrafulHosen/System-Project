@@ -21,15 +21,15 @@ interface BadgeProps {
 }
 
 const VARIANT_CLASSES: Record<BadgeVariant, string> = {
-  brand: "bg-[#EAF5F0] text-[#0B3B2E] border-[#C3E3D5]",
-  verified: "bg-[#EAF5F0] text-[#0F6E50] border-[#BBE0D1]",
-  escrow: "bg-[#EDF4FC] text-[#1D5A96] border-[#C9DCF2]",
-  info: "bg-[#EDF4FC] text-[#1D5A96] border-[#C9DCF2]",
-  accent: "bg-[#FBF5EA] text-[#9A661A] border-[#EADAB8]",
-  warning: "bg-[#FEF8EA] text-[#9A6008] border-[#F0DDA8]",
-  danger: "bg-[#FFF1F3] text-[#BE123C] border-[#FCCDD6]",
-  neutral: "bg-[#F4F2EC] text-[#3E434A] border-[#E3DFD5]",
-  dark: "bg-[#0B3B2E] text-[#FAF9F6] border-[#165745]",
+  brand: "bg-brand-soft text-brand-strong border-brand-border",
+  verified: "bg-success-soft text-success border-success-border",
+  escrow: "bg-brand-soft text-brand-strong border-brand-border",
+  info: "bg-brand-soft text-brand-strong border-brand-border",
+  accent: "bg-accent-soft text-accent-strong border-accent-border",
+  warning: "bg-accent-soft text-accent-strong border-accent-border",
+  danger: "bg-danger-soft text-danger-strong border-danger-border",
+  neutral: "bg-subtle text-ink-2 border-muted",
+  dark: "bg-navy text-white border-navy",
 };
 
 export function Badge({
@@ -42,12 +42,13 @@ export function Badge({
 }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-[-0.01em] border leading-snug ${VARIANT_CLASSES[variant]} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium tracking-[-0.005em] border leading-snug whitespace-nowrap ${VARIANT_CLASSES[variant]} ${className}`}
     >
       {pulse && (
         <span
+          aria-hidden="true"
           className={`w-1.5 h-1.5 rounded-full animate-pulse shrink-0 ${
-            dotColor ?? "bg-[#0F6E50]"
+            dotColor ?? "bg-brand"
           }`}
         />
       )}
