@@ -23,8 +23,8 @@ export default function PostJobPage() {
   // Spinner while resolving auth, or while redirecting
   if (loading || role !== "client") {
     return (
-      <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-4 border-[#0F6E50] border-t-transparent animate-spin" />
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-4 border-brand border-t-transparent animate-spin" />
       </div>
     );
   }

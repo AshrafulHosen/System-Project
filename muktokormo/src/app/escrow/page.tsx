@@ -154,7 +154,7 @@ export default function EscrowProtectionPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-[#111315] flex flex-col font-sans selection:bg-[#0F6E50] selection:text-white">
+    <div className="min-h-screen bg-canvas text-ink flex flex-col font-sans selection:bg-brand selection:text-white">
       <Navbar
         lang={lang}
         onToggleLang={toggleLang}
@@ -165,11 +165,11 @@ export default function EscrowProtectionPage() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative overflow-hidden pt-14 pb-20 bg-[#0B3B2E] text-[#FAF9F6] border-b border-white/10">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(124,224,184,0.18),transparent)]" />
+        <section className="relative overflow-hidden pt-14 pb-20 bg-navy text-canvas border-b border-white/10">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(148,187,228,0.18),transparent)]" />
 
           <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-[#7CE0B8] text-[11px] font-semibold tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-brand-light text-[11px] font-semibold tracking-wider">
               <ShieldCheck className="w-4 h-4" />
               <span>
                 {lang === "en"
@@ -178,12 +178,12 @@ export default function EscrowProtectionPage() {
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] text-white">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1] text-white">
               {lang === "en" ? (
                 <>
                   100% BDT Escrow Custody.{" "}
                   <br className="hidden sm:inline" />
-                  <span className="font-serif italic font-normal text-[#7CE0B8]">
+                  <span className="font-normal text-brand-light">
                     Zero settlement anxiety.
                   </span>
                 </>
@@ -191,7 +191,7 @@ export default function EscrowProtectionPage() {
                 <>
                   ১০০% নিরাপদ বিডিটি এসক্রো। <br className="hidden sm:inline" />
                   ক্লায়েন্ট ও ফ্রিল্যান্সার উভয়ের জন্যই{" "}
-                  <span className="font-serif italic font-normal text-[#7CE0B8]">
+                  <span className="font-normal text-brand-light">
                     সম্পূর্ণ ঝুঁকিমুক্ত
                   </span>
                 </>
@@ -207,7 +207,7 @@ export default function EscrowProtectionPage() {
             <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/post-job"
-                className="px-6 py-3.5 rounded-xl bg-[#0F6E50] hover:bg-[#0B5940] text-white font-semibold text-sm shadow-lg transition-all inline-flex items-center gap-2"
+                className="px-6 py-3.5 rounded-lg bg-brand hover:bg-brand-hover text-white font-semibold text-sm shadow-lg transition-all inline-flex items-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>
@@ -218,9 +218,9 @@ export default function EscrowProtectionPage() {
               </Link>
               <Link
                 href="/#jobs-section"
-                className="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-sm border border-white/15 transition-all inline-flex items-center gap-2"
+                className="px-6 py-3.5 rounded-lg bg-white/10 hover:bg-white/15 text-white font-semibold text-sm border border-white/15 transition-all inline-flex items-center gap-2"
               >
-                <Handshake className="w-4 h-4 text-[#7CE0B8]" />
+                <Handshake className="w-4 h-4 text-brand-light" />
                 <span>
                   {lang === "en" ? "Browse Open Briefs" : "চলমান কাজগুলো দেখুন"}
                 </span>
@@ -253,9 +253,9 @@ export default function EscrowProtectionPage() {
               ].map((card) => (
                 <div
                   key={card.val}
-                  className="p-4 rounded-2xl bg-white/8 border border-white/12 space-y-1"
+                  className="p-4 rounded-xl bg-white/8 border border-white/12 space-y-1"
                 >
-                  <div className="font-mono text-[#7CE0B8] font-bold text-base sm:text-lg">
+                  <div className="font-mono text-brand-light font-semibold text-base sm:text-lg">
                     {card.val}
                   </div>
                   <p className="text-xs font-semibold text-white">{card.title}</p>
@@ -269,10 +269,10 @@ export default function EscrowProtectionPage() {
         {/* Interactive 5-Step Lifecycle */}
         <section className="py-18 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="text-center space-y-2.5">
-            <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.08em] bg-[#EAF5F0] text-[#0B3B2E] border border-[#C3E3D5]">
+            <span className="px-3 py-1 rounded-full mk-eyebrow bg-brand-soft text-navy border border-brand-border">
               {lang === "en" ? "Escrow Workflow" : "এসক্রো কীভাবে কাজ করে"}
             </span>
-            <h2 className="text-2xl sm:text-4xl font-bold text-[#111315] tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-semibold text-ink tracking-tight">
               {lang === "en"
                 ? "5 Transparent Steps from Deposit to Payout"
                 : "ডিপোজিট থেকে পেমেন্ট খালাস — ৫টি স্বচ্ছ ধাপ"}
@@ -288,25 +288,25 @@ export default function EscrowProtectionPage() {
                   key={s.num}
                   type="button"
                   onClick={() => setActiveStep(s.num)}
-                  className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer space-y-2 ${
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer space-y-2 ${
                     isActive
-                      ? "bg-[#0B3B2E] text-white border-[#0B3B2E] shadow-md"
-                      : "bg-white hover:bg-[#F4F2EC] text-[#111315] border-[rgba(17,19,21,0.09)]"
+                      ? "bg-navy text-white border-navy shadow-md"
+                      : "bg-white hover:bg-subtle text-ink border-line"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span
-                      className={`w-6 h-6 rounded-lg font-mono text-xs font-bold flex items-center justify-center ${
+                      className={`w-6 h-6 rounded-lg font-mono text-xs font-semibold flex items-center justify-center ${
                         isActive
-                          ? "bg-white/15 text-[#7CE0B8]"
-                          : "bg-[#EAF5F0] text-[#0B3B2E]"
+                          ? "bg-white/15 text-brand-light"
+                          : "bg-brand-soft text-navy"
                       }`}
                     >
                       {s.num}
                     </span>
                     <IconComp
                       className={`w-4 h-4 ${
-                        isActive ? "text-[#7CE0B8]" : "text-[#0F6E50]"
+                        isActive ? "text-brand-light" : "text-brand"
                       }`}
                     />
                   </div>
@@ -321,10 +321,10 @@ export default function EscrowProtectionPage() {
             return (
               <div className="mk-dark-card p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                 <div className="lg:col-span-7 space-y-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#7CE0B8]/15 text-[#7CE0B8] border border-[#7CE0B8]/25 text-[11px] font-semibold">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-brand-light/15 text-brand-light border border-brand-light/25 text-[11px] font-semibold">
                     {current.badge}
                   </span>
-                  <h3 className="text-xl sm:text-3xl font-bold tracking-tight text-white">
+                  <h3 className="text-xl sm:text-3xl font-semibold tracking-tight text-white">
                     {current.title}
                   </h3>
                   <p className="text-sm text-white/75 leading-relaxed">
@@ -332,22 +332,22 @@ export default function EscrowProtectionPage() {
                   </p>
                   <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-white/65">
                     <span className="inline-flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-[#7CE0B8]" />
+                      <CheckCircle2 className="w-4 h-4 text-brand-light" />
                       {lang === "en" ? "Audit Trail Preserved" : "অডিট লগ"}
                     </span>
                     <span className="inline-flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-[#7CE0B8]" />
+                      <CheckCircle2 className="w-4 h-4 text-brand-light" />
                       {lang === "en" ? "Porichoy NID Verified" : "এনআইডি নিশ্চিত"}
                     </span>
                   </div>
                 </div>
 
-                <div className="lg:col-span-5 bg-white/6 border border-white/12 rounded-2xl p-5 sm:p-6 space-y-4">
+                <div className="lg:col-span-5 bg-white/6 border border-white/12 rounded-xl p-5 sm:p-6 space-y-4">
                   <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs">
                     <span className="text-white/65">
                       {lang === "en" ? "Escrow Ledger Status" : "এসক্রো লেজার"}
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#7CE0B8]/15 text-[#7CE0B8]">
+                    <span className="px-2.5 py-0.5 rounded-full mk-eyebrow bg-brand-light/15 text-brand-light">
                       ACTIVE CUSTODY
                     </span>
                   </div>
@@ -367,7 +367,7 @@ export default function EscrowProtectionPage() {
                     </div>
                     <div className="flex justify-between text-white/65">
                       <span>{lang === "en" ? "Release Trigger:" : "অনুমোদন:"}</span>
-                      <span className="font-semibold text-[#7CE0B8]">
+                      <span className="font-semibold text-brand-light">
                         Client Approval
                       </span>
                     </div>
@@ -379,10 +379,10 @@ export default function EscrowProtectionPage() {
         </section>
 
         {/* Role Perspectives */}
-        <section className="py-16 bg-[#F4F2EC]/75 border-y border-[rgba(17,19,21,0.08)]">
+        <section className="py-16 bg-subtle/75 border-y border-line">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#111315] tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-ink tracking-tight">
                 {lang === "en"
                   ? "Balanced Protection for Both Parties"
                   : "উভয় পক্ষের জন্যই নিশ্চিন্ত আর্থিক নিরাপত্তা"}
@@ -390,9 +390,9 @@ export default function EscrowProtectionPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[rgba(17,19,21,0.09)] shadow-[0_1px_2px_rgba(17,19,21,0.03)] space-y-5 flex flex-col justify-between">
+              <div className="bg-white rounded-xl p-6 sm:p-8 border border-line shadow-[var(--mk-shadow-xs)] space-y-5 flex flex-col justify-between">
                 <div className="space-y-4">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EDF4FC] text-[#1D5A96] border border-[#C9DCF2] text-xs font-semibold">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-soft text-brand-strong border border-brand-border text-xs font-semibold">
                     <Building className="w-3.5 h-3.5" />
                     <span>
                       {lang === "en"
@@ -400,28 +400,28 @@ export default function EscrowProtectionPage() {
                         : "ক্লায়েন্ট ও প্রতিষ্ঠানের জন্য"}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-[#111315]">
+                  <h3 className="text-xl font-semibold text-ink">
                     {lang === "en"
                       ? "Release Funds Only Upon Approval"
                       : "কাজ সন্তোষজনক হলেই পেমেন্ট"}
                   </h3>
-                  <ul className="space-y-2.5 text-xs text-[#3E434A]">
+                  <ul className="space-y-2.5 text-xs text-ink-2">
                     <li className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                       <span>
                         Inspect live URLs, repositories, and uploaded files before
                         payout release.
                       </span>
                     </li>
                     <li className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                       <span>
                         Request structured revisions inside the shared Contract
                         Workspace.
                       </span>
                     </li>
                     <li className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                       <span>
                         Full refund request workflow with admin moderation review.
                       </span>
@@ -431,7 +431,7 @@ export default function EscrowProtectionPage() {
 
                 <Link
                   href="/post-job"
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F6E50] hover:underline pt-4 border-t border-[rgba(17,19,21,0.07)]"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:underline pt-4 border-t border-line"
                 >
                   <span>
                     {lang === "en"
@@ -442,38 +442,38 @@ export default function EscrowProtectionPage() {
                 </Link>
               </div>
 
-              <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[rgba(17,19,21,0.09)] shadow-[0_1px_2px_rgba(17,19,21,0.03)] space-y-5 flex flex-col justify-between">
+              <div className="bg-white rounded-xl p-6 sm:p-8 border border-line shadow-[var(--mk-shadow-xs)] space-y-5 flex flex-col justify-between">
                 <div className="space-y-4">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAF5F0] text-[#0B3B2E] border border-[#C3E3D5] text-xs font-semibold">
-                    <Award className="w-3.5 h-3.5 text-[#0F6E50]" />
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-soft text-navy border border-brand-border text-xs font-semibold">
+                    <Award className="w-3.5 h-3.5 text-brand" />
                     <span>
                       {lang === "en"
                         ? "For Independent Freelancers"
                         : "ফ্রিল্যান্সারদের জন্য"}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-[#111315]">
+                  <h3 className="text-xl font-semibold text-ink">
                     {lang === "en"
                       ? "Guaranteed Payout Before You Build"
                       : "কাজের পারিশ্রমিকের নিশ্চয়তা"}
                   </h3>
-                  <ul className="space-y-2.5 text-xs text-[#3E434A]">
+                  <ul className="space-y-2.5 text-xs text-ink-2">
                     <li className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                       <span>
                         Verify locked escrow funding in your contract ledger before
                         starting development.
                       </span>
                     </li>
                     <li className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                       <span>
                         Transparent fee & net earnings breakdown calculated directly in
                         BDT.
                       </span>
                     </li>
                     <li className="flex items-start gap-2.5">
-                      <Check className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                       <span>
                         Direct payout methods including bKash, Nagad, Rocket, and local
                         banks.
@@ -484,7 +484,7 @@ export default function EscrowProtectionPage() {
 
                 <Link
                   href="/#jobs-section"
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F6E50] hover:underline pt-4 border-t border-[rgba(17,19,21,0.07)]"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:underline pt-4 border-t border-line"
                 >
                   <span>
                     {lang === "en"
@@ -501,26 +501,26 @@ export default function EscrowProtectionPage() {
         {/* Interactive Calculator */}
         <section className="py-18 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="text-center space-y-2.5">
-            <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.08em] bg-[#EAF5F0] text-[#0B3B2E] border border-[#C3E3D5]">
+            <span className="px-3 py-1 rounded-full mk-eyebrow bg-brand-soft text-navy border border-brand-border">
               {lang === "en" ? "Transparent Economics" : "স্বচ্ছ ফি ক্যালকুলেটর"}
             </span>
-            <h2 className="text-2xl sm:text-4xl font-bold text-[#111315] tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-semibold text-ink tracking-tight">
               {lang === "en"
                 ? "Interactive BDT Escrow Calculator"
                 : "এসক্রো ও পারিশ্রমিক হিসাব করুন"}
             </h2>
           </div>
 
-          <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 sm:p-10 shadow-[0_8px_24px_-6px_rgba(17,19,21,0.06)] space-y-6">
+          <div className="bg-white border border-line rounded-xl p-6 sm:p-10 shadow-[0_8px_24px_-6px_rgba(16,24,40,0.06)] space-y-6">
             <div className="flex items-center justify-center">
-              <div className="inline-flex p-1 bg-[#F4F2EC] rounded-xl border border-[rgba(17,19,21,0.08)]">
+              <div className="inline-flex p-1 bg-subtle rounded-lg border border-line">
                 <button
                   type="button"
                   onClick={() => setCalculatorRole("client")}
                   className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     calculatorRole === "client"
-                      ? "bg-white text-[#111315] shadow-xs"
-                      : "text-[#686E78] hover:text-[#111315]"
+                      ? "bg-white text-ink shadow-xs"
+                      : "text-ink-3 hover:text-ink"
                   }`}
                 >
                   {lang === "en" ? "Client View" : "ক্লায়েন্ট ভিউ"}
@@ -530,8 +530,8 @@ export default function EscrowProtectionPage() {
                   onClick={() => setCalculatorRole("freelancer")}
                   className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     calculatorRole === "freelancer"
-                      ? "bg-white text-[#111315] shadow-xs"
-                      : "text-[#686E78] hover:text-[#111315]"
+                      ? "bg-white text-ink shadow-xs"
+                      : "text-ink-3 hover:text-ink"
                   }`}
                 >
                   {lang === "en" ? "Freelancer View" : "ফ্রিল্যান্সার ভিউ"}
@@ -540,7 +540,7 @@ export default function EscrowProtectionPage() {
             </div>
 
             <div className="space-y-3">
-              <label className="block text-xs font-semibold text-[#3E434A]">
+              <label className="block text-xs font-semibold text-ink-2">
                 {lang === "en"
                   ? "Select or slide Project Escrow Amount (BDT):"
                   : "প্রজেক্টের এসক্রো পরিমাণ নির্বাচন করুন (টাকা):"}
@@ -552,10 +552,10 @@ export default function EscrowProtectionPage() {
                     key={amt}
                     type="button"
                     onClick={() => setCalculatorBudget(amt)}
-                    className={`px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer border mk-tabular ${
+                    className={`px-3.5 py-1.5 rounded-lg font-mono text-xs font-semibold transition-all cursor-pointer border mk-tabular ${
                       calculatorBudget === amt
-                        ? "bg-[#0B3B2E] text-white border-[#0B3B2E]"
-                        : "bg-[#FAF9F6] hover:bg-[#F4F2EC] text-[#3E434A] border-[rgba(17,19,21,0.1)]"
+                        ? "bg-navy text-white border-navy"
+                        : "bg-canvas hover:bg-subtle text-ink-2 border-line"
                     }`}
                   >
                     ৳{amt.toLocaleString()}
@@ -571,9 +571,9 @@ export default function EscrowProtectionPage() {
                   step="5000"
                   value={calculatorBudget}
                   onChange={(e) => setCalculatorBudget(Number(e.target.value))}
-                  className="w-full h-2 bg-[#EAE7DF] rounded-lg appearance-none cursor-pointer accent-[#0F6E50]"
+                  className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-brand"
                 />
-                <div className="flex justify-between font-mono text-[10px] text-[#686E78] mt-1">
+                <div className="flex justify-between font-mono text-[10px] text-ink-3 mt-1">
                   <span>৳5,000</span>
                   <span>৳1,00,000</span>
                   <span>৳2,00,000</span>
@@ -581,52 +581,52 @@ export default function EscrowProtectionPage() {
               </div>
             </div>
 
-            <div className="p-5 sm:p-6 bg-[#FAF9F6] rounded-xl border border-[rgba(17,19,21,0.09)] space-y-3">
+            <div className="p-5 sm:p-6 bg-canvas rounded-lg border border-line space-y-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[#3E434A]">
+                <span className="text-ink-2">
                   {lang === "en"
                     ? "Total Escrow Deposit (BDT):"
                     : "এসক্রোতে জমাকৃত মোট অর্থ:"}
                 </span>
-                <span className="font-mono font-bold text-[#111315] text-base mk-tabular">
+                <span className="font-mono font-semibold text-ink text-base mk-tabular">
                   {formatBdt(calculatorBudget)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[#3E434A]">
+                <span className="text-ink-2">
                   {lang === "en"
                     ? "Estimated Service Fee Preview (7%):"
                     : "মুক্তকর্ম প্ল্যাটফর্ম ফি (৭%):"}
                 </span>
-                <span className="font-mono font-semibold text-[#3E434A] mk-tabular">
+                <span className="font-mono font-semibold text-ink-2 mk-tabular">
                   -{formatBdt(platformFee)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[#3E434A]">
+                <span className="text-ink-2">
                   {lang === "en" ? "Foreign Exchange Loss:" : "মুদ্রা রূপান্তর ক্ষতি:"}
                 </span>
-                <span className="font-semibold text-[#0F6E50]">
+                <span className="font-semibold text-brand">
                   ৳0 (Native BDT)
                 </span>
               </div>
 
-              <div className="pt-3 border-t border-[rgba(17,19,21,0.09)] flex items-center justify-between">
+              <div className="pt-3 border-t border-line flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-bold text-[#111315]">
+                  <p className="text-sm font-semibold text-ink">
                     {lang === "en"
                       ? "Net Freelancer Release Preview:"
                       : "ফ্রিল্যান্সার পাবেন:"}
                   </p>
-                  <p className="text-[11px] text-[#686E78]">
+                  <p className="text-[11px] text-ink-3">
                     {lang === "en"
                       ? "Direct Taka payout to bKash / Nagad / Bank"
                       : "বিকাশ বা নগদ ওয়ালেটে সরাসরি জমা"}
                   </p>
                 </div>
-                <span className="font-mono text-2xl sm:text-3xl font-bold text-[#0F6E50] mk-tabular">
+                <span className="font-mono text-2xl sm:text-3xl font-semibold text-brand mk-tabular">
                   {formatBdt(netEarnings)}
                 </span>
               </div>
@@ -635,70 +635,70 @@ export default function EscrowProtectionPage() {
         </section>
 
         {/* Comparison Table */}
-        <section className="py-16 bg-[#F4F2EC]/75 border-t border-[rgba(17,19,21,0.08)]">
+        <section className="py-16 bg-subtle/75 border-t border-line">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#111315] tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-ink tracking-tight">
                 {lang === "en"
                   ? "Why MuktoKormo BDT Escrow Leads"
                   : "কেন মুক্তকর্ম বিডিটি এসক্রো এগিয়ে?"}
               </h2>
             </div>
 
-            <div className="overflow-x-auto bg-white rounded-2xl border border-[rgba(17,19,21,0.09)] shadow-[0_1px_2px_rgba(17,19,21,0.03)]">
+            <div className="overflow-x-auto bg-white rounded-xl border border-line shadow-[var(--mk-shadow-xs)]">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-[rgba(17,19,21,0.08)] bg-[#FAF9F6] text-[#686E78] uppercase tracking-[0.06em] text-[10px]">
+                  <tr className="border-b border-line bg-canvas text-ink-3 uppercase tracking-[0.06em] text-[10px]">
                     <th className="p-4 font-semibold">Feature</th>
-                    <th className="p-4 font-bold text-[#0B3B2E] bg-[#EAF5F0]/70">
+                    <th className="p-4 font-semibold text-navy bg-brand-soft/70">
                       MuktoKormo Escrow
                     </th>
                     <th className="p-4 font-medium">Foreign Marketplaces</th>
                     <th className="p-4 font-medium">Informal Social Hiring</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[rgba(17,19,21,0.07)] text-[#3E434A]">
+                <tbody className="divide-y divide-line text-ink-2">
                   <tr>
-                    <td className="p-4 font-semibold text-[#111315]">
+                    <td className="p-4 font-semibold text-ink">
                       Currency & FX Fees
                     </td>
-                    <td className="p-4 font-bold text-[#0F6E50] bg-[#EAF5F0]/35">
+                    <td className="p-4 font-semibold text-brand bg-brand-soft/35">
                       100% BDT (0% FX loss)
                     </td>
                     <td className="p-4">USD Only (~5–8% FX spread)</td>
                     <td className="p-4">BDT</td>
                   </tr>
                   <tr>
-                    <td className="p-4 font-semibold text-[#111315]">
+                    <td className="p-4 font-semibold text-ink">
                       Funding Channel
                     </td>
-                    <td className="p-4 font-bold text-[#0F6E50] bg-[#EAF5F0]/35">
+                    <td className="p-4 font-semibold text-brand bg-brand-soft/35">
                       bKash, Nagad, Rocket, Local Cards
                     </td>
                     <td className="p-4">Dual-Currency Card Only</td>
                     <td className="p-4">Unprotected P2P Transfer</td>
                   </tr>
                   <tr>
-                    <td className="p-4 font-semibold text-[#111315]">
+                    <td className="p-4 font-semibold text-ink">
                       Payment Custody
                     </td>
-                    <td className="p-4 font-bold text-[#0F6E50] bg-[#EAF5F0]/35">
+                    <td className="p-4 font-semibold text-brand bg-brand-soft/35">
                       Structured Milestone Escrow
                     </td>
                     <td className="p-4">Milestone Escrow</td>
-                    <td className="p-4 text-[#BE123C] font-semibold">
+                    <td className="p-4 text-danger-strong font-semibold">
                       None (Non-payment risk)
                     </td>
                   </tr>
                   <tr>
-                    <td className="p-4 font-semibold text-[#111315]">
+                    <td className="p-4 font-semibold text-ink">
                       Identity Trust
                     </td>
-                    <td className="p-4 font-bold text-[#0F6E50] bg-[#EAF5F0]/35">
+                    <td className="p-4 font-semibold text-brand bg-brand-soft/35">
                       Porichoy NID Verification
                     </td>
                     <td className="p-4">Passport / International KYC</td>
-                    <td className="p-4 text-[#BE123C] font-semibold">
+                    <td className="p-4 text-danger-strong font-semibold">
                       Unverified profiles
                     </td>
                   </tr>
@@ -711,11 +711,11 @@ export default function EscrowProtectionPage() {
         {/* FAQs */}
         <section className="py-18 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#0F6E50] uppercase tracking-[0.08em]">
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand uppercase tracking-[0.08em]">
               <HelpCircle className="w-4 h-4" />
               <span>{lang === "en" ? "Common Questions" : "সাধারণ প্রশ্নোত্তর"}</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#111315] tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-ink tracking-tight">
               {lang === "en"
                 ? "Escrow Architecture FAQs"
                 : "এসক্রো সম্পর্কিত প্রশ্নাবলী"}
@@ -728,17 +728,17 @@ export default function EscrowProtectionPage() {
               return (
                 <div
                   key={idx}
-                  className="bg-white rounded-2xl border border-[rgba(17,19,21,0.09)] overflow-hidden transition-all"
+                  className="bg-white rounded-xl border border-line overflow-hidden transition-all"
                 >
                   <button
                     type="button"
                     onClick={() => toggleFaq(idx)}
-                    className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-[#FAF9F6] transition-colors"
+                    className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-canvas transition-colors"
                   >
-                    <span className="font-semibold text-xs sm:text-sm text-[#111315]">
+                    <span className="font-semibold text-xs sm:text-sm text-ink">
                       {faq.q}
                     </span>
-                    <span className="p-1.5 rounded-lg bg-[#F4F2EC] text-[#686E78] shrink-0">
+                    <span className="p-1.5 rounded-lg bg-subtle text-ink-3 shrink-0">
                       {isOpen ? (
                         <ChevronUp className="w-4 h-4" />
                       ) : (
@@ -747,7 +747,7 @@ export default function EscrowProtectionPage() {
                     </span>
                   </button>
                   {isOpen && (
-                    <div className="px-5 pb-5 pt-2 text-xs text-[#3E434A] leading-relaxed border-t border-[rgba(17,19,21,0.07)]">
+                    <div className="px-5 pb-5 pt-2 text-xs text-ink-2 leading-relaxed border-t border-line">
                       {faq.a}
                     </div>
                   )}
@@ -758,9 +758,9 @@ export default function EscrowProtectionPage() {
         </section>
 
         {/* Bottom CTA */}
-        <section className="py-16 bg-[#0B3B2E] text-white border-t border-white/10">
+        <section className="py-16 bg-navy text-white border-t border-white/10">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5">
-            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight">
               {lang === "en"
                 ? "Launch your next milestone with BDT Escrow"
                 : "নিরাপদ এসক্রো গ্যারান্টিতে শুরু করুন আপনার প্রজেক্ট"}
@@ -768,7 +768,7 @@ export default function EscrowProtectionPage() {
             <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/post-job"
-                className="px-6 py-3 rounded-xl bg-[#0F6E50] hover:bg-[#0B5940] text-white font-semibold text-xs sm:text-sm transition-all"
+                className="px-6 py-3 rounded-lg bg-brand hover:bg-brand-hover text-white font-semibold text-xs sm:text-sm transition-all"
               >
                 {lang === "en"
                   ? "Post a Job with Escrow"
@@ -776,9 +776,9 @@ export default function EscrowProtectionPage() {
               </Link>
               <Link
                 href="/workspaces"
-                className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/16 text-white font-semibold text-xs sm:text-sm border border-white/15 transition-all inline-flex items-center gap-2"
+                className="px-6 py-3 rounded-lg bg-white/10 hover:bg-white/16 text-white font-semibold text-xs sm:text-sm border border-white/15 transition-all inline-flex items-center gap-2"
               >
-                <Layers className="w-4 h-4 text-[#7CE0B8]" />
+                <Layers className="w-4 h-4 text-brand-light" />
                 <span>
                   {lang === "en"
                     ? "Explore Delivery Workspaces"

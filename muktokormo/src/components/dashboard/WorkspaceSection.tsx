@@ -27,18 +27,18 @@ import {
   approveMilestone,
   requestMilestoneRevision,
 } from "@/lib/data/contracts";
-import { calculateContractFeeBreakdown, isUuid } from "@/lib/payments/constants";
+import { calculateContractFeeBreakdown, DEFAULT_PLATFORM_FEE_PCT, isUuid } from "@/lib/payments/constants";
 import { getPaymentStatusMeta, getWorkStatusMeta } from "@/lib/payments/escrow";
 import { formatBdt } from "@/lib/format";
 import type { WorkspaceContract, WorkspaceMilestone } from "@/types";
 
 const BADGE_CLASSES: Record<string, string> = {
-  emerald: "bg-[#EAF5F0] text-[#0B3B2E] border-[#0F6E50]/25",
-  sky: "bg-[#EEF5FA] text-[#1E5B88] border-[#1E5B88]/20",
-  amber: "bg-[#FEF6E6] text-[#A87224] border-[#A87224]/25",
-  rose: "bg-[#FEF2F2] text-[#DC2626] border-[#DC2626]/20",
-  indigo: "bg-[#F3EFFA] text-[#5B3E96] border-[#5B3E96]/20",
-  slate: "bg-[#F4F2EC] text-[#3E434A] border-[rgba(17,19,21,0.09)]",
+  emerald: "bg-brand-soft text-navy border-brand/25",
+  sky: "bg-brand-soft text-brand-strong border-brand-strong/20",
+  amber: "bg-accent-soft text-accent border-accent/25",
+  rose: "bg-danger-soft text-danger border-danger/20",
+  indigo: "bg-plum-soft text-plum border-plum/20",
+  slate: "bg-subtle text-ink-2 border-line",
 };
 
 interface WorkspaceSectionProps {
@@ -297,7 +297,7 @@ export default function WorkspaceSection({
         const netText = formatBdt(data.freelancerNet ?? 0);
         setSuccessToast(
           lang === "en"
-            ? `Work approved! Internal release recorded — Gross: ${grossText}, Platform Fee (${data.platformFeePct ?? 10}%): ${feeText}, Freelancer Simulated Earnings: +${netText}.`
+            ? `Work approved! Internal release recorded — Gross: ${grossText}, Platform Fee (${data.platformFeePct ?? DEFAULT_PLATFORM_FEE_PCT}%): ${feeText}, Freelancer Simulated Earnings: +${netText}.`
             : `কাজ অনুমোদিত ও অভ্যন্তরীণ লেজার রিলিজ সম্পন্ন! মোট ${grossText}, ফি ${feeText}, ফ্রিল্যান্সার আয় ${netText}।`
         );
         setTimeout(() => setSuccessToast(null), 6000);
@@ -419,15 +419,15 @@ export default function WorkspaceSection({
     <div className="space-y-6">
       {/* Toast & Error Notifications */}
       {successToast && (
-        <div className="p-4 rounded-2xl bg-[#EAF5F0] border border-[#0F6E50]/25 text-[#0B3B2E] text-xs font-semibold flex items-center justify-between gap-3 shadow-sm animate-in fade-in slide-in-from-top-2">
+        <div className="p-4 rounded-xl bg-brand-soft border border-brand/25 text-navy text-xs font-semibold flex items-center justify-between gap-3 shadow-sm animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center gap-2.5">
-            <CheckCircle2 className="w-5 h-5 text-[#0F6E50] shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-brand shrink-0" />
             <span>{successToast}</span>
           </div>
           <button
             type="button"
             onClick={() => setSuccessToast(null)}
-            className="text-[#686E78] hover:text-[#111315] cursor-pointer"
+            className="text-ink-3 hover:text-ink cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -435,15 +435,15 @@ export default function WorkspaceSection({
       )}
 
       {actionError && (
-        <div className="p-4 rounded-2xl bg-[#FEF2F2] border border-[#DC2626]/25 text-[#DC2626] text-xs font-semibold flex items-center justify-between gap-3 shadow-sm">
+        <div className="p-4 rounded-xl bg-danger-soft border border-danger/25 text-danger text-xs font-semibold flex items-center justify-between gap-3 shadow-sm">
           <div className="flex items-center gap-2.5">
-            <AlertCircle className="w-5 h-5 text-[#DC2626] shrink-0" />
+            <AlertCircle className="w-5 h-5 text-danger shrink-0" />
             <span>{actionError}</span>
           </div>
           <button
             type="button"
             onClick={() => setActionError(null)}
-            className="text-[#DC2626] hover:text-[#111315] cursor-pointer"
+            className="text-danger hover:text-ink cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -451,23 +451,23 @@ export default function WorkspaceSection({
       )}
 
       {/* Workspace Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-5 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-line rounded-xl p-5 shadow-xs">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#EAF5F0] text-[#0B3B2E] border border-[#0F6E50]/25">
+            <span className="px-2.5 py-0.5 rounded-full mk-eyebrow bg-brand-soft text-navy border border-brand/25">
               {lang === "en" ? "Project Workspace" : "প্রজেক্ট ওয়ার্কস্পেস"}
             </span>
-            <span className="text-[#949BA6]">•</span>
-            <span className="text-xs font-medium text-[#686E78] font-mono mk-tabular">
+            <span className="text-ink-4">•</span>
+            <span className="text-xs font-medium text-ink-3 font-mono mk-tabular">
               {lang === "en"
                 ? `${contracts.length} Connected Contract${contracts.length === 1 ? "" : "s"}`
                 : `${contracts.length}টি সক্রিয় চুক্তি`}
             </span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-semibold text-[#111315] tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-semibold text-ink tracking-tight">
             {lang === "en" ? "Workspace & Milestone Deliverables" : "ওয়ার্কস্পেস ও মাইলস্টোন ডেলিভারি"}
           </h2>
-          <p className="text-xs text-[#686E78] mt-0.5">
+          <p className="text-xs text-ink-3 mt-0.5">
             {lang === "en"
               ? "Track active contracts, submit milestone deliverables, and manage escrow disbursements in real-time."
               : "চলমান প্রজেক্ট চুক্তি, মাইলস্টোন ডেলিভারি ও এসক্রো রিলিজ পরিচালনা করুন।"}
@@ -477,22 +477,22 @@ export default function WorkspaceSection({
         {/* Search & Filter Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#949BA6]" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-ink-4" />
             <input
               type="text"
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
               placeholder={lang === "en" ? "Search workspace..." : "ওয়ার্কস্পেস খুঁজুন..."}
-              className="pl-8 pr-3 py-1.5 text-xs bg-[#FAF9F6] border border-[rgba(17,19,21,0.12)] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0F6E50]/20 focus:border-[#0F6E50] transition-all"
+              className="pl-8 pr-3 py-1.5 text-xs bg-canvas border border-line-strong rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
             />
           </div>
 
-          <div className="flex items-center bg-[#F4F2EC] p-1 rounded-xl border border-[rgba(17,19,21,0.09)] text-xs font-semibold text-[#3E434A]">
+          <div className="flex items-center bg-subtle p-1 rounded-lg border border-line text-xs font-semibold text-ink-2">
             <button
               type="button"
               onClick={() => setStageFilter("ALL")}
               className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                stageFilter === "ALL" ? "bg-[#0B3B2E] text-white shadow-2xs" : "hover:text-[#111315]"
+                stageFilter === "ALL" ? "bg-navy text-white shadow-2xs" : "hover:text-ink"
               }`}
             >
               All
@@ -501,7 +501,7 @@ export default function WorkspaceSection({
               type="button"
               onClick={() => setStageFilter("ACTIVE")}
               className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                stageFilter === "ACTIVE" ? "bg-[#0B3B2E] text-white shadow-2xs" : "hover:text-[#111315]"
+                stageFilter === "ACTIVE" ? "bg-navy text-white shadow-2xs" : "hover:text-ink"
               }`}
             >
               Active
@@ -512,23 +512,23 @@ export default function WorkspaceSection({
 
       {/* Main Content Area */}
       {loading ? (
-        <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-12 text-center flex flex-col items-center justify-center">
-          <div className="w-8 h-8 border-2 border-[#0F6E50] border-t-transparent rounded-full animate-spin mb-3" />
-          <p className="text-xs font-medium text-[#686E78]">
+        <div className="bg-white border border-line rounded-xl p-12 text-center flex flex-col items-center justify-center">
+          <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-xs font-medium text-ink-3">
             {lang === "en" ? "Loading your project workspaces..." : "ওয়ার্কস্পেস লোড হচ্ছে..."}
           </p>
         </div>
       ) : filteredContracts.length === 0 ? (
         /* Empty State: Only real database contracts shown. No static mock leaks. */
-        <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-10 sm:p-14 text-center space-y-4 shadow-xs">
-          <div className="w-14 h-14 rounded-2xl bg-[#EAF5F0] border border-[#0F6E50]/25 text-[#0F6E50] flex items-center justify-center mx-auto shadow-xs">
+        <div className="bg-white border border-line rounded-xl p-10 sm:p-14 text-center space-y-4 shadow-xs">
+          <div className="w-14 h-14 rounded-xl bg-brand-soft border border-brand/25 text-brand flex items-center justify-center mx-auto shadow-xs">
             <Layers className="w-7 h-7" />
           </div>
           <div>
-            <h3 className="text-base sm:text-lg font-semibold text-[#111315]">
+            <h3 className="text-base sm:text-lg font-semibold text-ink">
               {lang === "en" ? "No Active Workspaces Yet" : "এখনও কোনো সক্রিয় প্রজেক্ট ওয়ার্কস্পেস নেই"}
             </h3>
-            <p className="text-xs text-[#686E78] max-w-md mx-auto mt-1 leading-relaxed">
+            <p className="text-xs text-ink-3 max-w-md mx-auto mt-1 leading-relaxed">
               {role === "client"
                 ? lang === "en"
                   ? "You don't have any active project contracts yet. Accept a proposal from a talent or post a new job to start an escrow-protected contract."
@@ -546,14 +546,14 @@ export default function WorkspaceSection({
                   <button
                     type="button"
                     onClick={() => onNavigateTab("proposals")}
-                    className="px-4 py-2 rounded-xl bg-[#F4F2EC] hover:bg-[#EAE7DF] text-[#111315] text-xs font-semibold transition-all cursor-pointer"
+                    className="px-4 py-2 rounded-lg bg-subtle hover:bg-muted text-ink text-xs font-semibold transition-all cursor-pointer"
                   >
                     {lang === "en" ? "View Job Proposals" : "আবেদনসমূহ দেখুন"}
                   </button>
                 )}
                 <Link
                   href="/post-job"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold transition-all shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold transition-all shadow-xs"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>{lang === "en" ? "Post a New Job" : "নতুন কাজ পোস্ট করুন"}</span>
@@ -565,7 +565,7 @@ export default function WorkspaceSection({
                   <button
                     type="button"
                     onClick={() => onNavigateTab("find-work")}
-                    className="px-4 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold transition-all shadow-xs cursor-pointer"
+                    className="px-4 py-2 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold transition-all shadow-xs cursor-pointer"
                   >
                     {lang === "en" ? "Find Work" : "কাজ খুঁজুন"}
                   </button>
@@ -574,7 +574,7 @@ export default function WorkspaceSection({
                   <button
                     type="button"
                     onClick={() => onNavigateTab("proposals")}
-                    className="px-4 py-2 rounded-xl bg-white border border-[rgba(17,19,21,0.12)] hover:bg-[#FAF9F6] text-[#3E434A] text-xs font-semibold transition-all cursor-pointer"
+                    className="px-4 py-2 rounded-lg bg-white border border-line-strong hover:bg-canvas text-ink-2 text-xs font-semibold transition-all cursor-pointer"
                   >
                     {lang === "en" ? "My Proposals" : "আমার আবেদনসমূহ"}
                   </button>
@@ -619,16 +619,16 @@ export default function WorkspaceSection({
             return (
               <div
                 key={contract.id}
-                className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 shadow-xs space-y-6 hover:border-[rgba(17,19,21,0.16)] transition-all"
+                className="bg-white border border-line rounded-xl p-6 shadow-xs space-y-6 hover:border-line-strong transition-all"
               >
                 {/* Contract Summary Header */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-[rgba(17,19,21,0.09)]">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-line">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono mk-tabular text-[10px] font-semibold text-[#3E434A] bg-[#F4F2EC] px-2 py-0.5 rounded border border-[rgba(17,19,21,0.09)]">
+                      <span className="font-mono mk-tabular text-[10px] font-semibold text-ink-2 bg-subtle px-2 py-0.5 rounded border border-line">
                         {contract.contractCode}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-[#EEF5FA] text-[#1E5B88] border border-[#1E5B88]/20">
+                      <span className="px-2 py-0.5 rounded-full mk-eyebrow bg-brand-soft text-brand-strong border border-brand-strong/20">
                         {contract.stage}
                       </span>
                       {isRealContract && (
@@ -649,30 +649,30 @@ export default function WorkspaceSection({
                           </span>
                         </>
                       )}
-                      <span className="text-[#949BA6]">•</span>
-                      <span className="text-xs text-[#686E78] font-medium">
+                      <span className="text-ink-4">•</span>
+                      <span className="text-xs text-ink-3 font-medium">
                         {contract.category}
                       </span>
                     </div>
 
-                    <h3 className="text-base sm:text-lg font-semibold text-[#111315]">
+                    <h3 className="text-base sm:text-lg font-semibold text-ink">
                       {contract.title}
                     </h3>
 
                     {/* Counterparty info */}
-                    <div className="flex items-center gap-2 text-xs text-[#3E434A] pt-1">
+                    <div className="flex items-center gap-2 text-xs text-ink-2 pt-1">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={partner.avatar}
                         alt={partner.name}
-                        className="w-5 h-5 rounded-full object-cover ring-1 ring-[rgba(17,19,21,0.12)]"
+                        className="w-5 h-5 rounded-full object-cover ring-1 ring-[rgba(16,24,40,0.12)]"
                       />
                       <span>
-                        <strong className="text-[#111315]">{isClient ? "Talent:" : "Client:"}</strong>{" "}
+                        <strong className="text-ink">{isClient ? "Talent:" : "Client:"}</strong>{" "}
                         {partner.name}
                       </span>
-                      <span className="text-[#949BA6]">•</span>
-                      <span className="text-[#686E78]">
+                      <span className="text-ink-4">•</span>
+                      <span className="text-ink-3">
                         {isClient ? contract.freelancer.title : contract.client.company}
                       </span>
                     </div>
@@ -685,7 +685,7 @@ export default function WorkspaceSection({
                         type="button"
                         disabled={initiatingContractId === contract.id}
                         onClick={() => void handleFundContract(contract)}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-60"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-60"
                       >
                         <CreditCard className="w-3.5 h-3.5" />
                         <span>
@@ -709,7 +709,7 @@ export default function WorkspaceSection({
                         type="button"
                         disabled={startingContractId === contract.id}
                         onClick={() => void handleStartWork(contract)}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#111315] hover:bg-[#3E434A] text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-60"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-ink hover:bg-ink-2 text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-60"
                       >
                         <Play className="w-3.5 h-3.5" />
                         <span>
@@ -728,16 +728,16 @@ export default function WorkspaceSection({
                       <button
                         type="button"
                         onClick={() => onOpenChat(contract.id)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#F4F2EC] hover:bg-[#EAE7DF] text-[#111315] text-xs font-semibold transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-subtle hover:bg-muted text-ink text-xs font-semibold transition-all cursor-pointer"
                       >
-                        <MessageSquare className="w-3.5 h-3.5 text-[#0F6E50]" />
+                        <MessageSquare className="w-3.5 h-3.5 text-brand" />
                         <span>{lang === "en" ? "Chat Partner" : "বার্তা পাঠান"}</span>
                       </button>
                     )}
 
                     <Link
                       href={`/contracts/${contract.id}`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold transition-all shadow-xs"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold transition-all shadow-xs"
                     >
                       <span>{lang === "en" ? "Open Full Contract" : "কন্ট্রাক্ট দেখুন"}</span>
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -746,10 +746,10 @@ export default function WorkspaceSection({
                 </div>
 
                 {isRealContract && workStatus === "REVISION_REQUESTED" && contract.revisionFeedback && (
-                  <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#DC2626]/25 text-xs text-[#7F1D1D] flex items-start gap-2.5">
-                    <RotateCcw className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" />
+                  <div className="p-3.5 rounded-lg bg-danger-soft border border-danger/25 text-xs text-danger-ink flex items-start gap-2.5">
+                    <RotateCcw className="w-4 h-4 text-danger shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-[#DC2626]">
+                      <p className="font-semibold text-danger">
                         {lang === "en" ? "Client Requested Revisions:" : "ক্লায়েন্টের রিভিশন ফিডব্যাক:"}
                       </p>
                       <p className="mt-0.5">{contract.revisionFeedback}</p>
@@ -758,42 +758,42 @@ export default function WorkspaceSection({
                 )}
 
                 {/* Financial Escrow Progress Overview */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#FAF9F6] p-4 rounded-xl border border-[rgba(17,19,21,0.09)]">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-canvas p-4 rounded-lg border border-line">
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78]">
+                    <p className="mk-eyebrow text-ink-3">
                       {lang === "en" ? "Total Contract" : "মোট চুক্তি"}
                     </p>
-                    <p className="text-sm font-bold text-[#111315] mt-0.5 font-mono mk-tabular">
+                    <p className="text-sm font-semibold text-ink mt-0.5 font-mono mk-tabular">
                       {formatBdt(contract.totalBdt)}
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[#A87224]">
+                    <p className="mk-eyebrow text-accent">
                       {lang === "en" ? "In Escrow Custody" : "এসক্রোতে জমা"}
                     </p>
-                    <p className="text-sm font-bold text-[#A87224] mt-0.5 font-mono mk-tabular">
+                    <p className="text-sm font-semibold text-accent mt-0.5 font-mono mk-tabular">
                       {formatBdt(contract.escrowHeldBdt)}
                     </p>
                   </div>
 
                   <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-[#0F6E50]">
+                    <p className="mk-eyebrow text-brand">
                       {lang === "en" ? "Released / Paid" : "পরিশোধিত"}
                     </p>
-                    <p className="text-sm font-bold text-[#0F6E50] mt-0.5 font-mono mk-tabular">
+                    <p className="text-sm font-semibold text-brand mt-0.5 font-mono mk-tabular">
                       {formatBdt(contract.releasedBdt)}
                     </p>
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-[#686E78] mb-1 font-mono mk-tabular">
+                    <div className="flex items-center justify-between mk-eyebrow text-ink-3 mb-1 font-mono mk-tabular">
                       <span>{lang === "en" ? "Progress" : "অগ্রগতি"}</span>
                       <span>{progressPct}%</span>
                     </div>
-                    <div className="w-full h-2 bg-[#EAE7DF] rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#0F6E50] rounded-full transition-all duration-500"
+                        className="h-full bg-brand rounded-full transition-all duration-500"
                         style={{ width: `${progressPct}%` }}
                       />
                     </div>
@@ -803,16 +803,16 @@ export default function WorkspaceSection({
                 {/* Milestones Delivery Workspace Table */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-[#3E434A] flex items-center gap-1.5">
-                      <Layers className="w-4 h-4 text-[#0F6E50]" />
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-2 flex items-center gap-1.5">
+                      <Layers className="w-4 h-4 text-brand" />
                       <span>{lang === "en" ? "Milestone Deliverables" : "মাইলস্টোন ডেলিভারিসমূহ"}</span>
                     </h4>
-                    <span className="text-[11px] text-[#686E78] font-medium font-mono mk-tabular">
+                    <span className="text-[11px] text-ink-3 font-medium font-mono mk-tabular">
                       {completedCount} of {totalMilestones} completed
                     </span>
                   </div>
 
-                  <div className="divide-y divide-[rgba(17,19,21,0.09)] border border-[rgba(17,19,21,0.09)] rounded-xl overflow-hidden bg-white">
+                  <div className="divide-y divide-line border border-line rounded-lg overflow-hidden bg-white">
                     {contract.milestones.map((milestone, idx) => {
                       const isSubmitted = milestone.status === "SUBMITTED";
                       const isApproved =
@@ -824,57 +824,57 @@ export default function WorkspaceSection({
                       return (
                         <div
                           key={milestone.id}
-                          className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-[#FAF9F6] transition-colors"
+                          className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-canvas transition-colors"
                         >
                           <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="w-5 h-5 rounded-full bg-[#F4F2EC] text-[#3E434A] text-[10px] font-bold font-mono mk-tabular flex items-center justify-center shrink-0">
+                              <span className="w-5 h-5 rounded-full bg-subtle text-ink-2 text-[10px] font-semibold font-mono mk-tabular flex items-center justify-center shrink-0">
                                 {idx + 1}
                               </span>
-                              <h5 className="text-xs sm:text-sm font-semibold text-[#111315] truncate">
+                              <h5 className="text-xs sm:text-sm font-semibold text-ink truncate">
                                 {milestone.title}
                               </h5>
 
                               {/* Status Badge */}
                               {isApproved ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EAF5F0] text-[#0B3B2E] border border-[#0F6E50]/25">
-                                  <CheckCheck className="w-3 h-3 text-[#0F6E50]" />
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-soft text-navy border border-brand/25">
+                                  <CheckCheck className="w-3 h-3 text-brand" />
                                   <span>{lang === "en" ? "Approved & Paid" : "অনুমোদিত ও পরিশোধিত"}</span>
                                 </span>
                               ) : isSubmitted ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FEF6E6] text-[#A87224] border border-[#A87224]/25 animate-pulse">
-                                  <Clock className="w-3 h-3 text-[#A87224]" />
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-accent-soft text-accent border border-accent/25 animate-pulse">
+                                  <Clock className="w-3 h-3 text-accent" />
                                   <span>{lang === "en" ? "Submitted (In Review)" : "পর্যালোচনাধীন"}</span>
                                 </span>
                               ) : isRevision ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FEF2F2] text-[#DC2626] border border-[#DC2626]/20">
-                                  <RotateCcw className="w-3 h-3 text-[#DC2626]" />
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-danger-soft text-danger border border-danger/20">
+                                  <RotateCcw className="w-3 h-3 text-danger" />
                                   <span>{lang === "en" ? "Revision Requested" : "রিভিশন প্রয়োজন"}</span>
                                 </span>
                               ) : isInProgress ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EEF5FA] text-[#1E5B88] border border-[#1E5B88]/20">
-                                  <Clock className="w-3 h-3 text-[#1E5B88]" />
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-soft text-brand-strong border border-brand-strong/20">
+                                  <Clock className="w-3 h-3 text-brand-strong" />
                                   <span>{lang === "en" ? "In Progress" : "চলমান"}</span>
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#F4F2EC] text-[#686E78] border border-[rgba(17,19,21,0.09)]">
-                                  <Lock className="w-3 h-3 text-[#949BA6]" />
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-subtle text-ink-3 border border-line">
+                                  <Lock className="w-3 h-3 text-ink-4" />
                                   <span>{lang === "en" ? "Locked in Escrow" : "এসক্রোতে সংরক্ষিত"}</span>
                                 </span>
                               )}
                             </div>
 
-                            <p className="text-xs text-[#686E78] line-clamp-1">
+                            <p className="text-xs text-ink-3 line-clamp-1">
                               {milestone.description || "Project deliverable milestone phase."}
                             </p>
 
                             {/* Submitted Work Note or Link */}
                             {(milestone.deliverableNotes || milestone.submission?.notes) && (
-                              <div className="mt-2 p-2.5 rounded-xl bg-[#FEF6E6] border border-[#A87224]/25 text-xs text-[#3E434A] space-y-1">
-                                <p className="font-semibold text-[#111315]">
+                              <div className="mt-2 p-2.5 rounded-lg bg-accent-soft border border-accent/25 text-xs text-ink-2 space-y-1">
+                                <p className="font-semibold text-ink">
                                   {lang === "en" ? "Submitted Deliverable Notes:" : "জমা দেওয়া কাজের বিবরণ:"}
                                 </p>
-                                <p className="text-[11px] text-[#3E434A] italic">
+                                <p className="text-[11px] text-ink-2 italic">
                                   &ldquo;{milestone.deliverableNotes || milestone.submission?.notes}&rdquo;
                                 </p>
                                 {(milestone.liveUrl || milestone.submission?.demoUrl) && (
@@ -882,7 +882,7 @@ export default function WorkspaceSection({
                                     href={milestone.liveUrl || milestone.submission?.demoUrl}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#0F6E50] hover:underline"
+                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand hover:underline"
                                   >
                                     <span>{lang === "en" ? "Live Demo URL" : "লাইভ প্রিভিউ লিংক"}</span>
                                     <ExternalLink className="w-3 h-3" />
@@ -894,7 +894,7 @@ export default function WorkspaceSection({
 
                           {/* Milestone Amount & Actions */}
                           <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
-                            <span className="text-xs font-bold text-[#111315] font-mono mk-tabular">
+                            <span className="text-xs font-semibold text-ink font-mono mk-tabular">
                               {formatBdt(milestone.amountBdt)}
                             </span>
 
@@ -923,7 +923,7 @@ export default function WorkspaceSection({
                                     milestone,
                                   });
                                 }}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold transition-all shadow-xs cursor-pointer"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold transition-all shadow-xs cursor-pointer"
                               >
                                 <Upload className="w-3.5 h-3.5" />
                                 <span>{lang === "en" ? "Submit Work" : "কাজ জমা দিন"}</span>
@@ -941,7 +941,7 @@ export default function WorkspaceSection({
                                       milestone,
                                     })
                                   }
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold transition-all shadow-xs cursor-pointer"
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold transition-all shadow-xs cursor-pointer"
                                 >
                                   <CheckCircle2 className="w-3.5 h-3.5" />
                                   <span>{lang === "en" ? "Approve Work" : "অনুমোদন করুন"}</span>
@@ -954,7 +954,7 @@ export default function WorkspaceSection({
                                       milestone,
                                     })
                                   }
-                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#F4F2EC] hover:bg-[#EAE7DF] text-[#3E434A] text-xs font-semibold transition-all cursor-pointer"
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-subtle hover:bg-muted text-ink-2 text-xs font-semibold transition-all cursor-pointer"
                                 >
                                   <RotateCcw className="w-3.5 h-3.5" />
                                   <span>{lang === "en" ? "Revise" : "রিভিশন"}</span>
@@ -978,41 +978,41 @@ export default function WorkspaceSection({
       {/* ─────────────────────────────────────────────────────────────────── */}
       {submitModal && (
         <div
-          className="fixed inset-0 z-50 bg-[#111315]/60 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           onClick={() => setSubmitModal(null)}
         >
           <div
-            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-[rgba(17,19,21,0.12)] space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl border border-line-strong space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-[rgba(17,19,21,0.09)]">
+            <div className="flex items-center justify-between pb-3 border-b border-line">
               <div className="flex items-center gap-2">
-                <Upload className="w-5 h-5 text-[#0F6E50]" />
-                <h3 className="text-sm font-semibold text-[#111315]">
+                <Upload className="w-5 h-5 text-brand" />
+                <h3 className="text-sm font-semibold text-ink">
                   {lang === "en" ? "Submit Milestone Deliverable" : "মাইলস্টোন কাজ জমা দিন"}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSubmitModal(null)}
-                className="text-[#686E78] hover:text-[#111315] cursor-pointer p-1"
+                className="text-ink-3 hover:text-ink cursor-pointer p-1"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-3 bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] rounded-xl text-xs space-y-1">
-              <p className="font-semibold text-[#111315]">{submitModal.milestone.title}</p>
-              <p className="text-[#686E78]">
-                Amount: <span className="font-bold text-[#0F6E50] font-mono mk-tabular">৳{submitModal.milestone.amountBdt.toLocaleString()} BDT</span> in escrow custody.
+            <div className="p-3 bg-canvas border border-line rounded-lg text-xs space-y-1">
+              <p className="font-semibold text-ink">{submitModal.milestone.title}</p>
+              <p className="text-ink-3">
+                Amount: <span className="font-semibold text-brand font-mono mk-tabular">৳{submitModal.milestone.amountBdt.toLocaleString()} BDT</span> in escrow custody.
               </p>
             </div>
 
             <form onSubmit={handleConfirmSubmit} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-[#111315] mb-1">
+                <label className="block text-xs font-semibold text-ink mb-1">
                   {lang === "en" ? "Deliverable Summary / Notes *" : "কাজের বিবরণ / নোট *"}
                 </label>
                 <textarea
@@ -1025,12 +1025,12 @@ export default function WorkspaceSection({
                       ? "Describe the completed deliverables, files included, and what the client should review..."
                       : "আপনার সম্পন্ন কাজের বিবরণ লিখুন..."
                   }
-                  className="w-full text-xs p-3 rounded-xl border border-[rgba(17,19,21,0.12)] focus:outline-none focus:ring-2 focus:ring-[#0F6E50]/20 focus:border-[#0F6E50]"
+                  className="w-full text-xs p-3 rounded-lg border border-line-strong focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#111315] mb-1">
+                <label className="block text-xs font-semibold text-ink mb-1">
                   {lang === "en" ? "Live Demo / Preview Link (Optional)" : "লাইভ ডেমো লিংক (ঐচ্ছিক)"}
                 </label>
                 <input
@@ -1038,12 +1038,12 @@ export default function WorkspaceSection({
                   value={submitDemoUrl}
                   onChange={(e) => setSubmitDemoUrl(e.target.value)}
                   placeholder="https://..."
-                  className="w-full text-xs p-2.5 rounded-xl border border-[rgba(17,19,21,0.12)] focus:outline-none focus:ring-2 focus:ring-[#0F6E50]/20 focus:border-[#0F6E50]"
+                  className="w-full text-xs p-2.5 rounded-lg border border-line-strong focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#111315] mb-1">
+                <label className="block text-xs font-semibold text-ink mb-1">
                   {lang === "en" ? "Attached Deliverable File Names" : "সংযুক্ত ফাইলের নাম"}
                 </label>
                 <div className="flex gap-2 mb-2">
@@ -1052,7 +1052,7 @@ export default function WorkspaceSection({
                     value={newFileTag}
                     onChange={(e) => setNewFileTag(e.target.value)}
                     placeholder="e.g. final_project_v1.zip"
-                    className="flex-1 text-xs p-2 rounded-xl border border-[rgba(17,19,21,0.12)] focus:outline-none focus:ring-2 focus:ring-[#0F6E50]/20 focus:border-[#0F6E50]"
+                    className="flex-1 text-xs p-2 rounded-lg border border-line-strong focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
                   />
                   <button
                     type="button"
@@ -1062,7 +1062,7 @@ export default function WorkspaceSection({
                         setNewFileTag("");
                       }
                     }}
-                    className="px-3 py-1.5 bg-[#F4F2EC] hover:bg-[#EAE7DF] text-[#111315] text-xs font-semibold rounded-xl cursor-pointer"
+                    className="px-3 py-1.5 bg-subtle hover:bg-muted text-ink text-xs font-semibold rounded-lg cursor-pointer"
                   >
                     Add
                   </button>
@@ -1072,13 +1072,13 @@ export default function WorkspaceSection({
                     {submitFiles.map((f, i) => (
                       <span
                         key={i}
-                        className="inline-flex items-center gap-1 text-[11px] bg-[#F4F2EC] text-[#3E434A] px-2.5 py-1 rounded-lg"
+                        className="inline-flex items-center gap-1 text-[11px] bg-subtle text-ink-2 px-2.5 py-1 rounded-lg"
                       >
                         <span>{f}</span>
                         <button
                           type="button"
                           onClick={() => setSubmitFiles(submitFiles.filter((_, idx) => idx !== i))}
-                          className="hover:text-[#DC2626] cursor-pointer"
+                          className="hover:text-danger cursor-pointer"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -1088,18 +1088,18 @@ export default function WorkspaceSection({
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[rgba(17,19,21,0.09)]">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-line">
                 <button
                   type="button"
                   onClick={() => setSubmitModal(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#686E78] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-3 hover:bg-subtle transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="px-5 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {actionLoading ? "Submitting..." : "Submit for Approval"}
                 </button>
@@ -1117,7 +1117,7 @@ export default function WorkspaceSection({
           (c) => c.id === approveModal.contractId
         );
         const isLiveContract = isUuid(approveModal.contractId);
-        const feePct = activeContract?.platformFeePct || 10;
+        const feePct = activeContract?.platformFeePct || DEFAULT_PLATFORM_FEE_PCT;
         const grossAmount = isLiveContract && activeContract
           ? activeContract.totalBdt
           : approveModal.milestone.amountBdt;
@@ -1125,26 +1125,26 @@ export default function WorkspaceSection({
 
         return (
           <div
-            className="fixed inset-0 z-50 bg-[#111315]/60 backdrop-blur-xs flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4"
             role="dialog"
             aria-modal="true"
             onClick={() => setApproveModal(null)}
           >
             <div
-              className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[rgba(17,19,21,0.12)] space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
+              className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-line-strong space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-12 h-12 rounded-2xl bg-[#EAF5F0] border border-[#0F6E50]/25 text-[#0F6E50] flex items-center justify-center mx-auto shadow-xs">
+              <div className="w-12 h-12 rounded-xl bg-brand-soft border border-brand/25 text-brand flex items-center justify-center mx-auto shadow-xs">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
 
               <div className="text-center space-y-1">
-                <h3 className="text-base font-semibold text-[#111315]">
+                <h3 className="text-base font-semibold text-ink">
                   {lang === "en"
                     ? "Approve Deliverable & Record Release?"
                     : "কাজ অনুমোদন ও লেজার রিলিজ করবেন?"}
                 </h3>
-                <p className="text-xs text-[#686E78]">
+                <p className="text-xs text-ink-3">
                   {isLiveContract
                     ? lang === "en"
                       ? "Records an internal RELEASE ledger entry and updates the freelancer's simulated earnings. No bank transfer happens in sandbox mode."
@@ -1156,34 +1156,34 @@ export default function WorkspaceSection({
               </div>
 
               {isLiveContract && (
-                <div className="p-3.5 bg-[#FAF9F6] rounded-xl border border-[rgba(17,19,21,0.09)] text-xs space-y-1.5">
+                <div className="p-3.5 bg-canvas rounded-lg border border-line text-xs space-y-1.5">
                   <div className="flex justify-between">
-                    <span className="text-[#686E78]">Contract Amount:</span>
-                    <span className="font-bold text-[#111315] font-mono mk-tabular">
+                    <span className="text-ink-3">Contract Amount:</span>
+                    <span className="font-semibold text-ink font-mono mk-tabular">
                       {formatBdt(breakdown.grossAmount)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-[#686E78] font-mono mk-tabular">
+                    <span className="text-ink-3 font-mono mk-tabular">
                       Platform Commission ({breakdown.platformFeePct}%):
                     </span>
-                    <span className="font-bold text-[#DC2626] font-mono mk-tabular">
+                    <span className="font-semibold text-danger font-mono mk-tabular">
                       -{formatBdt(breakdown.platformFeeAmount)}
                     </span>
                   </div>
-                  <div className="flex justify-between pt-1.5 border-t border-[rgba(17,19,21,0.09)] font-bold">
-                    <span className="text-[#111315]">Freelancer Simulated Credit:</span>
-                    <span className="text-[#0F6E50] font-mono mk-tabular">
+                  <div className="flex justify-between pt-1.5 border-t border-line font-semibold">
+                    <span className="text-ink">Freelancer Simulated Credit:</span>
+                    <span className="text-brand font-mono mk-tabular">
                       {formatBdt(breakdown.freelancerPayableAmount)}
                     </span>
                   </div>
                 </div>
               )}
 
-              <div className="p-3.5 bg-[#FAF9F6] rounded-xl border border-[rgba(17,19,21,0.09)] text-xs space-y-1">
-                <p className="font-semibold text-[#111315]">{approveModal.milestone.title}</p>
+              <div className="p-3.5 bg-canvas rounded-lg border border-line text-xs space-y-1">
+                <p className="font-semibold text-ink">{approveModal.milestone.title}</p>
                 {(approveModal.milestone.deliverableNotes || approveModal.milestone.submission?.notes) && (
-                  <p className="text-[#686E78] italic">
+                  <p className="text-ink-3 italic">
                     &ldquo;{approveModal.milestone.deliverableNotes || approveModal.milestone.submission?.notes}&rdquo;
                   </p>
                 )}
@@ -1193,7 +1193,7 @@ export default function WorkspaceSection({
                 <button
                   type="button"
                   onClick={() => setApproveModal(null)}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-semibold text-[#686E78] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
+                  className="flex-1 py-2.5 rounded-lg text-xs font-semibold text-ink-3 hover:bg-subtle transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -1201,7 +1201,7 @@ export default function WorkspaceSection({
                   type="button"
                   disabled={actionLoading}
                   onClick={handleConfirmApprove}
-                  className="flex-1 py-2.5 rounded-xl bg-[#0B3B2E] hover:bg-[#0F6E50] text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-lg bg-navy hover:bg-brand text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {actionLoading
                     ? "Processing..."
@@ -1220,26 +1220,26 @@ export default function WorkspaceSection({
       {/* ─────────────────────────────────────────────────────────────────── */}
       {reviseModal && (
         <div
-          className="fixed inset-0 z-50 bg-[#111315]/60 backdrop-blur-xs flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-ink/60 backdrop-blur-xs flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           onClick={() => setReviseModal(null)}
         >
           <div
-            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[rgba(17,19,21,0.12)] space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl border border-line-strong space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-[rgba(17,19,21,0.09)]">
+            <div className="flex items-center justify-between pb-3 border-b border-line">
               <div className="flex items-center gap-2">
-                <RotateCcw className="w-5 h-5 text-[#A87224]" />
-                <h3 className="text-sm font-semibold text-[#111315]">
+                <RotateCcw className="w-5 h-5 text-accent" />
+                <h3 className="text-sm font-semibold text-ink">
                   {lang === "en" ? "Request Deliverable Changes" : "রিভিশন বা সংশোধনের অনুরোধ"}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setReviseModal(null)}
-                className="text-[#686E78] hover:text-[#111315] cursor-pointer p-1"
+                className="text-ink-3 hover:text-ink cursor-pointer p-1"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1247,7 +1247,7 @@ export default function WorkspaceSection({
 
             <form onSubmit={handleConfirmRevision} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-[#111315] mb-1">
+                <label className="block text-xs font-semibold text-ink mb-1">
                   {lang === "en" ? "Revision Feedback for Freelancer *" : "ফ্রিল্যান্সারের জন্য ফিডব্যাক *"}
                 </label>
                 <textarea
@@ -1256,7 +1256,7 @@ export default function WorkspaceSection({
                   value={revisionFeedback}
                   onChange={(e) => setRevisionFeedback(e.target.value)}
                   placeholder="Detail the changes or adjustments needed on this milestone deliverable..."
-                  className="w-full text-xs p-3 rounded-xl border border-[rgba(17,19,21,0.12)] focus:outline-none focus:ring-2 focus:ring-[#A87224]/25 focus:border-[#A87224]"
+                  className="w-full text-xs p-3 rounded-lg border border-line-strong focus:outline-none focus:ring-2 focus:ring-accent/25 focus:border-accent"
                 />
               </div>
 
@@ -1264,14 +1264,14 @@ export default function WorkspaceSection({
                 <button
                   type="button"
                   onClick={() => setReviseModal(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#686E78] hover:bg-[#F4F2EC] transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-ink-3 hover:bg-subtle transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="px-5 py-2 rounded-xl bg-[#A87224] hover:bg-[#8E5F1D] text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 rounded-lg bg-accent hover:bg-accent-strong text-white text-xs font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {actionLoading ? "Submitting..." : "Send Revision Request"}
                 </button>

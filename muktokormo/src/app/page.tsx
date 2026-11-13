@@ -13,6 +13,8 @@ import HowItWorksSection from "@/components/home/HowItWorksSection";
 import PlatformStatsSection from "@/components/home/PlatformStatsSection";
 import WhyMuktokormoSection from "@/components/home/WhyMuktokormoSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
+import TrustStrip from "@/components/home/TrustStrip";
+import FeatureTrioSection from "@/components/home/FeatureTrioSection";
 import PostJobModal from "@/components/PostJobModal";
 import BidModal from "@/components/BidModal";
 import JobBidsModal from "@/components/JobBidsModal";
@@ -32,7 +34,7 @@ import {
 import { createContractFromProposal } from "@/lib/data/contracts";
 import { isUuid } from "@/lib/payments/constants";
 import { Job, ProposalSubmission, JobBid } from "@/types";
-import { ArrowRight, Briefcase, UserPlus, ShieldCheck } from "lucide-react";
+import { ArrowRight, Briefcase, UserPlus } from "lucide-react";
 
 export default function Home() {
   const supabase = useMemo(() => createClient(), []);
@@ -281,7 +283,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] font-sans text-[#111315] flex flex-col selection:bg-[#0F6E50] selection:text-white">
+    <div className="min-h-screen bg-canvas font-sans text-ink flex flex-col">
       {/* Navigation Bar */}
       <Navbar
         onOpenPostJob={() => setIsPostJobOpen(true)}
@@ -307,12 +309,8 @@ export default function Home() {
           }}
         />
 
-        {/* Platform Statistics Band */}
-        <PlatformStatsSection
-          lang={lang}
-          openJobsCount={jobs.length}
-          freelancersCount={freelancersCount}
-        />
+        {/* Trust & credibility strip */}
+        <TrustStrip lang={lang} />
 
         {/* Specialized Categories */}
         <CategoryGrid
@@ -320,6 +318,7 @@ export default function Home() {
           onSelectCategory={(cat) => setSelectedCategory(cat)}
           lang={lang}
           jobs={jobs}
+          onOpenPostJob={() => setIsPostJobOpen(true)}
         />
 
         {/* Popular Services */}
@@ -357,76 +356,70 @@ export default function Home() {
           onLoadedCount={handleFreelancersLoaded}
         />
 
+        {/* Feature trio */}
+        <FeatureTrioSection lang={lang} onSearchTalent={handleSearchTalent} />
+
         {/* How MuktoKormo Works */}
-        <HowItWorksSection lang={lang} />
+        <HowItWorksSection lang={lang} showPageLink />
 
-        {/* Why MuktoKormo */}
-        <WhyMuktokormoSection lang={lang} />
+        {/* Platform Statistics Band (live counts only) */}
+        <PlatformStatsSection
+          lang={lang}
+          openJobsCount={jobs.length}
+          freelancersCount={freelancersCount}
+        />
 
-        {/* Escrow Financial Safety Banner */}
+        {/* Escrow Financial Safety */}
         <EscrowTrustBanner
           lang={lang}
           onOpenEscrowTest={handleOpenEscrowDefault}
         />
 
-        {/* Customer Testimonials */}
+        {/* Why MuktoKormo */}
+        <WhyMuktokormoSection lang={lang} />
+
+        {/* Platform commitments */}
         <TestimonialsSection lang={lang} />
 
-        {/* Final Conversion CTA Section */}
-        <section className="py-18 bg-[#FAF9F6] border-t border-[rgba(17,19,21,0.08)]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mk-dark-card p-8 sm:p-12 lg:p-14 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 relative overflow-hidden">
-              <div className="absolute -right-24 -bottom-24 w-72 h-72 rounded-full bg-[#0F6E50]/35 blur-3xl pointer-events-none" />
-
-              <div className="max-w-2xl relative z-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#7CE0B8]/12 border border-[#7CE0B8]/25 text-[#7CE0B8] text-[11px] font-semibold mb-4">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>
+        {/* Final Conversion CTA */}
+        <section className="bg-white pb-20 sm:pb-24">
+          <div className="mk-container">
+            <div className="relative overflow-hidden rounded-3xl bg-brand text-white px-6 py-12 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
+              <div aria-hidden="true" className="absolute inset-0 mk-hatch-dark opacity-60 [mask-image:linear-gradient(to_left,black,transparent_70%)]" />
+              <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
+                <div className="lg:col-span-8">
+                  <span className="mk-eyebrow text-white/70">
+                    {lang === "en" ? "Built for Bangladesh's digital economy" : "বাংলাদেশের ডিজিটাল অর্থনীতির জন্য নির্মিত"}
+                  </span>
+                  <h2 className="mk-h2 mt-4 text-white max-w-[18ch]">
                     {lang === "en"
-                      ? "Built for Bangladesh's Digital Economy"
-                      : "বাংলাদেশের ডিজিটাল অর্থনীতির জন্য নির্মিত"}
-                  </span>
+                      ? "Work beautifully. Build confidently."
+                      : "সুন্দরভাবে কাজ করুন। আত্মবিশ্বাসের সাথে গড়ুন।"}
+                  </h2>
+                  <p className="mt-5 text-base text-white/80 leading-relaxed max-w-xl">
+                    {lang === "en"
+                      ? "Whether you are commissioning software and design sprints or offering specialised skills, MuktoKormo keeps contracts, milestones and settlements structured."
+                      : "দক্ষ ফ্রিল্যান্সার নিয়োগ দিন অথবা আপনার দক্ষতা দিয়ে আয় শুরু করুন — সবকিছুই এক প্ল্যাটফর্মে।"}
+                  </p>
                 </div>
-                <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white">
-                  {lang === "en" ? (
-                    <>
-                      Start your next project with full{" "}
-                      <span className="font-serif italic font-normal text-[#7CE0B8]">
-                        BDT escrow
-                      </span>{" "}
-                      confidence.
-                    </>
-                  ) : (
-                    "শতভাগ বিডিটি এসক্রো নিরাপত্তায় আপনার পরবর্তী প্রজেক্ট শুরু করুন।"
-                  )}
-                </h2>
-                <p className="mt-3 text-sm text-white/75 leading-relaxed">
-                  {lang === "en"
-                    ? "Whether you are commissioning software and design sprints or offering specialized skills, MuktoKormo keeps contracts, milestones, and settlements structured."
-                    : "দক্ষ ফ্রিল্যান্সার নিয়োগ দিন অথবা আপনার দক্ষতা দিয়ে আয় শুরু করুন — সবকিছুই এক প্ল্যাটফর্মে।"}
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0 relative z-10">
-                <button
-                  type="button"
-                  onClick={() => setIsPostJobOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#0F6E50] hover:bg-[#0B5940] text-white font-semibold text-sm transition-all cursor-pointer shadow-[0_8px_20px_-6px_rgba(15,110,80,0.5)]"
-                >
-                  <Briefcase className="w-4 h-4" />
-                  <span>{lang === "en" ? "Post a Project" : "কাজ পোস্ট করুন"}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <Link
-                  href="/signup"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/16 border border-white/15 text-white font-semibold text-sm transition-all"
-                >
-                  <UserPlus className="w-4 h-4 text-[#7CE0B8]" />
-                  <span>
-                    {lang === "en" ? "Create Free Account" : "ফ্রি অ্যাকাউন্ট খুলুন"}
-                  </span>
-                </Link>
+                <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsPostJobOpen(true)}
+                    className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-lg bg-white hover:bg-brand-soft text-navy font-medium text-[15px] transition-colors cursor-pointer"
+                  >
+                    <Briefcase className="w-4 h-4" aria-hidden="true" />
+                    {lang === "en" ? "Post a project" : "কাজ পোস্ট করুন"}
+                    <ArrowRight className="w-4 h-4" aria-hidden="true" />
+                  </button>
+                  <Link
+                    href="/signup"
+                    className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-lg bg-navy/40 hover:bg-navy/60 border border-white/25 text-white font-medium text-[15px] transition-colors"
+                  >
+                    <UserPlus className="w-4 h-4" aria-hidden="true" />
+                    {lang === "en" ? "Create a free account" : "ফ্রি অ্যাকাউন্ট খুলুন"}
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

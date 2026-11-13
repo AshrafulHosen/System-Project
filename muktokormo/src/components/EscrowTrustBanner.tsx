@@ -50,103 +50,85 @@ export default function EscrowTrustBanner({
     },
   ];
 
+  const en = lang === "en";
+
   return (
-    <section
-      id="escrow-section"
-      className="py-20 bg-white text-[#111315] border-t border-[rgba(17,19,21,0.08)]"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAF5F0] border border-[#C3E3D5] text-[#0B3B2E] text-[11px] font-semibold uppercase tracking-[0.08em] mb-3">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#0F6E50]" />
-            <span>{lang === "en" ? "Financial Protection" : "নিরাপদ লেনদেন"}</span>
+    <section id="escrow-section" className="relative py-20 sm:py-24 lg:py-28 bg-navy text-white overflow-hidden">
+      <div aria-hidden="true" className="absolute inset-0 mk-grid-lines-dark opacity-50" />
+      <div aria-hidden="true" className="absolute -left-40 bottom-0 w-[520px] h-[520px] rounded-full bg-brand-bright/20 blur-[110px]" />
+
+      <div className="relative mk-container">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end mb-14 lg:mb-16">
+          <div className="lg:col-span-7">
+            <span className="mk-eyebrow text-brand-light">{en ? "Financial protection" : "নিরাপদ লেনদেন"}</span>
+            <h2 className="mk-h2 mt-4 text-white">
+              {en ? (
+                <>
+                  How every Taka is safeguarded,{" "}
+                  <span className="text-white/45">end to end.</span>
+                </>
+              ) : (
+                <>
+                  মুক্তকর্মে আপনার প্রতিটি টাকা যেভাবে{" "}
+                  <span className="text-white/45">নিরাপদ থাকে</span>
+                </>
+              )}
+            </h2>
           </div>
-
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#111315]">
-            {lang === "en" ? (
-              <>
-                How MuktoKormo safeguards{" "}
-                <span className="font-serif italic font-normal text-[#0F6E50]">
-                  every single Taka
-                </span>
-              </>
-            ) : (
-              <>
-                মুক্তকর্মে আপনার প্রতিটি টাকা যেভাবে{" "}
-                <span className="font-serif italic font-normal text-[#0F6E50]">
-                  নিরাপদ থাকে
-                </span>
-              </>
-            )}
-          </h2>
-
-          <p className="mt-3 text-sm text-[#686E78] leading-relaxed">
-            {lang === "en"
-              ? "Milestone funds are locked inside a transparent ledger before work begins, eliminating unpaid invoices for talent and non-delivery risk for clients."
-              : "কাজ পছন্দ না হওয়া পর্যন্ত কোনো টাকা কর্তন হবে না। সম্পূর্ণ বিকাশ ও নগদ এসক্রোর মাধ্যমে লেনদেন করুন।"}
+          <p className="lg:col-span-5 text-[15px] text-white/65 leading-relaxed">
+            {en
+              ? "Milestone funds are locked in a transparent ledger before work begins — removing unpaid-invoice risk for talent and non-delivery risk for clients."
+              : "কাজ পছন্দ না হওয়া পর্যন্ত কোনো টাকা কর্তন হবে না। সম্পূর্ণ বিকাশ ও নগদ এসক্রোর মাধ্যমে লেনদেন করুন।"}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {pillars.map((p) => {
+        <ol className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/12 rounded-2xl overflow-hidden border border-white/12">
+          {pillars.map((p, idx) => {
             const IconComp = p.icon;
             return (
-              <div
-                key={p.step}
-                className="bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] hover:border-[#0F6E50]/40 rounded-2xl p-7 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-8px_rgba(17,19,21,0.08)]"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="w-11 h-11 rounded-xl bg-white border border-[rgba(17,19,21,0.09)] flex items-center justify-center shadow-[0_1px_2px_rgba(17,19,21,0.04)] text-[#0F6E50]">
-                      <IconComp className="w-5 h-5" />
-                    </div>
-                    <span className="font-mono text-xs font-bold text-[#686E78]">
-                      STEP {p.step}
-                    </span>
-                  </div>
-
-                  <h3 className="text-lg font-bold text-[#111315] mb-2">
-                    {p.title}
-                  </h3>
-                  <p className="text-xs sm:text-[13px] text-[#3E434A] leading-relaxed">
-                    {p.desc}
-                  </p>
+              <li key={p.step} className="relative bg-navy p-7 sm:p-9 flex flex-col min-h-[260px]">
+                <div className="flex items-center justify-between">
+                  <span className="w-11 h-11 rounded-md bg-white/8 border border-white/12 flex items-center justify-center text-brand-light">
+                    <IconComp className="w-5 h-5" aria-hidden="true" />
+                  </span>
+                  <span className="font-mono text-[12px] text-white/40">
+                    {en ? "Step" : "ধাপ"} {p.step}
+                  </span>
                 </div>
-              </div>
+                <h3 className="mt-auto pt-10 text-xl font-semibold tracking-[-0.025em] text-white">{p.title}</h3>
+                <p className="mt-2 text-[14px] text-white/60 leading-relaxed">{p.desc}</p>
+                <span
+                  aria-hidden="true"
+                  className="absolute left-0 top-0 h-0.5 bg-brand-light"
+                  style={{ width: `${((idx + 1) / pillars.length) * 100}%` }}
+                />
+              </li>
             );
           })}
-        </div>
+        </ol>
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-10 flex flex-col sm:flex-row flex-wrap gap-3">
           <button
             type="button"
             onClick={onOpenEscrowTest}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-[#FAF9F6] font-semibold text-xs shadow-sm transition-all cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-lg bg-white hover:bg-brand-soft text-navy font-medium text-sm transition-colors cursor-pointer"
           >
-            <span>
-              {lang === "en" ? "Launch Escrow Simulator" : "এসক্রো সিমুলেটর টেস্ট করুন"}
-            </span>
-            <ArrowRight className="w-3.5 h-3.5 text-[#7CE0B8]" />
+            {en ? "Try the escrow simulator" : "এসক্রো সিমুলেটর টেস্ট করুন"}
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </button>
-
           <Link
             href="/escrow"
-            className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl border border-[rgba(17,19,21,0.14)] hover:border-[#0F6E50] bg-white hover:bg-[#FAF9F6] text-[#111315] font-semibold text-xs transition-all"
+            className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/5 text-white font-medium text-sm transition-colors"
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-[#0F6E50]" />
-            <span>
-              {lang === "en" ? "Explore Escrow Architecture" : "এসক্রো বিস্তারিত দেখুন"}
-            </span>
+            <ShieldCheck className="w-4 h-4 text-brand-light" aria-hidden="true" />
+            {en ? "Escrow architecture" : "এসক্রো বিস্তারিত দেখুন"}
           </Link>
-
           <Link
             href="/workspaces"
-            className="inline-flex items-center gap-1.5 px-5 py-3 rounded-xl border border-[rgba(17,19,21,0.14)] hover:border-[#0F6E50] bg-white hover:bg-[#FAF9F6] text-[#111315] font-semibold text-xs transition-all"
+            className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-lg border border-white/20 hover:border-white/40 hover:bg-white/5 text-white font-medium text-sm transition-colors"
           >
-            <FolderKanban className="w-3.5 h-3.5 text-[#0F6E50]" />
-            <span>
-              {lang === "en" ? "Tour Delivery Workspaces" : "ওয়ার্কস্পেস দেখুন"}
-            </span>
+            <FolderKanban className="w-4 h-4 text-brand-light" aria-hidden="true" />
+            {en ? "Delivery workspaces" : "ওয়ার্কস্পেস দেখুন"}
           </Link>
         </div>
       </div>

@@ -85,103 +85,85 @@ export default function PopularServicesSection({
     },
   ];
 
+  const en = lang === "en";
+
   return (
-    <section className="py-18 bg-white border-b border-[rgba(17,19,21,0.08)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
+    <section id="services" className="py-20 sm:py-24 bg-white border-y border-line">
+      <div className="mk-container">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 lg:mb-12">
           <div className="max-w-2xl">
-            <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#0F6E50] block mb-1.5">
-              {lang === "en" ? "Popular Service Tracks" : "জনপ্রিয় সার্ভিস প্যাকেজ"}
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#111315]">
-              {lang === "en" ? (
-                <>
-                  Scoped deliverables built for{" "}
-                  <span className="font-serif italic font-normal text-[#0F6E50]">
-                    predictable delivery
-                  </span>
-                </>
-              ) : (
-                <>
-                  নির্দিষ্ট বাজেটে ও সময়ে{" "}
-                  <span className="font-serif italic font-normal text-[#0F6E50]">
-                    মানসম্মত কাজ
-                  </span>
-                </>
-              )}
+            <span className="mk-eyebrow text-brand">{en ? "Service tracks" : "সার্ভিস প্যাকেজ"}</span>
+            <h2 className="mk-h2 mt-4 text-ink">
+              {en ? "Start from a proven scope." : "প্রমাণিত স্কোপ দিয়ে শুরু করুন।"}
             </h2>
-            <p className="mt-2 text-xs sm:text-sm text-[#686E78]">
-              {lang === "en"
-                ? "Start from proven project scopes tailored to Bangladesh's digital businesses, or post custom requirements."
-                : "জনপ্রিয় প্রজেক্ট ক্যাটাগরি বেছে নিন অথবা আপনার নিজস্ব চাহিদা অনুযায়ী কাজ পোস্ট করুন।"}
+            <p className="mt-4 text-[15px] text-ink-3 max-w-lg">
+              {en
+                ? "Typical budgets and timelines for common projects. Pick one to search matching jobs, or post your own brief."
+                : "জনপ্রিয় প্রজেক্ট ক্যাটাগরি বেছে নিন অথবা আপনার নিজস্ব চাহিদা অনুযায়ী কাজ পোস্ট করুন।"}
             </p>
           </div>
-
           <button
             type="button"
             onClick={onOpenPostJob}
-            className="self-start md:self-auto inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#FAF9F6] hover:bg-[#F4F2EC] border border-[rgba(17,19,21,0.12)] text-xs font-semibold text-[#111315] transition-colors cursor-pointer"
+            className="self-start md:self-auto inline-flex items-center gap-1.5 h-10 px-4 rounded-lg bg-white hover:bg-subtle border border-line-strong text-sm font-medium text-ink transition-colors cursor-pointer"
           >
-            <span>
-              {lang === "en" ? "Request Custom Brief" : "কাস্টম প্রজেক্ট পোস্ট"}
-            </span>
-            <ArrowUpRight className="w-3.5 h-3.5 text-[#0F6E50]" />
+            {en ? "Post a custom brief" : "কাস্টম প্রজেক্ট পোস্ট"}
+            <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {services.map((svc) => {
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-line">
+          {services.map((svc, idx) => {
             const IconComp = svc.icon;
             return (
-              <div
+              <li
                 key={svc.title}
-                onClick={() => onSelectServiceQuery(svc.query)}
-                className="group bg-[#FAF9F6] hover:bg-white border border-[rgba(17,19,21,0.09)] hover:border-[#0F6E50]/45 rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-8px_rgba(17,19,21,0.08)] cursor-pointer"
+                className={`border-b border-line ${idx % 2 === 1 ? "sm:border-l" : ""} ${idx > 0 ? "lg:border-l" : ""}`}
               >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-xl bg-white border border-[rgba(17,19,21,0.08)] flex items-center justify-center text-[#0F6E50] group-hover:bg-[#EAF5F0] transition-colors">
-                      <IconComp className="w-4.5 h-4.5" />
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.07em] text-[#686E78] bg-white px-2.5 py-1 rounded-full border border-[rgba(17,19,21,0.08)]">
-                      {svc.tag}
+                <button
+                  type="button"
+                  onClick={() => onSelectServiceQuery(svc.query)}
+                  className="group w-full h-full text-left p-6 lg:p-7 flex flex-col justify-between gap-8 hover:bg-canvas transition-colors cursor-pointer"
+                >
+                  <span className="block space-y-5">
+                    <span className="flex items-center justify-between">
+                      <span className="w-10 h-10 rounded-md bg-subtle text-navy flex items-center justify-center group-hover:bg-ink group-hover:text-white transition-colors">
+                        <IconComp className="w-4.5 h-4.5" aria-hidden="true" />
+                      </span>
+                      <span className="mk-eyebrow text-ink-4">{svc.tag}</span>
                     </span>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-bold text-[#111315] group-hover:text-[#0F6E50] transition-colors leading-snug">
-                      {svc.title}
-                    </h3>
-                    <p className="mt-2 text-xs text-[#686E78] leading-relaxed">
-                      {svc.desc}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-[rgba(17,19,21,0.08)] space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-mono font-bold text-[#111315] mk-tabular">
-                      {svc.budgetRange}
+                    <span className="block">
+                      <span className="block text-[17px] font-semibold tracking-[-0.025em] text-ink leading-snug">
+                        {svc.title}
+                      </span>
+                      <span className="mt-2 block text-[13.5px] text-ink-3 leading-relaxed">{svc.desc}</span>
                     </span>
-                    <span className="inline-flex items-center gap-1 text-[11px] text-[#686E78]">
-                      <Clock className="w-3 h-3" />
-                      {svc.timeline}
+                  </span>
+                  <span className="block pt-4 border-t border-line">
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="text-[15px] font-semibold text-ink mk-tabular tracking-[-0.02em]">
+                        {svc.budgetRange}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[12px] text-ink-3">
+                        <Clock className="w-3.5 h-3.5" aria-hidden="true" />
+                        {svc.timeline}
+                      </span>
                     </span>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="inline-flex items-center gap-1 text-[#0F6E50] font-semibold">
-                      <ShieldCheck className="w-3 h-3" />
-                      Escrow Milestone Ready
+                    <span className="mt-3 flex items-center justify-between text-[12px]">
+                      <span className="inline-flex items-center gap-1 text-ink-3">
+                        <ShieldCheck className="w-3.5 h-3.5 text-brand" aria-hidden="true" />
+                        {en ? "Escrow-ready" : "এসক্রো প্রস্তুত"}
+                      </span>
+                      <span className="inline-flex items-center gap-0.5 font-medium text-brand group-hover:translate-x-0.5 transition-transform">
+                        {en ? "Find jobs" : "কাজ দেখুন"} <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
+                      </span>
                     </span>
-                    <span className="text-[#111315] font-semibold group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-0.5">
-                      Explore <ArrowUpRight className="w-3 h-3" />
-                    </span>
-                  </div>
-                </div>
-              </div>
+                  </span>
+                </button>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </div>
     </section>
   );

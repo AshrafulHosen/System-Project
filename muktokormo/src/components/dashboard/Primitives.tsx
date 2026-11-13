@@ -1,8 +1,34 @@
 "use client";
 
 import React from "react";
-import { TrendingUp, TrendingDown, LucideIcon, Check } from "lucide-react";
+import { TrendingDown, LucideIcon, Check } from "lucide-react";
 import { OnboardingTask } from "@/types";
+
+/** Page-level header for dashboard views: eyebrow, title, context line, actions. */
+export function PageHeader({
+  eyebrow,
+  title,
+  description,
+  actions,
+  className = "",
+}: {
+  eyebrow?: React.ReactNode;
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  actions?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 mb-6 border-b border-line ${className}`}>
+      <div className="min-w-0">
+        {eyebrow && <p className="mk-eyebrow text-ink-4 mb-2">{eyebrow}</p>}
+        <h1 className="text-2xl sm:text-[28px] font-semibold tracking-[-0.035em] text-ink leading-tight">{title}</h1>
+        {description && <p className="mt-1.5 text-[14px] text-ink-3 leading-relaxed max-w-2xl">{description}</p>}
+      </div>
+      {actions && <div className="flex flex-wrap items-center gap-2 shrink-0">{actions}</div>}
+    </div>
+  );
+}
 
 export function SectionHeading({
   title,
@@ -22,11 +48,11 @@ export function SectionHeading({
   return (
     <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4">
       <div>
-        <h2 className="text-lg sm:text-xl font-bold tracking-tight text-[#111315]">
+        <h2 className="text-[17px] sm:text-lg font-semibold tracking-[-0.025em] text-ink">
           {lang === "en" ? title : titleBn}
         </h2>
         {subtitle && (
-          <p className="text-xs text-[#686E78] mt-0.5 leading-relaxed">
+          <p className="text-[13px] text-ink-3 mt-0.5 leading-relaxed">
             {lang === "en" ? subtitle : subtitleBn}
           </p>
         )}
@@ -56,39 +82,34 @@ export function StatCard({
   accent?: "emerald" | "sky" | "amber" | "violet";
 }) {
   const accents: Record<string, string> = {
-    emerald: "bg-[#EAF5F0] text-[#0F6E50] border-[#0F6E50]/15",
-    sky: "bg-[#EEF5FA] text-[#1E5B88] border-[#1E5B88]/15",
-    amber: "bg-[#FEF6E6] text-[#A87224] border-[#A87224]/20",
-    violet: "bg-[#F3EFFA] text-[#5B3E96] border-[#5B3E96]/15",
+    emerald: "text-brand",
+    sky: "text-brand-strong",
+    amber: "text-accent",
+    violet: "text-plum",
   };
 
   return (
-    <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 sm:p-5 shadow-[0_1px_2px_rgba(17,19,21,0.04)] hover:border-[rgba(17,19,21,0.16)] transition-all">
-      <div className="flex items-start justify-between gap-3">
-        <div
-          className={`w-10 h-10 rounded-xl border flex items-center justify-center ${accents[accent]}`}
-        >
-          <Icon className="w-4 h-4" />
-        </div>
-        {delta && (
-          <span
-            className={`inline-flex items-center gap-1 text-[11px] font-semibold font-mono mk-tabular px-2 py-0.5 rounded-md ${
-              deltaUp
-                ? "text-[#0F6E50] bg-[#EAF5F0]"
-                : "text-[#DC2626] bg-[#FEF2F2]"
-            }`}
-          >
-            {deltaUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-            {delta}
-          </span>
-        )}
+    <div className="bg-white border border-line rounded-xl p-4 sm:p-5 hover:border-line-strong transition-colors">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[13px] font-medium text-ink-3">{lang === "en" ? label : labelBn}</p>
+        <Icon className={`w-4 h-4 ${accents[accent]}`} aria-hidden="true" />
       </div>
-      <p className="mt-3.5 text-2xl font-bold tracking-tight text-[#111315] font-mono mk-tabular">
+      <p className="mt-3 text-[26px] sm:text-[28px] font-semibold tracking-[-0.04em] text-ink mk-tabular leading-none">
         {value}
       </p>
-      <p className="text-[11px] font-medium text-[#686E78] mt-1">
-        {lang === "en" ? label : labelBn}
-      </p>
+      {/* `delta` is contextual copy (e.g. "3 funded · 1 pending"), not a trend —
+          render it neutrally so no change is implied. Only an explicit
+          deltaUp={false} is styled as a negative signal. */}
+      {delta && (
+        <span
+          className={`mt-3 inline-flex items-center gap-1 text-[12px] mk-tabular ${
+            deltaUp ? "text-ink-3" : "text-danger-strong font-medium"
+          }`}
+        >
+          {!deltaUp && <TrendingDown className="w-3.5 h-3.5" aria-hidden="true" />}
+          {delta}
+        </span>
+      )}
     </div>
   );
 }
@@ -104,44 +125,44 @@ export function OnboardingChecklist({
   const pct = Math.round((done / Math.max(tasks.length, 1)) * 100);
 
   return (
-    <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl shadow-[0_1px_2px_rgba(17,19,21,0.04)] overflow-hidden">
-      <div className="p-5 sm:p-6 border-b border-[rgba(17,19,21,0.08)] bg-[#FAF9F6]/60">
+    <div className="bg-white border border-line rounded-xl shadow-[var(--mk-shadow-xs)] overflow-hidden">
+      <div className="p-5 sm:p-6 border-b border-line bg-canvas/60">
         <div className="flex items-center justify-between gap-4 mb-3">
-          <h3 className="text-sm font-bold text-[#111315]">
+          <h3 className="text-sm font-semibold text-ink">
             {lang === "en" ? "Last steps before you can hire" : "নিয়োগের আগে শেষ ধাপ"}
           </h3>
-          <span className="text-xs font-bold font-mono mk-tabular text-[#0F6E50]">
+          <span className="text-xs font-semibold font-mono mk-tabular text-brand">
             {done}/{tasks.length}
           </span>
         </div>
 
-        <div className="h-1.5 w-full bg-[#F4F2EC] rounded-full overflow-hidden">
+        <div className="h-1.5 w-full bg-subtle rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#0F6E50] rounded-full transition-all duration-500"
+            className="h-full bg-brand rounded-full transition-all duration-500"
             style={{ width: `${pct}%` }}
           />
         </div>
 
-        <p className="text-[11px] text-[#686E78] mt-2.5 leading-relaxed">
+        <p className="text-[11px] text-ink-3 mt-2.5 leading-relaxed">
           {lang === "en"
-            ? "This can increase your hiring speed by up to 3x. There's no cost until you hire."
-            : "এটি আপনার নিয়োগের গতি ৩ গুণ পর্যন্ত বাড়াতে পারে। নিয়োগ না করা পর্যন্ত কোনো খরচ নেই।"}
+            ? "Complete these steps to start hiring. There's no cost until you hire."
+            : "নিয়োগ শুরু করতে এই ধাপগুলো সম্পন্ন করুন। নিয়োগ না করা পর্যন্ত কোনো খরচ নেই।"}
         </p>
       </div>
 
-      <div className="divide-y divide-[rgba(17,19,21,0.06)]">
+      <div className="divide-y divide-line">
         {tasks.map((task) => {
           const isDone = task.status === "DONE";
           return (
             <div
               key={task.id}
-              className="px-5 sm:px-6 py-4 flex items-start gap-3 hover:bg-[#FAF9F6] transition-colors"
+              className="px-5 sm:px-6 py-4 flex items-start gap-3 hover:bg-canvas transition-colors"
             >
               <span
                 className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 ${
                   isDone
-                    ? "bg-[#0F6E50] border-[#0F6E50] text-white"
-                    : "border-[rgba(17,19,21,0.22)] bg-white"
+                    ? "bg-brand border-brand text-white"
+                    : "border-line-strong bg-white"
                 }`}
               >
                 {isDone && <Check className="w-3 h-3 stroke-[3]" />}
@@ -151,18 +172,18 @@ export function OnboardingChecklist({
                 <div className="flex flex-wrap items-center gap-2">
                   <p
                     className={`text-xs font-semibold ${
-                      isDone ? "text-[#949BA6] line-through" : "text-[#111315]"
+                      isDone ? "text-ink-4 line-through" : "text-ink"
                     }`}
                   >
                     {lang === "en" ? task.label : task.labelBn}
                   </p>
                   {task.required && !isDone && (
-                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-semibold uppercase tracking-wide bg-[#FEF6E6] border border-[#A87224]/25 text-[#A87224]">
+                    <span className="px-1.5 py-0.5 rounded-md text-[9px] font-semibold uppercase tracking-wide bg-accent-soft border border-accent/25 text-accent">
                       {lang === "en" ? "Required" : "আবশ্যক"}
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-[#686E78] mt-0.5 leading-relaxed">
+                <p className="text-[11px] text-ink-3 mt-0.5 leading-relaxed">
                   {lang === "en" ? task.description : task.descriptionBn}
                 </p>
               </div>
@@ -170,7 +191,7 @@ export function OnboardingChecklist({
               {!isDone && (
                 <a
                   href={task.href}
-                  className="shrink-0 px-3 py-1.5 rounded-lg bg-[#0B3B2E] hover:bg-[#07281F] text-white text-[10px] font-semibold transition-colors"
+                  className="shrink-0 h-8 px-3 inline-flex items-center rounded-md bg-ink hover:bg-ink-hover text-white text-[12px] font-medium transition-colors"
                 >
                   {task.actionLabel}
                 </a>

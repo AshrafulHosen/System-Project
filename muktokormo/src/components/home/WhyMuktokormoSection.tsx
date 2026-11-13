@@ -60,64 +60,64 @@ export default function WhyMuktokormoSection({ lang }: WhyMuktokormoSectionProps
     },
   ];
 
+  const en = lang === "en";
+
   return (
-    <section className="py-20 bg-white border-t border-[rgba(17,19,21,0.08)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          {/* Left Narrative */}
-          <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
-            <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#0F6E50] block">
-              {lang === "en" ? "Why Teams Switch" : "কেন মুক্তকর্ম"}
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#111315] leading-[1.15]">
-              {lang === "en" ? (
+    <section id="why-muktokormo" className="py-20 sm:py-24 lg:py-28 bg-canvas">
+      <div className="mk-container">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+          {/* Left narrative */}
+          <div className="lg:col-span-5 lg:sticky lg:top-28">
+            <span className="mk-eyebrow text-brand">{en ? "Why Muktokormo" : "কেন মুক্তকর্ম"}</span>
+            <h2 className="mk-h2 mt-4 text-ink">
+              {en ? (
                 <>
                   Built like financial software.{" "}
-                  <span className="font-serif italic font-normal text-[#0F6E50]">
-                    Tailored for Bangladesh.
-                  </span>
+                  <span className="text-ink-4">Made for Bangladesh.</span>
                 </>
               ) : (
                 <>
                   আর্থিক স্বচ্ছতা ও আধুনিক{" "}
-                  <span className="font-serif italic font-normal text-[#0F6E50]">
-                    কাজের অভিজ্ঞতা
-                  </span>
+                  <span className="text-ink-4">কাজের অভিজ্ঞতা</span>
                 </>
               )}
             </h2>
-            <p className="text-sm text-[#3E434A] leading-relaxed">
-              {lang === "en"
-                ? "Informal Facebook hiring carries high payment default risk, while foreign marketplaces penalize local projects with USD exchange friction. MuktoKormo bridges the gap with disciplined infrastructure."
-                : "অনিশ্চিত সোশ্যাল মিডিয়া হায়ারিং এবং ব্যয়বহুল বিদেশি প্ল্যাটফর্মের মধ্যবর্তী শূন্যস্থান পূরণে বাংলাদেশের নিজস্ব প্রফেশনাল প্ল্যাটফর্ম।"}
+            <p className="mt-6 text-[15px] sm:text-base text-ink-3 leading-relaxed max-w-md">
+              {en
+                ? "Informal social-media hiring carries real payment risk, while foreign marketplaces penalise local projects with currency friction. Muktokormo closes the gap with disciplined infrastructure."
+                : "অনিশ্চিত সোশ্যাল মিডিয়া হায়ারিং এবং ব্যয়বহুল বিদেশি প্ল্যাটফর্মের মধ্যবর্তী শূন্যস্থান পূরণে বাংলাদেশের নিজস্ব প্রফেশনাল প্ল্যাটফর্ম।"}
             </p>
           </div>
 
-          {/* Right Feature Grid */}
-          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {pillars.map((item) => {
+          {/* Right editorial list */}
+          <ol className="lg:col-span-7 border-t border-line-strong">
+            {pillars.map((item, idx) => {
               const IconComp = item.icon;
               return (
-                <div
+                <li
                   key={item.title}
-                  className="bg-[#FAF9F6] border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 space-y-3"
+                  className="group grid grid-cols-[auto_1fr] sm:grid-cols-[64px_1fr_auto] gap-x-5 gap-y-2 py-7 sm:py-8 border-b border-line-strong"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-white border border-[rgba(17,19,21,0.09)] text-[#0F6E50] flex items-center justify-center shadow-[0_1px_2px_rgba(17,19,21,0.03)]">
-                    <IconComp className="w-4.5 h-4.5" />
+                  <span className="font-mono text-[13px] text-ink-4 pt-1">
+                    {String(idx + 1).padStart(2, "0")}
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="text-lg sm:text-xl font-semibold tracking-[-0.025em] text-ink leading-snug">
+                      {item.title}
+                    </h3>
+                    <p className="mt-2 text-[14px] sm:text-[15px] text-ink-3 leading-relaxed max-w-lg">
+                      {item.desc}
+                    </p>
                   </div>
-                  <h3 className="text-sm font-bold text-[#111315] leading-snug">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-[#686E78] leading-relaxed">
-                    {item.desc}
-                  </p>
-                </div>
+                  <span className="hidden sm:flex w-11 h-11 rounded-md border border-line-strong text-ink-2 items-center justify-center group-hover:bg-ink group-hover:text-white group-hover:border-ink transition-colors">
+                    <IconComp className="w-5 h-5" aria-hidden="true" />
+                  </span>
+                </li>
               );
             })}
-          </div>
+          </ol>
         </div>
       </div>
     </section>
   );
 }
-

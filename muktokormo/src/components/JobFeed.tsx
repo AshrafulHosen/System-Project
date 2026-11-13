@@ -10,15 +10,14 @@ import {
   ShieldCheck,
   Clock,
   FileText,
-  Filter,
+  SlidersHorizontal,
   Send,
   Lock,
   Sparkles,
-  ArrowRight,
+  ArrowUpRight,
   Bookmark,
   ArrowUpDown,
-  ExternalLink,
-  Layers,
+  RotateCcw,
 } from "lucide-react";
 import { EmptyState, JobCardSkeleton } from "@/components/ui";
 
@@ -60,6 +59,7 @@ export default function JobFeed({
   >("ALL");
   const [sortBy, setSortBy] = useState<SortOption>("NEWEST");
   const [savedOnly, setSavedOnly] = useState<boolean>(false);
+  const [filtersOpen, setFiltersOpen] = useState<boolean>(false);
   const [savedJobIds, setSavedJobIds] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -153,385 +153,377 @@ export default function JobFeed({
     setSortBy("NEWEST");
   };
 
+  const en = lang === "en";
+
+  const budgetOptions = [
+    { id: "ALL", label: en ? "Any budget" : "সব বাজেট" },
+    { id: "UNDER_15K", label: "< ৳15k" },
+    { id: "15K_40K", label: "৳15k – ৳40k" },
+    { id: "40K_PLUS", label: "৳40k+" },
+  ];
+  const typeOptions = [
+    { id: "ALL" as const, label: en ? "Any type" : "সকল" },
+    { id: "Fixed Price" as const, label: en ? "Fixed price" : "নির্দিষ্ট বাজেট" },
+    { id: "Milestone Based" as const, label: en ? "Milestone based" : "মাইলস্টোন" },
+  ];
+  const levelOptions = [
+    { id: "ALL", label: en ? "Any level" : "যেকোনো" },
+    { id: "Entry Level", label: en ? "Entry" : "এন্ট্রি" },
+    { id: "Intermediate", label: en ? "Intermediate" : "মধ্যম" },
+    { id: "Expert", label: en ? "Expert" : "এক্সপার্ট" },
+  ];
+
+  const optionBtn = (active: boolean) =>
+    `w-full flex items-center justify-between h-9 px-3 rounded-md text-[13px] text-left transition-colors cursor-pointer ${
+      active ? "bg-ink text-white font-medium" : "text-ink-2 hover:bg-subtle hover:text-ink"
+    }`;
+
+  const filterPanel = (
+    <div className="space-y-6">
+      <fieldset>
+        <legend className="mk-eyebrow text-ink-4 mb-2">{en ? "Budget" : "বাজেট"}</legend>
+        <div className="space-y-0.5">
+          {budgetOptions.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              aria-pressed={selectedBudgetRange === b.id}
+              onClick={() => setSelectedBudgetRange(b.id)}
+              className={optionBtn(selectedBudgetRange === b.id)}
+            >
+              {b.label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend className="mk-eyebrow text-ink-4 mb-2">{en ? "Contract type" : "চুক্তির ধরন"}</legend>
+        <div className="space-y-0.5">
+          {typeOptions.map((jt) => (
+            <button
+              key={jt.id}
+              type="button"
+              aria-pressed={selectedJobType === jt.id}
+              onClick={() => setSelectedJobType(jt.id)}
+              className={optionBtn(selectedJobType === jt.id)}
+            >
+              {jt.label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend className="mk-eyebrow text-ink-4 mb-2">{en ? "Experience" : "দক্ষতা"}</legend>
+        <div className="space-y-0.5">
+          {levelOptions.map((lvl) => (
+            <button
+              key={lvl.id}
+              type="button"
+              aria-pressed={selectedExperience === lvl.id}
+              onClick={() => setSelectedExperience(lvl.id)}
+              className={optionBtn(selectedExperience === lvl.id)}
+            >
+              {lvl.label}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      {hasActiveFilters && (
+        <button
+          type="button"
+          onClick={resetAllFilters}
+          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-brand hover:text-brand-hover cursor-pointer"
+        >
+          <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
+          {en ? "Reset filters" : "ফিল্টার রিসেট"}
+        </button>
+      )}
+    </div>
+  );
+
+  const trimmedQuery = searchQuery.trim();
+  const resultSummary = isLoading
+    ? en
+      ? "Loading projects…"
+      : "লোড হচ্ছে…"
+    : en
+    ? `${filteredAndSortedJobs.length} ${filteredAndSortedJobs.length === 1 ? "project" : "projects"}${
+        selectedCategory ? ` in ${selectedCategory}` : ""
+      }${trimmedQuery ? ` matching "${trimmedQuery}"` : ""}`
+    : `${filteredAndSortedJobs.length}টি কাজ`;
+
   return (
-    <section
-      id="jobs-section"
-      className="py-16 bg-[#FAF9F6] text-[#111315] min-h-[520px]"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header & Primary Controls */}
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-6">
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#0F6E50] block mb-1.5">
-              {lang === "en" ? "Live Project Marketplace" : "লাইভ জব মার্কেটপ্লেস"}
-            </span>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#111315]">
-                {lang === "en" ? "Open BDT Projects" : "বাংলাদেশে চলমান কাজসমূহ"}
-              </h2>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#EAF5F0] text-[#0B3B2E] border border-[#C3E3D5] mk-tabular">
-                {filteredAndSortedJobs.length} {lang === "en" ? "Open" : "টি সক্রিয়"}
-              </span>
-            </div>
-            <p className="mt-1.5 text-xs sm:text-sm text-[#686E78]">
-              {lang === "en"
-                ? "Verified project briefs backed by BDT milestone escrow and clear deliverable timelines."
+    <section id="jobs-section" className="py-20 sm:py-24 bg-canvas text-ink min-h-[520px] scroll-mt-16">
+      <div className="mk-container">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 lg:mb-10">
+          <div className="max-w-2xl">
+            <span className="mk-eyebrow text-brand">{en ? "Find work" : "কাজ খুঁজুন"}</span>
+            <h2 className="mk-h2 mt-4 text-ink">
+              {en ? "Open projects, paid in Taka." : "বাংলাদেশে চলমান কাজসমূহ"}
+            </h2>
+            <p className="mt-4 text-[15px] text-ink-3">
+              {en
+                ? "Every brief is backed by milestone escrow with a clear budget and timeline."
                 : "বিকাশ ও নগদ এসক্রোর মাধ্যমে প্রতিটি কাজ শতভাগ নিরাপদ।"}
             </p>
           </div>
 
-          {/* Right Quick Actions */}
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2">
             {onOpenMyBids && (
               <button
                 type="button"
                 onClick={onOpenMyBids}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#EAF5F0] hover:bg-[#dcefe6] text-[#0B3B2E] border border-[#C3E3D5] transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-[13px] font-medium bg-white hover:bg-subtle text-ink border border-line transition-colors cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#0F6E50]" />
-                <span>{lang === "en" ? "My Submitted Bids" : "আমার জমাকৃত বিড"}</span>
+                <Sparkles className="w-3.5 h-3.5 text-brand" aria-hidden="true" />
+                {en ? "My bids" : "আমার বিড"}
                 {myBidsCount > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-[#0B3B2E] text-white font-bold ml-0.5 mk-tabular">
+                  <span className="min-w-5 h-5 px-1 rounded text-[11px] bg-brand text-white font-semibold inline-flex items-center justify-center mk-tabular">
                     {myBidsCount}
                   </span>
                 )}
               </button>
             )}
-
             <button
               type="button"
+              aria-pressed={savedOnly}
               onClick={() => setSavedOnly((v) => !v)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                savedOnly
-                  ? "bg-[#FBF5EA] border-[#EADAB8] text-[#9A661A]"
-                  : "bg-white border-[rgba(17,19,21,0.12)] text-[#3E434A] hover:border-[rgba(17,19,21,0.25)] hover:text-[#111315]"
+              className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-[13px] font-medium border transition-colors cursor-pointer ${
+                savedOnly ? "bg-ink border-ink text-white" : "bg-white border-line text-ink hover:bg-subtle"
               }`}
             >
-              <Bookmark
-                className={`w-3.5 h-3.5 ${
-                  savedOnly ? "fill-[#A87224] text-[#A87224]" : ""
-                }`}
-              />
-              <span>{lang === "en" ? "Saved" : "সংরক্ষিত"}</span>
+              <Bookmark className={`w-3.5 h-3.5 ${savedOnly ? "fill-current" : ""}`} aria-hidden="true" />
+              {en ? "Saved" : "সংরক্ষিত"}
               {savedJobIds.length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-[#111315] text-white font-bold mk-tabular">
+                <span
+                  className={`min-w-5 h-5 px-1 rounded text-[11px] font-semibold inline-flex items-center justify-center mk-tabular ${
+                    savedOnly ? "bg-white/15" : "bg-subtle text-ink-2"
+                  }`}
+                >
                   {savedJobIds.length}
                 </span>
               )}
             </button>
-
             <div className="relative flex items-center">
-              <ArrowUpDown className="w-3.5 h-3.5 text-[#686E78] absolute left-3 pointer-events-none" />
+              <ArrowUpDown className="w-3.5 h-3.5 text-ink-3 absolute left-3 pointer-events-none" aria-hidden="true" />
               <select
-                aria-label="Sort jobs"
+                aria-label={en ? "Sort jobs" : "সর্ট"}
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="pl-8 pr-7 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-[#F4F2EC] border border-[rgba(17,19,21,0.12)] text-[#111315] focus:outline-none focus:border-[#0F6E50] cursor-pointer"
+                className="h-9 pl-8 pr-7 rounded-md text-[13px] font-medium bg-white hover:bg-subtle border border-line text-ink focus:outline-none focus:border-brand cursor-pointer"
               >
-                <option value="NEWEST">{lang === "en" ? "Sort: Newest" : "সর্ট: নতুন"}</option>
-                <option value="BUDGET_HIGH">
-                  {lang === "en" ? "Budget: High to Low" : "বাজেট: বেশি থেকে কম"}
-                </option>
-                <option value="BUDGET_LOW">
-                  {lang === "en" ? "Budget: Low to High" : "বাজেট: কম থেকে বেশি"}
-                </option>
-                <option value="FEWEST_BIDS">
-                  {lang === "en" ? "Fewest Bids First" : "সবচেয়ে কম বিড"}
-                </option>
+                <option value="NEWEST">{en ? "Newest first" : "সর্ট: নতুন"}</option>
+                <option value="BUDGET_HIGH">{en ? "Budget: high to low" : "বাজেট: বেশি থেকে কম"}</option>
+                <option value="BUDGET_LOW">{en ? "Budget: low to high" : "বাজেট: কম থেকে বেশি"}</option>
+                <option value="FEWEST_BIDS">{en ? "Fewest bids first" : "সবচেয়ে কম বিড"}</option>
               </select>
             </div>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((v) => !v)}
+              aria-expanded={filtersOpen}
+              aria-controls="job-filters-mobile"
+              className="lg:hidden inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-[13px] font-medium bg-white hover:bg-subtle text-ink border border-line cursor-pointer"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
+              {en ? "Filters" : "ফিল্টার"}
+              {hasActiveFilters && <span className="w-1.5 h-1.5 rounded-full bg-brand" aria-hidden="true" />}
+            </button>
           </div>
         </div>
 
-        {/* Multi-Row Filter Toolbar (Budget + Job Type + Experience) */}
-        <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-4 mb-6 shadow-[0_1px_2px_rgba(17,19,21,0.03)] flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
-          {/* Budget */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#686E78] mr-1">
-              <Filter className="w-3.5 h-3.5 text-[#0F6E50]" />
-              {lang === "en" ? "Budget:" : "বাজেট:"}
-            </span>
-            {[
-              { id: "ALL", label: lang === "en" ? "All Budgets" : "সব বাজেট" },
-              { id: "UNDER_15K", label: "< ৳15k" },
-              { id: "15K_40K", label: "৳15k–৳40k" },
-              { id: "40K_PLUS", label: "৳40k+" },
-            ].map((b) => (
-              <button
-                key={b.id}
-                type="button"
-                onClick={() => setSelectedBudgetRange(b.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  selectedBudgetRange === b.id
-                    ? "bg-[#0B3B2E] text-white"
-                    : "bg-[#F4F2EC] text-[#3E434A] hover:text-[#111315] hover:bg-[#EAE7DF]"
-                }`}
-              >
-                {b.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Job Type */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.06em] text-[#686E78] mr-1">
-              <Layers className="w-3.5 h-3.5 text-[#0F6E50]" />
-              {lang === "en" ? "Contract:" : "ধরন:"}
-            </span>
-            {[
-              { id: "ALL" as const, label: lang === "en" ? "All Types" : "সকল" },
-              {
-                id: "Fixed Price" as const,
-                label: lang === "en" ? "Fixed Price" : "নির্দিষ্ট বাজেট",
-              },
-              {
-                id: "Milestone Based" as const,
-                label: lang === "en" ? "Milestone Based" : "মাইলস্টোন",
-              },
-            ].map((jt) => (
-              <button
-                key={jt.id}
-                type="button"
-                onClick={() => setSelectedJobType(jt.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  selectedJobType === jt.id
-                    ? "bg-[#0F6E50] text-white"
-                    : "bg-[#F4F2EC] text-[#3E434A] hover:text-[#111315] hover:bg-[#EAE7DF]"
-                }`}
-              >
-                {jt.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Experience */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[#686E78] mr-1">
-              {lang === "en" ? "Level:" : "দক্ষতা:"}
-            </span>
-            {[
-              { id: "ALL", label: lang === "en" ? "Any" : "যেকোনো" },
-              { id: "Entry Level", label: "Entry" },
-              { id: "Intermediate", label: "Mid" },
-              { id: "Expert", label: "Expert" },
-            ].map((lvl) => (
-              <button
-                key={lvl.id}
-                type="button"
-                onClick={() => setSelectedExperience(lvl.id)}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  selectedExperience === lvl.id
-                    ? "bg-[#111315] text-white"
-                    : "bg-[#F4F2EC] text-[#3E434A] hover:text-[#111315] hover:bg-[#EAE7DF]"
-                }`}
-              >
-                {lvl.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Loading Skeletons */}
-        {isLoading ? (
-          <div className="space-y-3.5">
-            <JobCardSkeleton />
-            <JobCardSkeleton />
-            <JobCardSkeleton />
-          </div>
-        ) : filteredAndSortedJobs.length === 0 ? (
-          <EmptyState
-            icon={<Briefcase className="w-6 h-6" />}
-            title={lang === "en" ? "No matching jobs found" : "কোনো কাজ পাওয়া যায়নি"}
-            description={
-              lang === "en"
-                ? "Try clearing your budget, contract type, or experience filters — or post a new project to hire top Bangladeshi talent."
-                : "ফিল্টার পরিবর্তন করে আবার খুঁজুন অথবা নতুন কাজ পোস্ট করুন।"
-            }
-            action={
-              <div className="flex items-center justify-center gap-2.5">
-                {hasActiveFilters && (
-                  <button
-                    type="button"
-                    onClick={resetAllFilters}
-                    className="px-4 py-2 rounded-xl border border-[rgba(17,19,21,0.14)] bg-white hover:bg-[#F4F2EC] text-[#111315] font-semibold text-xs cursor-pointer"
-                  >
-                    {lang === "en" ? "Reset Filters" : "ফিল্টার রিসেট"}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={onOpenPostJob}
-                  className="px-5 py-2 rounded-xl bg-[#0B3B2E] hover:bg-[#07281F] text-white font-semibold text-xs cursor-pointer"
-                >
-                  {lang === "en" ? "Post a Job" : "কাজ পোস্ট করুন"}
-                </button>
-              </div>
-            }
-          />
-        ) : (
-          <div className="space-y-3.5">
-            {filteredAndSortedJobs.map((job) => {
-              const isSaved = savedJobIds.includes(job.id);
-
-              return (
-                <div
-                  key={job.id}
-                  className="bg-white border border-[rgba(17,19,21,0.09)] hover:border-[#0F6E50]/45 rounded-2xl p-5 sm:p-6 transition-all duration-150 shadow-[0_1px_2px_rgba(17,19,21,0.03)] hover:shadow-[0_14px_30px_-8px_rgba(17,19,21,0.08)] group"
-                >
-                  <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-5">
-                    {/* Left Column */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-2.5">
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#EAF5F0] text-[#0B3B2E] border border-[#C3E3D5]">
-                          {job.category}
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F4F2EC] text-[#3E434A] border border-[rgba(17,19,21,0.07)]">
-                          {job.jobType}
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#F4F2EC] text-[#3E434A] border border-[rgba(17,19,21,0.07)]">
-                          {job.experienceLevel}
-                        </span>
-                        <span className="text-[11px] text-[#686E78] flex items-center gap-1 ml-auto lg:ml-1">
-                          <Clock className="w-3 h-3" />
-                          {job.postedAt}
-                        </span>
-                      </div>
-
-                      <div className="flex items-start justify-between gap-2">
-                        <Link
-                          href={`/jobs/${job.id}`}
-                          className="inline-flex items-center gap-1.5 text-base sm:text-lg font-bold text-[#111315] group-hover:text-[#0F6E50] transition-colors"
-                        >
-                          <span>{lang === "en" ? job.title : job.titleBn || job.title}</span>
-                          <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity text-[#0F6E50] shrink-0" />
-                        </Link>
-                      </div>
-
-                      <p className="mt-2 text-xs sm:text-[13px] text-[#3E434A] leading-relaxed line-clamp-2">
-                        {lang === "en"
-                          ? job.description
-                          : job.descriptionBn || job.description}
-                      </p>
-
-                      {/* Skill Tags */}
-                      <div className="mt-3.5 flex flex-wrap gap-1.5">
-                        {job.skills.map((skill) => (
-                          <span
-                            key={skill}
-                            className="px-2.5 py-0.5 rounded-md text-[11px] font-medium bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)] text-[#3E434A]"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* Client Metadata & Bids Counter */}
-                      <div className="mt-4 pt-3.5 border-t border-[rgba(17,19,21,0.07)] flex flex-wrap items-center gap-4 text-xs text-[#686E78]">
-                        <div className="flex items-center gap-1.5 text-[#111315] font-semibold">
-                          <span>{job.clientName}</span>
-                          {job.clientVerified && (
-                            <span title="NID Verified" className="text-[#0F6E50]">
-                              <ShieldCheck className="w-3.5 h-3.5" />
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-[#949BA6]" />
-                          <span>{job.clientLocation}</span>
-                        </div>
-
-                        <div className="flex items-center gap-1 text-[#A87224] font-semibold mk-tabular">
-                          <Star className="w-3 h-3 fill-[#D4A24C] text-[#D4A24C]" />
-                          <span>{job.clientRating.toFixed(1)}</span>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => onViewJobBids(job)}
-                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#EAF5F0]/80 hover:bg-[#EAF5F0] text-[#0B3B2E] border border-[#C3E3D5] font-semibold text-xs transition-colors cursor-pointer group/bid mk-tabular"
-                        >
-                          <FileText className="w-3.5 h-3.5 text-[#0F6E50]" />
-                          <span>
-                            {job.proposalsCount}{" "}
-                            {lang === "en" ? "bids placed" : "বিড জমা"}
-                          </span>
-                          <ArrowRight className="w-3 h-3 text-[#0F6E50] group-hover/bid:translate-x-0.5 transition-transform" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Right Column: Budget & CTA */}
-                    <div className="flex lg:flex-col items-center lg:items-end justify-between border-t lg:border-t-0 pt-3.5 lg:pt-0 border-[rgba(17,19,21,0.07)] shrink-0 lg:pl-6 lg:border-l lg:border-[rgba(17,19,21,0.08)]">
-                      <div className="text-left lg:text-right">
-                        <div className="flex items-center lg:justify-end gap-2">
-                          <span className="text-[10px] uppercase tracking-[0.07em] text-[#686E78] font-semibold">
-                            {lang === "en" ? "Client Budget" : "ক্লায়েন্ট বাজেট"}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => toggleSaveJob(job.id)}
-                            aria-label={isSaved ? "Unsave job" : "Save job"}
-                            title={isSaved ? "Saved" : "Save job"}
-                            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-                              isSaved
-                                ? "bg-[#FBF5EA] border-[#EADAB8] text-[#A87224]"
-                                : "bg-white border-[rgba(17,19,21,0.1)] text-[#949BA6] hover:text-[#111315]"
-                            }`}
-                          >
-                            <Bookmark
-                              className={`w-3.5 h-3.5 ${isSaved ? "fill-[#A87224]" : ""}`}
-                            />
-                          </button>
-                        </div>
-                        <span className="font-mono text-xl sm:text-2xl font-bold text-[#111315] tracking-tight block mt-1 mk-tabular">
-                          ৳{job.budgetBdt.toLocaleString()}
-                        </span>
-                        <span className="text-[11px] text-[#686E78] block font-medium mt-0.5">
-                          {lang === "en"
-                            ? `Est. ${job.deadlineDays} days`
-                            : `আনুমানিক ${job.deadlineDays} দিন`}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2 mt-4">
-                        <button
-                          type="button"
-                          onClick={() => onSelectJobForEscrow(job)}
-                          className="p-2.5 rounded-xl bg-[#F4F2EC] hover:bg-[#EAE7DF] text-[#3E434A] hover:text-[#111315] transition-all cursor-pointer"
-                          title={
-                            lang === "en"
-                              ? "Preview Escrow Breakdown"
-                              : "এসক্রো হিসাব দেখুন"
-                          }
-                        >
-                          <Lock className="w-3.5 h-3.5" />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => onViewJobBids(job)}
-                          className="px-3.5 py-2 rounded-xl border border-[rgba(17,19,21,0.13)] hover:border-[rgba(17,19,21,0.25)] bg-white hover:bg-[#FAF9F6] text-[#111315] font-semibold text-xs transition-all cursor-pointer"
-                        >
-                          {lang === "en" ? "View Bids" : "বিড দেখুন"}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => onSelectJobForProposal(job)}
-                          className="flex items-center gap-1.5 px-4.5 py-2 rounded-xl bg-[#0F6E50] hover:bg-[#0B5940] text-white font-semibold text-xs shadow-[0_1px_2px_rgba(11,59,46,0.2)] active:scale-[0.98] transition-all cursor-pointer"
-                        >
-                          <Send className="w-3.5 h-3.5" />
-                          <span>{lang === "en" ? "Place Bid" : "বিড করুন"}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+        {filtersOpen && (
+          <div id="job-filters-mobile" className="lg:hidden mb-6 bg-white border border-line rounded-xl p-5 mk-fade-in">
+            {filterPanel}
           </div>
         )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-[232px_1fr] xl:grid-cols-[256px_1fr] gap-8 xl:gap-10">
+          {/* Desktop filter rail */}
+          <aside aria-label={en ? "Job filters" : "কাজের ফিল্টার"} className="hidden lg:block">
+            <div className="sticky top-24">
+              <p className="flex items-center gap-2 text-[14px] font-semibold text-ink mb-5">
+                <SlidersHorizontal className="w-4 h-4 text-ink-3" aria-hidden="true" />
+                {en ? "Filters" : "ফিল্টার"}
+              </p>
+              {filterPanel}
+            </div>
+          </aside>
+
+          <div className="min-w-0">
+            <p className="mb-3 text-[13px] text-ink-3 mk-tabular" aria-live="polite">
+              {resultSummary}
+            </p>
+
+            {isLoading ? (
+              <div className="space-y-3">
+                <JobCardSkeleton />
+                <JobCardSkeleton />
+                <JobCardSkeleton />
+              </div>
+            ) : filteredAndSortedJobs.length === 0 ? (
+              <EmptyState
+                icon={<Briefcase className="w-6 h-6" />}
+                title={en ? "No matching jobs found" : "কোনো কাজ পাওয়া যায়নি"}
+                description={
+                  en
+                    ? "Try clearing your budget, contract type, or experience filters — or post a new project to hire top Bangladeshi talent."
+                    : "ফিল্টার পরিবর্তন করে আবার খুঁজুন অথবা নতুন কাজ পোস্ট করুন।"
+                }
+                action={
+                  <div className="flex items-center justify-center gap-2">
+                    {hasActiveFilters && (
+                      <button
+                        type="button"
+                        onClick={resetAllFilters}
+                        className="h-10 px-4 rounded-lg border border-line-strong bg-white hover:bg-subtle text-ink font-medium text-sm cursor-pointer"
+                      >
+                        {en ? "Reset filters" : "ফিল্টার রিসেট"}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={onOpenPostJob}
+                      className="h-10 px-4 rounded-lg bg-brand hover:bg-brand-hover text-white font-medium text-sm cursor-pointer"
+                    >
+                      {en ? "Post a job" : "কাজ পোস্ট করুন"}
+                    </button>
+                  </div>
+                }
+              />
+            ) : (
+              <ul className="space-y-3">
+                {filteredAndSortedJobs.map((job) => {
+                  const isSaved = savedJobIds.includes(job.id);
+                  return (
+                    <li key={job.id}>
+                      <article className="group bg-white border border-line hover:border-line-strong rounded-xl transition-[border-color,box-shadow] duration-200 hover:shadow-[var(--mk-shadow-elevated)]">
+                        <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-5 md:gap-8">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] text-ink-3">
+                              <span className="font-medium text-brand-strong">{job.category}</span>
+                              <span aria-hidden="true" className="w-1 h-1 rounded-full bg-muted-2" />
+                              <span>{job.jobType}</span>
+                              <span aria-hidden="true" className="w-1 h-1 rounded-full bg-muted-2" />
+                              <span>{job.experienceLevel}</span>
+                              <span className="inline-flex items-center gap-1 ml-auto md:ml-0 text-ink-4">
+                                <Clock className="w-3 h-3" aria-hidden="true" />
+                                {job.postedAt}
+                              </span>
+                            </div>
+
+                            <h3 className="mt-2.5">
+                              <Link
+                                href={`/jobs/${job.id}`}
+                                className="inline-flex items-start gap-1.5 text-[17px] sm:text-lg font-semibold tracking-[-0.025em] leading-snug text-ink hover:text-brand transition-colors"
+                              >
+                                {en ? job.title : job.titleBn || job.title}
+                                <ArrowUpRight
+                                  className="w-4 h-4 mt-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-brand"
+                                  aria-hidden="true"
+                                />
+                              </Link>
+                            </h3>
+
+                            <p className="mt-2 text-[14px] text-ink-3 leading-relaxed line-clamp-2">
+                              {en ? job.description : job.descriptionBn || job.description}
+                            </p>
+
+                            <ul className="mt-4 flex flex-wrap gap-1.5" aria-label={en ? "Skills" : "দক্ষতা"}>
+                              {job.skills.map((skill) => (
+                                <li key={skill} className="px-2 py-0.5 rounded-md text-[12px] font-medium bg-subtle text-ink-2">
+                                  {skill}
+                                </li>
+                              ))}
+                            </ul>
+
+                            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] text-ink-3">
+                              <span className="inline-flex items-center gap-1.5 text-ink font-medium">
+                                {job.clientName}
+                                {job.clientVerified && (
+                                  <ShieldCheck className="w-3.5 h-3.5 text-brand" aria-label={en ? "NID verified" : "যাচাইকৃত"} />
+                                )}
+                              </span>
+                              <span className="inline-flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5 text-ink-4" aria-hidden="true" />
+                                {job.clientLocation}
+                              </span>
+                              <span className="inline-flex items-center gap-1 mk-tabular">
+                                <Star className="w-3.5 h-3.5 fill-accent-bright text-accent-bright" aria-hidden="true" />
+                                {job.clientRating.toFixed(1)}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => onViewJobBids(job)}
+                                className="inline-flex items-center gap-1 font-medium text-ink-2 hover:text-brand cursor-pointer mk-tabular"
+                              >
+                                <FileText className="w-3.5 h-3.5" aria-hidden="true" />
+                                {job.proposalsCount}{" "}
+                                {en ? (job.proposalsCount === 1 ? "proposal" : "proposals") : "বিড জমা"}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Budget & actions */}
+                          <div className="flex md:flex-col items-end justify-between gap-4 pt-4 md:pt-0 border-t md:border-t-0 md:border-l border-line md:pl-8 md:min-w-[200px]">
+                            <div className="md:text-right">
+                              <span className="block text-[12px] text-ink-4">{en ? "Budget" : "বাজেট"}</span>
+                              <span className="block text-2xl font-semibold tracking-[-0.035em] text-ink mk-tabular leading-tight">
+                                ৳{job.budgetBdt.toLocaleString()}
+                              </span>
+                              <span className="block text-[12px] text-ink-3 mt-0.5">
+                                {en ? `~${job.deadlineDays} days` : `আনুমানিক ${job.deadlineDays} দিন`}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => toggleSaveJob(job.id)}
+                                aria-label={isSaved ? (en ? "Unsave job" : "সংরক্ষণ বাতিল") : en ? "Save job" : "সংরক্ষণ করুন"}
+                                aria-pressed={isSaved}
+                                className={`w-9 h-9 inline-flex items-center justify-center rounded-md border transition-colors cursor-pointer ${
+                                  isSaved ? "bg-ink border-ink text-white" : "bg-white border-line text-ink-3 hover:text-ink hover:bg-subtle"
+                                }`}
+                              >
+                                <Bookmark className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => onSelectJobForEscrow(job)}
+                                aria-label={en ? "Preview escrow breakdown" : "এসক্রো হিসাব দেখুন"}
+                                title={en ? "Preview escrow breakdown" : "এসক্রো হিসাব দেখুন"}
+                                className="w-9 h-9 inline-flex items-center justify-center rounded-md border border-line bg-white text-ink-3 hover:text-ink hover:bg-subtle transition-colors cursor-pointer"
+                              >
+                                <Lock className="w-4 h-4" aria-hidden="true" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => onViewJobBids(job)}
+                                className="hidden sm:inline-flex h-9 px-3 items-center rounded-md border border-line bg-white hover:bg-subtle text-ink font-medium text-[13px] transition-colors cursor-pointer"
+                              >
+                                {en ? "View bids" : "বিড দেখুন"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => onSelectJobForProposal(job)}
+                                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md bg-brand hover:bg-brand-hover text-white font-medium text-[13px] transition-colors cursor-pointer"
+                              >
+                                <Send className="w-3.5 h-3.5" aria-hidden="true" />
+                                {en ? "Place bid" : "বিড করুন"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -162,7 +162,7 @@ export default function WorkspacesOverviewPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-[#111315] flex flex-col font-sans selection:bg-[#0F6E50] selection:text-white">
+    <div className="min-h-screen bg-canvas text-ink flex flex-col font-sans selection:bg-brand selection:text-white">
       <Navbar
         lang={lang}
         onToggleLang={toggleLang}
@@ -173,11 +173,11 @@ export default function WorkspacesOverviewPage() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative overflow-hidden pt-14 pb-20 bg-[#0B3B2E] text-[#FAF9F6] border-b border-white/10">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_75%_75%_at_50%_-15%,rgba(124,224,184,0.2),transparent)]" />
+        <section className="relative overflow-hidden pt-14 pb-20 bg-navy text-canvas border-b border-white/10">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_75%_75%_at_50%_-15%,rgba(148,187,228,0.2),transparent)]" />
 
           <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-[#7CE0B8] border border-white/15 text-[11px] font-semibold tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-brand-light border border-white/15 text-[11px] font-semibold tracking-wider">
               <Layers className="w-4 h-4" />
               <span>
                 {lang === "en"
@@ -186,13 +186,13 @@ export default function WorkspacesOverviewPage() {
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1]">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-semibold text-white tracking-tight leading-[1.1]">
               {lang === "en" ? (
                 <>
                   Contract Delivery Workspaces.{" "}
                   <br className="hidden sm:inline" />
                   Built for{" "}
-                  <span className="font-serif italic font-normal text-[#7CE0B8]">
+                  <span className="font-normal text-brand-light">
                     frictionless execution.
                   </span>
                 </>
@@ -201,7 +201,7 @@ export default function WorkspacesOverviewPage() {
                   প্রজেক্ট ডেলিভারি ওয়ার্কস্পেস।{" "}
                   <br className="hidden sm:inline" />
                   ক্লায়েন্ট ও ফ্রিল্যান্সারের{" "}
-                  <span className="font-serif italic font-normal text-[#7CE0B8]">
+                  <span className="font-normal text-brand-light">
                     নিখুঁত কাজের কেন্দ্রবিন্দু
                   </span>
                 </>
@@ -217,7 +217,7 @@ export default function WorkspacesOverviewPage() {
             <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/dashboard"
-                className="px-6 py-3.5 rounded-xl bg-[#0F6E50] hover:bg-[#0B5940] text-white font-semibold text-sm shadow-lg transition-all inline-flex items-center gap-2"
+                className="px-6 py-3.5 rounded-lg bg-brand hover:bg-brand-hover text-white font-semibold text-sm shadow-lg transition-all inline-flex items-center gap-2"
               >
                 <Layers className="w-4 h-4" />
                 <span>
@@ -228,9 +228,9 @@ export default function WorkspacesOverviewPage() {
               </Link>
               <Link
                 href="/escrow"
-                className="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-semibold text-sm border border-white/15 transition-all inline-flex items-center gap-2"
+                className="px-6 py-3.5 rounded-lg bg-white/10 hover:bg-white/15 text-white font-semibold text-sm border border-white/15 transition-all inline-flex items-center gap-2"
               >
-                <ShieldCheck className="w-4 h-4 text-[#7CE0B8]" />
+                <ShieldCheck className="w-4 h-4 text-brand-light" />
                 <span>
                   {lang === "en"
                     ? "Explore Escrow Protection"
@@ -244,12 +244,12 @@ export default function WorkspacesOverviewPage() {
         {/* Interactive Feature Tour */}
         <section className="py-18 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="text-center space-y-2.5">
-            <span className="px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-[0.08em] bg-[#EAF5F0] text-[#0B3B2E] border border-[#C3E3D5]">
+            <span className="px-3 py-1 rounded-full mk-eyebrow bg-brand-soft text-navy border border-brand-border">
               {lang === "en"
                 ? "Interactive Preview"
                 : "ওয়ার্কস্পেস ইন্টারফেস ট্যুর"}
             </span>
-            <h2 className="text-2xl sm:text-4xl font-bold text-[#111315] tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-semibold text-ink tracking-tight">
               {lang === "en"
                 ? "Inside Your Delivery Environment"
                 : "কাজের অগ্রগতির সম্পূর্ণ নিয়ন্ত্রণ"}
@@ -265,21 +265,21 @@ export default function WorkspacesOverviewPage() {
                   key={t.id}
                   type="button"
                   onClick={() => setActiveTourTab(t.id)}
-                  className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer space-y-1.5 ${
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer space-y-1.5 ${
                     isActive
-                      ? "bg-[#0B3B2E] text-white border-[#0B3B2E] shadow-md"
-                      : "bg-white hover:bg-[#F4F2EC] text-[#111315] border-[rgba(17,19,21,0.09)]"
+                      ? "bg-navy text-white border-navy shadow-md"
+                      : "bg-white hover:bg-subtle text-ink border-line"
                   }`}
                 >
                   <IconComp
                     className={`w-4 h-4 ${
-                      isActive ? "text-[#7CE0B8]" : "text-[#0F6E50]"
+                      isActive ? "text-brand-light" : "text-brand"
                     }`}
                   />
                   <p className="text-xs font-semibold line-clamp-1">{t.label}</p>
                   <p
                     className={`text-[10px] line-clamp-1 ${
-                      isActive ? "text-white/70" : "text-[#686E78]"
+                      isActive ? "text-white/70" : "text-ink-3"
                     }`}
                   >
                     {t.desc}
@@ -290,8 +290,8 @@ export default function WorkspacesOverviewPage() {
           </div>
 
           {/* Interactive Browser Frame */}
-          <div className="bg-white rounded-2xl border border-[rgba(17,19,21,0.11)] shadow-[0_18px_44px_-12px_rgba(17,19,21,0.12)] overflow-hidden">
-            <div className="bg-[#0B3B2E] px-5 py-3.5 flex items-center justify-between border-b border-white/10 text-white text-xs">
+          <div className="bg-white rounded-xl border border-line shadow-[var(--mk-shadow-elevated)] overflow-hidden">
+            <div className="bg-navy px-5 py-3.5 flex items-center justify-between border-b border-white/10 text-white text-xs">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-white/30" />
@@ -302,7 +302,7 @@ export default function WorkspacesOverviewPage() {
                   muktokormo/contracts/MK-CTR-8842
                 </span>
               </div>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#7CE0B8]/15 text-[#7CE0B8]">
+              <span className="px-2.5 py-0.5 rounded-full mk-eyebrow bg-brand-light/15 text-brand-light">
                 ESCROW FUNDED • ৳45,000 BDT
               </span>
             </div>
@@ -310,31 +310,31 @@ export default function WorkspacesOverviewPage() {
             <div className="p-6 sm:p-8 space-y-6">
               {activeTourTab === "milestones" && (
                 <div className="space-y-5 mk-fade-in">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[rgba(17,19,21,0.08)]">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-line">
                     <div>
-                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#0B3B2E] bg-[#EAF5F0] px-2.5 py-0.5 rounded-full border border-[#C3E3D5]">
+                      <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-navy bg-brand-soft px-2.5 py-0.5 rounded-full border border-brand-border">
                         CONTRACT MK-CTR-8842
                       </span>
-                      <h3 className="text-lg sm:text-xl font-bold text-[#111315] mt-1.5">
+                      <h3 className="text-lg sm:text-xl font-semibold text-ink mt-1.5">
                         E-Commerce Storefront & SSLCOMMERZ Integration
                       </h3>
-                      <p className="text-xs text-[#686E78]">
+                      <p className="text-xs text-ink-3">
                         Client: Apex Lifestyle BD Ltd. • Specialist: Mahmudul Hasan
                       </p>
                     </div>
                     <div className="flex items-center gap-4 text-right">
                       <div>
-                        <p className="text-[11px] text-[#686E78]">Total Contract</p>
-                        <p className="font-mono text-lg font-bold text-[#111315] mk-tabular">
+                        <p className="text-[11px] text-ink-3">Total Contract</p>
+                        <p className="font-mono text-lg font-semibold text-ink mk-tabular">
                           ৳45,000
                         </p>
                       </div>
-                      <div className="h-8 w-px bg-[rgba(17,19,21,0.1)]" />
+                      <div className="h-8 w-px bg-[rgba(16,24,40,0.1)]" />
                       <div>
-                        <p className="text-[11px] text-[#0F6E50] font-semibold">
+                        <p className="text-[11px] text-brand font-semibold">
                           In Escrow
                         </p>
-                        <p className="font-mono text-lg font-bold text-[#0F6E50] mk-tabular">
+                        <p className="font-mono text-lg font-semibold text-brand mk-tabular">
                           ৳20,000
                         </p>
                       </div>
@@ -342,50 +342,50 @@ export default function WorkspacesOverviewPage() {
                   </div>
 
                   <div className="space-y-3">
-                    <div className="p-4 rounded-xl bg-[#EAF5F0]/70 border border-[#C3E3D5] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="p-4 rounded-lg bg-brand-soft/70 border border-brand-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-start gap-3">
-                        <span className="w-7 h-7 rounded-lg bg-[#0F6E50] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                        <span className="w-7 h-7 rounded-lg bg-brand text-white flex items-center justify-center font-mono font-semibold text-xs shrink-0">
                           1
                         </span>
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="text-xs font-bold text-[#111315]">
+                            <h4 className="text-xs font-semibold text-ink">
                               UI Prototype & Responsive Design
                             </h4>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white text-[#0F6E50] border border-[#C3E3D5]">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white text-brand border border-brand-border">
                               RELEASED
                             </span>
                           </div>
-                          <p className="text-[11px] text-[#3E434A] mt-0.5">
+                          <p className="text-[11px] text-ink-2 mt-0.5">
                             Approved and settled in BDT
                           </p>
                         </div>
                       </div>
-                      <span className="font-mono text-xs font-bold text-[#0F6E50] mk-tabular">
+                      <span className="font-mono text-xs font-semibold text-brand mk-tabular">
                         ৳15,000
                       </span>
                     </div>
 
-                    <div className="p-4 rounded-xl bg-white border-2 border-[#0F6E50] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="p-4 rounded-lg bg-white border-2 border-brand flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-start gap-3">
-                        <span className="w-7 h-7 rounded-lg bg-[#0B3B2E] text-white flex items-center justify-center font-mono font-bold text-xs shrink-0">
+                        <span className="w-7 h-7 rounded-lg bg-navy text-white flex items-center justify-center font-mono font-semibold text-xs shrink-0">
                           2
                         </span>
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="text-xs font-bold text-[#111315]">
+                            <h4 className="text-xs font-semibold text-ink">
                               Payment Checkout & Order Pipeline
                             </h4>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#FEF8EA] text-[#9A6008] border border-[#F0DDA8]">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-accent-soft text-accent-strong border border-accent-border">
                               LOCKED IN ESCROW
                             </span>
                           </div>
-                          <p className="text-[11px] text-[#686E78] mt-0.5">
+                          <p className="text-[11px] text-ink-3 mt-0.5">
                             Webhook verification in progress
                           </p>
                         </div>
                       </div>
-                      <span className="font-mono text-xs font-bold text-[#111315] mk-tabular">
+                      <span className="font-mono text-xs font-semibold text-ink mk-tabular">
                         ৳20,000
                       </span>
                     </div>
@@ -395,35 +395,35 @@ export default function WorkspacesOverviewPage() {
 
               {activeTourTab === "submit" && (
                 <div className="space-y-4 mk-fade-in">
-                  <div className="p-4 rounded-xl bg-[#EAF5F0] border border-[#C3E3D5] text-xs text-[#0B3B2E] flex items-start gap-2.5">
-                    <Sparkles className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                  <div className="p-4 rounded-lg bg-brand-soft border border-brand-border text-xs text-navy flex items-start gap-2.5">
+                    <Sparkles className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                     <span>
                       Freelancers attach live preview URLs, completion summaries, and
                       asset filenames inside the structured submission modal.
                     </span>
                   </div>
-                  <div className="border border-[rgba(17,19,21,0.09)] rounded-xl p-5 space-y-4 bg-[#FAF9F6]">
+                  <div className="border border-line rounded-lg p-5 space-y-4 bg-canvas">
                     <div>
-                      <span className="block text-[11px] font-semibold uppercase tracking-wider text-[#686E78] mb-1">
+                      <span className="block mk-eyebrow text-ink-3 mb-1">
                         Live Preview URL
                       </span>
-                      <div className="flex items-center gap-2 px-3 py-2 bg-white border border-[rgba(17,19,21,0.1)] rounded-xl text-xs text-[#0F6E50] font-mono">
+                      <div className="flex items-center gap-2 px-3 py-2 bg-white border border-line rounded-lg text-xs text-brand font-mono">
                         <ExternalLink className="w-3.5 h-3.5" />
                         <span>https://apex-storefront-demo.vercel.app</span>
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <span className="px-3 py-1 rounded-lg bg-white border border-[rgba(17,19,21,0.1)] text-[11px] font-semibold text-[#111315] inline-flex items-center gap-1.5">
-                        <FileText className="w-3 h-3 text-[#0F6E50]" />
+                      <span className="px-3 py-1 rounded-lg bg-white border border-line text-[11px] font-semibold text-ink inline-flex items-center gap-1.5">
+                        <FileText className="w-3 h-3 text-brand" />
                         checkout_spec_v2.pdf
                       </span>
-                      <span className="px-3 py-1 rounded-lg bg-white border border-[rgba(17,19,21,0.1)] text-[11px] font-semibold text-[#111315] inline-flex items-center gap-1.5">
-                        <FileText className="w-3 h-3 text-[#0F6E50]" />
+                      <span className="px-3 py-1 rounded-lg bg-white border border-line text-[11px] font-semibold text-ink inline-flex items-center gap-1.5">
+                        <FileText className="w-3 h-3 text-brand" />
                         source_snapshot.zip
                       </span>
                     </div>
                     <div className="flex justify-end">
-                      <span className="px-4 py-2 rounded-xl bg-[#0F6E50] text-white font-semibold text-xs inline-flex items-center gap-1.5">
+                      <span className="px-4 py-2 rounded-lg bg-brand text-white font-semibold text-xs inline-flex items-center gap-1.5">
                         <Send className="w-3.5 h-3.5" />
                         Submit Deliverable
                       </span>
@@ -434,32 +434,32 @@ export default function WorkspacesOverviewPage() {
 
               {activeTourTab === "approve" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mk-fade-in">
-                  <div className="p-5 rounded-xl bg-[#EAF5F0]/75 border border-[#C3E3D5] space-y-3">
+                  <div className="p-5 rounded-lg bg-brand-soft/75 border border-brand-border space-y-3">
                     <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-[#0F6E50]" />
-                      <h4 className="text-xs font-bold text-[#0B3B2E]">
+                      <CheckCircle2 className="w-5 h-5 text-brand" />
+                      <h4 className="text-xs font-semibold text-navy">
                         Approve & Release Escrow
                       </h4>
                     </div>
-                    <p className="text-xs text-[#3E434A] leading-relaxed">
+                    <p className="text-xs text-ink-2 leading-relaxed">
                       Authorize release immediately once deliverables satisfy the brief.
                     </p>
-                    <div className="py-2.5 rounded-xl bg-[#0F6E50] text-white text-center font-semibold text-xs">
+                    <div className="py-2.5 rounded-lg bg-brand text-white text-center font-semibold text-xs">
                       Approve & Release ৳20,000
                     </div>
                   </div>
 
-                  <div className="p-5 rounded-xl bg-[#FEF8EA] border border-[#F0DDA8] space-y-3">
+                  <div className="p-5 rounded-lg bg-accent-soft border border-accent-border space-y-3">
                     <div className="flex items-center gap-2">
-                      <RotateCcw className="w-5 h-5 text-[#9A6008]" />
-                      <h4 className="text-xs font-bold text-[#9A6008]">
+                      <RotateCcw className="w-5 h-5 text-accent-strong" />
+                      <h4 className="text-xs font-semibold text-accent-strong">
                         Request Structured Revisions
                       </h4>
                     </div>
-                    <p className="text-xs text-[#3E434A] leading-relaxed">
+                    <p className="text-xs text-ink-2 leading-relaxed">
                       Specify requested changes while escrow remains protected in full.
                     </p>
-                    <div className="py-2.5 rounded-xl bg-[#9A6008] text-white text-center font-semibold text-xs">
+                    <div className="py-2.5 rounded-lg bg-accent-strong text-white text-center font-semibold text-xs">
                       Send Revision Feedback
                     </div>
                   </div>
@@ -467,22 +467,22 @@ export default function WorkspacesOverviewPage() {
               )}
 
               {activeTourTab === "chat" && (
-                <div className="border border-[rgba(17,19,21,0.1)] rounded-xl overflow-hidden mk-fade-in">
-                  <div className="p-3.5 bg-[#0B3B2E] text-white text-xs flex items-center justify-between">
+                <div className="border border-line rounded-lg overflow-hidden mk-fade-in">
+                  <div className="p-3.5 bg-navy text-white text-xs flex items-center justify-between">
                     <span className="font-semibold inline-flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-[#7CE0B8]" />
+                      <span className="w-2 h-2 rounded-full bg-brand-light" />
                       Mahmudul Hasan — Full-Stack Specialist
                     </span>
                     <span className="text-[11px] text-white/65">
                       TalkJS Real-Time Channel
                     </span>
                   </div>
-                  <div className="p-4 bg-[#FAF9F6] space-y-3 text-xs">
-                    <div className="bg-white p-3 rounded-xl border border-[rgba(17,19,21,0.08)] max-w-md">
+                  <div className="p-4 bg-canvas space-y-3 text-xs">
+                    <div className="bg-white p-3 rounded-lg border border-line max-w-md">
                       Looking forward to reviewing the checkout preview!
                     </div>
                     <div className="flex justify-end">
-                      <div className="bg-[#0B3B2E] text-white p-3 rounded-xl max-w-md">
+                      <div className="bg-navy text-white p-3 rounded-lg max-w-md">
                         Deployed on Vercel staging — success and validation callbacks
                         are ready to inspect.
                       </div>
@@ -512,13 +512,13 @@ export default function WorkspacesOverviewPage() {
                   ].map((log) => (
                     <div
                       key={log.title}
-                      className="p-3.5 bg-[#FAF9F6] border border-[rgba(17,19,21,0.08)] rounded-xl flex items-center justify-between gap-4"
+                      className="p-3.5 bg-canvas border border-line rounded-lg flex items-center justify-between gap-4"
                     >
                       <div>
-                        <p className="font-semibold text-[#111315]">{log.title}</p>
-                        <p className="text-[11px] text-[#686E78]">{log.meta}</p>
+                        <p className="font-semibold text-ink">{log.title}</p>
+                        <p className="text-[11px] text-ink-3">{log.meta}</p>
                       </div>
-                      <span className="font-mono text-[10px] text-[#686E78] shrink-0">
+                      <span className="font-mono text-[10px] text-ink-3 shrink-0">
                         {log.time}
                       </span>
                     </div>
@@ -530,10 +530,10 @@ export default function WorkspacesOverviewPage() {
         </section>
 
         {/* 4-Phase Workflow */}
-        <section className="py-16 bg-[#F4F2EC]/75 border-y border-[rgba(17,19,21,0.08)]">
+        <section className="py-16 bg-subtle/75 border-y border-line">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#111315] tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-ink tracking-tight">
                 {lang === "en"
                   ? "From Contract Kickoff to Final Payout"
                   : "চুক্তি শুরু থেকে চূড়ান্ত অনুমোদন পর্যন্ত"}
@@ -543,19 +543,19 @@ export default function WorkspacesOverviewPage() {
               {workflowSteps.map((ws) => (
                 <div
                   key={ws.step}
-                  className="bg-white rounded-2xl p-6 border border-[rgba(17,19,21,0.09)] flex flex-col justify-between space-y-3"
+                  className="bg-white rounded-xl p-6 border border-line flex flex-col justify-between space-y-3"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="w-8 h-8 rounded-lg bg-[#EAF5F0] text-[#0B3B2E] font-mono font-bold text-xs flex items-center justify-center border border-[#C3E3D5]">
+                      <span className="w-8 h-8 rounded-lg bg-brand-soft text-navy font-mono font-semibold text-xs flex items-center justify-center border border-brand-border">
                         0{ws.step}
                       </span>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-[#686E78]">
+                      <span className="mk-eyebrow text-ink-3">
                         {ws.badge}
                       </span>
                     </div>
-                    <h3 className="text-sm font-bold text-[#111315]">{ws.title}</h3>
-                    <p className="text-xs text-[#686E78] leading-relaxed">{ws.desc}</p>
+                    <h3 className="text-sm font-semibold text-ink">{ws.title}</h3>
+                    <p className="text-xs text-ink-3 leading-relaxed">{ws.desc}</p>
                   </div>
                 </div>
               ))}
@@ -566,54 +566,54 @@ export default function WorkspacesOverviewPage() {
         {/* Role Cards */}
         <section className="py-16 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="p-6 sm:p-8 rounded-2xl bg-white border border-[rgba(17,19,21,0.09)] space-y-4">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EDF4FC] text-[#1D5A96] border border-[#C9DCF2] text-xs font-semibold">
+            <div className="p-6 sm:p-8 rounded-xl bg-white border border-line space-y-4">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-soft text-brand-strong border border-brand-border text-xs font-semibold">
                 <Building className="w-3.5 h-3.5" />
                 For Clients
               </span>
-              <h3 className="text-lg font-bold text-[#111315]">
+              <h3 className="text-lg font-semibold text-ink">
                 Complete Oversight & Inspection
               </h3>
-              <ul className="space-y-2.5 text-xs text-[#3E434A]">
+              <ul className="space-y-2.5 text-xs text-ink-2">
                 <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                  <Check className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                   <span>Inspect live preview URLs before authorizing payment</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                  <Check className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                   <span>Track deliverables and revisions cleanly in one dashboard</span>
                 </li>
               </ul>
               <Link
                 href="/dashboard/client"
-                className="text-xs font-semibold text-[#0F6E50] hover:underline inline-flex items-center gap-1 pt-2"
+                className="text-xs font-semibold text-brand hover:underline inline-flex items-center gap-1 pt-2"
               >
                 <span>Open Client Dashboard</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            <div className="p-6 sm:p-8 rounded-2xl bg-white border border-[rgba(17,19,21,0.09)] space-y-4">
-              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAF5F0] text-[#0B3B2E] border border-[#C3E3D5] text-xs font-semibold">
-                <Award className="w-3.5 h-3.5 text-[#0F6E50]" />
+            <div className="p-6 sm:p-8 rounded-xl bg-white border border-line space-y-4">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-soft text-navy border border-brand-border text-xs font-semibold">
+                <Award className="w-3.5 h-3.5 text-brand" />
                 For Freelancers
               </span>
-              <h3 className="text-lg font-bold text-[#111315]">
+              <h3 className="text-lg font-semibold text-ink">
                 Structured Delivery & Escrow Certainty
               </h3>
-              <ul className="space-y-2.5 text-xs text-[#3E434A]">
+              <ul className="space-y-2.5 text-xs text-ink-2">
                 <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                  <Check className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                   <span>Submit live demos, notes, and deliverable files</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-[#0F6E50] shrink-0 mt-0.5" />
+                  <Check className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                   <span>Real-time updates via TalkJS and notifications</span>
                 </li>
               </ul>
               <Link
                 href="/dashboard/freelancer"
-                className="text-xs font-semibold text-[#0F6E50] hover:underline inline-flex items-center gap-1 pt-2"
+                className="text-xs font-semibold text-brand hover:underline inline-flex items-center gap-1 pt-2"
               >
                 <span>Open Freelancer Dashboard</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -625,11 +625,11 @@ export default function WorkspacesOverviewPage() {
         {/* FAQs */}
         <section className="py-14 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#0F6E50] uppercase tracking-[0.08em]">
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand uppercase tracking-[0.08em]">
               <HelpCircle className="w-4 h-4" />
               <span>Workspace Q&A</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#111315] tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold text-ink tracking-tight">
               Frequently Asked Questions
             </h2>
           </div>
@@ -640,17 +640,17 @@ export default function WorkspacesOverviewPage() {
               return (
                 <div
                   key={idx}
-                  className="bg-white rounded-2xl border border-[rgba(17,19,21,0.09)] overflow-hidden"
+                  className="bg-white rounded-xl border border-line overflow-hidden"
                 >
                   <button
                     type="button"
                     onClick={() => toggleFaq(idx)}
-                    className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-[#FAF9F6]"
+                    className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-canvas"
                   >
-                    <span className="font-semibold text-xs sm:text-sm text-[#111315]">
+                    <span className="font-semibold text-xs sm:text-sm text-ink">
                       {faq.q}
                     </span>
-                    <span className="p-1.5 rounded-lg bg-[#F4F2EC] text-[#686E78] shrink-0">
+                    <span className="p-1.5 rounded-lg bg-subtle text-ink-3 shrink-0">
                       {isOpen ? (
                         <ChevronUp className="w-4 h-4" />
                       ) : (
@@ -659,7 +659,7 @@ export default function WorkspacesOverviewPage() {
                     </span>
                   </button>
                   {isOpen && (
-                    <div className="px-5 pb-5 pt-2 text-xs text-[#3E434A] leading-relaxed border-t border-[rgba(17,19,21,0.07)]">
+                    <div className="px-5 pb-5 pt-2 text-xs text-ink-2 leading-relaxed border-t border-line">
                       {faq.a}
                     </div>
                   )}
@@ -670,9 +670,9 @@ export default function WorkspacesOverviewPage() {
         </section>
 
         {/* Bottom CTA */}
-        <section className="py-16 bg-[#0B3B2E] text-white border-t border-white/10">
+        <section className="py-16 bg-navy text-white border-t border-white/10">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5">
-            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-semibold tracking-tight">
               {lang === "en"
                 ? "Start Delivering Projects Inside Your Workspace"
                 : "এসক্রো সুরক্ষায় শুরু করুন পেশাদার প্রজেক্ট ডেলিভারি"}
@@ -680,16 +680,16 @@ export default function WorkspacesOverviewPage() {
             <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
               <Link
                 href="/dashboard"
-                className="px-6 py-3 rounded-xl bg-[#0F6E50] hover:bg-[#0B5940] text-white font-semibold text-xs sm:text-sm inline-flex items-center gap-2"
+                className="px-6 py-3 rounded-lg bg-brand hover:bg-brand-hover text-white font-semibold text-xs sm:text-sm inline-flex items-center gap-2"
               >
                 <Layers className="w-4 h-4" />
                 <span>Access Dashboard Workspace</span>
               </Link>
               <Link
                 href="/escrow"
-                className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/16 text-white font-semibold text-xs sm:text-sm border border-white/15 inline-flex items-center gap-2"
+                className="px-6 py-3 rounded-lg bg-white/10 hover:bg-white/16 text-white font-semibold text-xs sm:text-sm border border-white/15 inline-flex items-center gap-2"
               >
-                <ShieldCheck className="w-4 h-4 text-[#7CE0B8]" />
+                <ShieldCheck className="w-4 h-4 text-brand-light" />
                 <span>Explore Escrow Protection</span>
               </Link>
             </div>

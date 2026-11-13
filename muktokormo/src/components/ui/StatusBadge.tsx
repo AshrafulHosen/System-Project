@@ -10,21 +10,21 @@ export type StatusTone =
   | "indigo";
 
 const TONE_CLASSES: Record<StatusTone, string> = {
-  emerald: "bg-[#EAF5F0] text-[#0F6E50] border-[#C3E3D5]",
-  sky: "bg-[#EDF4FC] text-[#1D5A96] border-[#C9DCF2]",
-  amber: "bg-[#FEF8EA] text-[#9A6008] border-[#F0DDA8]",
-  rose: "bg-[#FFF1F3] text-[#BE123C] border-[#FCCDD6]",
-  slate: "bg-[#F4F2EC] text-[#4B5563] border-[#E3DFD5]",
-  indigo: "bg-[#EEF2FF] text-[#4338CA] border-[#C7D2FE]",
+  emerald: "bg-success-soft text-success border-success-border",
+  sky: "bg-brand-soft text-brand-strong border-brand-border",
+  amber: "bg-accent-soft text-accent-strong border-accent-border",
+  rose: "bg-danger-soft text-danger-strong border-danger-border",
+  slate: "bg-subtle text-ink-2 border-muted",
+  indigo: "bg-plum-soft text-plum border-plum-border",
 };
 
 const DOT_CLASSES: Record<StatusTone, string> = {
-  emerald: "bg-[#0F6E50]",
-  sky: "bg-[#1D5A96]",
-  amber: "bg-[#C68B30]",
-  rose: "bg-[#BE123C]",
-  slate: "bg-[#686E78]",
-  indigo: "bg-[#4338CA]",
+  emerald: "bg-success",
+  sky: "bg-brand",
+  amber: "bg-accent-bright",
+  rose: "bg-danger",
+  slate: "bg-ink-4",
+  indigo: "bg-plum",
 };
 
 export function StatusPill({
@@ -40,10 +40,10 @@ export function StatusPill({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border whitespace-nowrap ${TONE_CLASSES[tone]} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-medium border whitespace-nowrap ${TONE_CLASSES[tone]} ${className}`}
     >
       {showDot && (
-        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${DOT_CLASSES[tone]}`} />
+        <span aria-hidden="true" className={`w-1.5 h-1.5 rounded-full shrink-0 ${DOT_CLASSES[tone]}`} />
       )}
       <span>{label}</span>
     </span>

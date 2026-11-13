@@ -49,28 +49,43 @@ export default function PlatformStatsSection({
   ];
 
   return (
-    <section className="py-12 bg-[#0B3B2E] text-[#FAF9F6] border-y border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+    <section
+      aria-label={lang === "en" ? "Platform at a glance" : "এক নজরে প্ল্যাটফর্ম"}
+      className="relative bg-navy-ink text-white overflow-hidden"
+    >
+      <div aria-hidden="true" className="absolute inset-0 mk-grid-lines-dark opacity-60" />
+      <div className="relative mk-container py-16 sm:py-20">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-12">
+          <h2 className="text-3xl sm:text-4xl font-semibold tracking-[-0.035em] leading-[1.1] max-w-xl">
+            {lang === "en"
+              ? "Built on local rails, measured in Taka."
+              : "স্থানীয় পেমেন্ট ব্যবস্থায় তৈরি, টাকায় হিসাব।"}
+          </h2>
+          <p className="text-[14px] text-white/55 max-w-sm">
+            {lang === "en"
+              ? "Marketplace counts update live from the platform."
+              : "মার্কেটপ্লেসের সংখ্যাগুলো সরাসরি প্ল্যাটফর্ম থেকে হালনাগাদ হয়।"}
+          </p>
+        </div>
+        <dl className="grid grid-cols-2 lg:grid-cols-4 border-t border-white/12">
           {stats.map((st, idx) => (
             <div
               key={st.label}
-              className={`${
-                idx !== 0 ? "lg:border-l lg:border-white/12 lg:pl-8" : ""
-              } space-y-1`}
+              className={`pt-6 pb-2 pr-4 ${idx % 2 === 1 ? "pl-4 sm:pl-6 border-l border-white/12" : ""} ${
+                idx === 2 ? "lg:pl-6 lg:border-l" : ""
+              } ${idx >= 2 ? "mt-6 lg:mt-0 border-t lg:border-t-0 border-white/12" : ""}`}
             >
-              <span className="font-mono text-2xl sm:text-3xl font-bold text-[#7CE0B8] tracking-tight block mk-tabular">
-                {st.value}
-              </span>
-              <h3 className="text-xs sm:text-sm font-semibold text-white">
-                {st.label}
-              </h3>
-              <p className="text-[11px] text-white/65 leading-snug">{st.note}</p>
+              <dt className="text-[13px] font-medium text-white/85">{st.label}</dt>
+              <dd className="mt-3">
+                <span className="block text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-[-0.045em] text-white mk-tabular leading-none">
+                  {st.value}
+                </span>
+                <span className="mt-3 block text-[12px] text-white/50 leading-snug">{st.note}</span>
+              </dd>
             </div>
           ))}
-        </div>
+        </dl>
       </div>
     </section>
   );
 }
-

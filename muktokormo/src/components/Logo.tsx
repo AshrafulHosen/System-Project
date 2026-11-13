@@ -17,10 +17,10 @@ export default function Logo({
 }: LogoProps) {
   const iconBox =
     size === "sm"
-      ? "w-7 h-7 rounded-lg"
+      ? "w-7 h-7 rounded-md"
       : size === "lg"
-      ? "w-10 h-10 rounded-xl"
-      : "w-8 h-8 rounded-[10px]";
+      ? "w-10 h-10 rounded-lg"
+      : "w-8 h-8 rounded-md";
 
   const wordmarkSize =
     size === "sm"
@@ -34,8 +34,8 @@ export default function Logo({
       <div
         className={`${iconBox} relative flex items-center justify-center shrink-0 transition-transform duration-200 ${
           inverted
-            ? "bg-white/10 border border-white/20 text-white"
-            : "bg-[#0B3B2E] text-white shadow-[0_2px_6px_rgba(11,59,46,0.22)]"
+            ? "bg-white text-navy"
+            : "bg-navy text-white"
         }`}
       >
         <svg
@@ -51,25 +51,25 @@ export default function Logo({
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <circle cx="12" cy="16.5" r="2" fill="#D4A24C" />
+          <circle cx="12" cy="16.5" r="2" fill="#327DCC" />
         </svg>
       </div>
 
       <div className="flex flex-col leading-none">
         <span
-          className={`${wordmarkSize} font-bold tracking-[-0.03em] ${
-            inverted ? "text-white" : "text-[#111315]"
+          className={`${wordmarkSize} font-semibold tracking-[-0.04em] ${
+            inverted ? "text-white" : "text-ink"
           }`}
         >
           Mukto
-          <span className={inverted ? "text-[#7CE0B8]" : "text-[#0F6E50]"}>
+          <span className={inverted ? "text-white/55" : "text-ink-4"}>
             Kormo
           </span>
         </span>
         {showSublabel && (
           <span
             className={`text-[9px] font-semibold uppercase tracking-[0.14em] mt-0.5 ${
-              inverted ? "text-white/55" : "text-[#686E78]"
+              inverted ? "text-white/55" : "text-ink-3"
             }`}
           >
             Escrow Marketplace

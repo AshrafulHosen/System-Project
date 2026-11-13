@@ -23,13 +23,13 @@ export default function DashboardRootPage() {
   }, [loading, role, email, router]);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center p-4">
-      <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-8 text-center space-y-4 max-w-xs w-full shadow-sm">
+    <div className="min-h-screen bg-canvas flex items-center justify-center p-4">
+      <div className="bg-white border border-line rounded-xl p-8 text-center space-y-4 max-w-xs w-full shadow-sm">
         <div className="flex justify-center">
           <Logo size="sm" />
         </div>
-        <div className="w-8 h-8 border-3 border-[#0F6E50] border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-xs font-semibold text-[#3E434A]">
+        <div className="w-8 h-8 border-3 border-brand border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-xs font-semibold text-ink-2">
           Loading your MuktoKormo workspace...
         </p>
       </div>

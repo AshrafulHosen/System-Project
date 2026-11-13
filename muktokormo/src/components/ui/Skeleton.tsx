@@ -4,14 +4,14 @@ export function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={`animate-pulse rounded-xl bg-[#EAE7DF]/80 ${className}`}
+      className={`animate-pulse rounded-xl bg-muted/80 ${className}`}
     />
   );
 }
 
 export function JobCardSkeleton() {
   return (
-    <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-5 sm:p-6 space-y-3.5 shadow-[0_1px_2px_rgba(17,19,21,0.03)]">
+    <div className="bg-white border border-[rgba(16,24,40,0.09)] rounded-2xl p-5 sm:p-6 space-y-3.5 shadow-[0_1px_2px_rgba(16,24,40,0.03)]">
       <div className="flex items-center gap-2">
         <Skeleton className="h-5 w-28 rounded-full" />
         <Skeleton className="h-5 w-20 rounded-full" />
@@ -30,7 +30,7 @@ export function JobCardSkeleton() {
 
 export function FreelancerCardSkeleton() {
   return (
-    <div className="bg-white border border-[rgba(17,19,21,0.09)] rounded-2xl p-6 space-y-4 shadow-[0_1px_2px_rgba(17,19,21,0.03)]">
+    <div className="bg-white border border-[rgba(16,24,40,0.09)] rounded-2xl p-6 space-y-4 shadow-[0_1px_2px_rgba(16,24,40,0.03)]">
       <div className="flex items-center gap-3.5">
         <Skeleton className="w-12 h-12 rounded-xl shrink-0" />
         <div className="space-y-2 flex-1">

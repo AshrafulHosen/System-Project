@@ -10,13 +10,13 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const VARIANT_CLASSES: Record<CardVariant, string> = {
   default:
-    "bg-white border border-[rgba(17,19,21,0.09)] shadow-[0_1px_2px_rgba(17,19,21,0.04),0_4px_12px_-2px_rgba(17,19,21,0.03)] text-[#111315]",
+    "bg-white border border-line shadow-[0_1px_2px_rgba(16,24,40,0.04)] text-ink",
   subtle:
-    "bg-[#F4F2EC] border border-[rgba(17,19,21,0.08)] text-[#111315]",
+    "bg-subtle border border-line text-ink",
   outlined:
-    "bg-white/70 border border-[rgba(17,19,21,0.11)] text-[#111315]",
+    "bg-transparent border border-line-strong text-ink",
   dark:
-    "mk-dark-card text-[#FAF9F6]",
+    "mk-dark-card text-white",
 };
 
 const PADDING_CLASSES = {
@@ -36,9 +36,9 @@ export function Card({
 }: CardProps) {
   return (
     <div
-      className={`rounded-2xl transition-all duration-200 ${VARIANT_CLASSES[variant]} ${PADDING_CLASSES[padding]} ${
+      className={`rounded-xl transition-[border-color,box-shadow,transform] duration-200 ${VARIANT_CLASSES[variant]} ${PADDING_CLASSES[padding]} ${
         interactive
-          ? "hover:border-[rgba(17,19,21,0.18)] hover:shadow-[0_14px_30px_-8px_rgba(17,19,21,0.09)] hover:-translate-y-0.5"
+          ? "hover:border-line-strong hover:shadow-[var(--mk-shadow-elevated)] hover:-translate-y-0.5"
           : ""
       } ${className}`}
       {...rest}
@@ -62,11 +62,11 @@ export function CardHeader({
   return (
     <div className={`flex flex-wrap items-start justify-between gap-3 ${className}`}>
       <div className="min-w-0">
-        <h3 className="text-base font-bold text-[#111315] leading-snug">
+        <h3 className="text-[15px] sm:text-base font-semibold text-ink leading-snug tracking-[-0.02em]">
           {title}
         </h3>
         {subtitle && (
-          <p className="text-xs text-[#686E78] mt-1 leading-relaxed">
+          <p className="text-[13px] text-ink-3 mt-1 leading-relaxed">
             {subtitle}
           </p>
         )}

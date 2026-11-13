@@ -1,22 +1,10 @@
 import type { Metadata } from "next";
-import {
-  Hind_Siliguri,
-  JetBrains_Mono,
-  Newsreader,
-  Plus_Jakarta_Sans,
-} from "next/font/google";
+import { Hind_Siliguri, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-plus-jakarta",
-  display: "swap",
-});
-
-const newsreader = Newsreader({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  variable: "--font-newsreader",
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -55,10 +43,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plusJakarta.variable} ${newsreader.variable} ${jetbrainsMono.variable} ${hindSiliguri.variable} h-full antialiased scroll-smooth`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${hindSiliguri.variable} h-full antialiased scroll-smooth`}
     >
       <body
-        className="min-h-full flex flex-col bg-[#FAF9F6] text-[#111315] font-sans overflow-x-clip"
+        className="min-h-full flex flex-col bg-canvas text-ink font-sans overflow-x-clip"
         suppressHydrationWarning
       >
         {children}
