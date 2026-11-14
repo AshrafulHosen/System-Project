@@ -31,6 +31,7 @@ import {
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import WorkspaceMessagesSection from "@/components/dashboard/WorkspaceMessagesSection";
 import WorkspaceSection from "@/components/dashboard/WorkspaceSection";
+import MyReviewsSection from "@/components/reviews/MyReviewsSection";
 import { PageHeader, SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
 import {
   ProposalTracker,
@@ -542,6 +543,8 @@ function FreelancerDashboardContent() {
             }
           />
         )}
+
+        {activeTab === "reviews" && <MyReviewsSection role="freelancer" lang={lang} />}
 
         {/* Stats Grid (Only on Overview) */}
         {activeTab === "overview" && (

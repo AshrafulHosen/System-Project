@@ -68,11 +68,12 @@ function withTestSandboxEnv(
     });
 }
 
-test("[Unit] Server fee breakdown calculates 10% platform commission & 90% freelancer payable cleanly", () => {
+test("[Unit] Server fee breakdown calculates the default 7% platform commission & 93% freelancer payable cleanly", () => {
+  assert.equal(DEFAULT_PLATFORM_FEE_PCT, 7);
   const std = calculateContractFeeBreakdown(10000, DEFAULT_PLATFORM_FEE_PCT);
   assert.equal(std.grossAmount, 10000);
-  assert.equal(std.platformFeeAmount, 1000);
-  assert.equal(std.freelancerPayableAmount, 9000);
+  assert.equal(std.platformFeeAmount, 700);
+  assert.equal(std.freelancerPayableAmount, 9300);
   assert.equal(roundBdt(std.platformFeeAmount + std.freelancerPayableAmount), std.grossAmount);
 
   const frac = calculateContractFeeBreakdown(1234.55, 10);

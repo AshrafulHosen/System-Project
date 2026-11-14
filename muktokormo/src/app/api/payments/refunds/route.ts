@@ -169,6 +169,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Milestone contracts use per-milestone endpoints (/api/milestones/[id]).
+    if (String((ctx.contractRow as { billing_mode?: string | null }).billing_mode ?? "SINGLE").toUpperCase() === "MILESTONE") {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "MILESTONE_CONTRACT",
+          error: "This is a milestone contract. Open a dispute on the affected milestone; an administrator can refund it.",
+        },
+        { status: 409 }
+      );
+    }
+
     if (!ctx.isContractClient) {
       return NextResponse.json(
         {

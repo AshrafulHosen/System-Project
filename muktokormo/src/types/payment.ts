@@ -53,6 +53,8 @@ export type RefundMode = "SIMULATED_INTERNAL" | "SSLCOMMERZ_SANDBOX_API";
 export interface PaymentRecord {
   id: string;
   contract_id: string;
+  /** Set when the payment funds one milestone of a milestone-based contract. */
+  milestone_id?: string | null;
   client_id: string;
   freelancer_id: string;
   amount: number;

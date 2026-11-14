@@ -27,6 +27,8 @@ import {
   ExternalLink,
   ChevronDown,
   Home,
+  Star,
+  Flag,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { Avatar } from "@/components/ui";
@@ -45,6 +47,8 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Search,
   UserCircle,
   Layers,
+  Star,
+  Flag,
 };
 
 interface DashboardShellProps {

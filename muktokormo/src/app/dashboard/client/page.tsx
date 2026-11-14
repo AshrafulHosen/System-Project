@@ -39,6 +39,7 @@ import {
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import WorkspaceMessagesSection from "@/components/dashboard/WorkspaceMessagesSection";
 import WorkspaceSection from "@/components/dashboard/WorkspaceSection";
+import MyReviewsSection from "@/components/reviews/MyReviewsSection";
 import { PageHeader, SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
 import { DraftJobsTable } from "@/components/dashboard/Widgets";
 import PaymentHistoryTable from "@/components/payments/PaymentHistoryTable";
@@ -730,6 +731,8 @@ function ClientDashboardContent() {
             />
           </div>
         )}
+
+        {activeTab === "reviews" && <MyReviewsSection role="client" lang={lang} />}
 
         {/* Stats Grid */}
         {activeTab === "overview" && (

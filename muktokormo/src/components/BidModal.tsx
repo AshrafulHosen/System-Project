@@ -13,15 +13,14 @@ import {
   Layers,
   Plus,
   Trash2,
-  Sparkles,
   Link as LinkIcon,
   TrendingDown,
   TrendingUp,
   Check,
-  Zap,
-  Star,
 } from "lucide-react";
 import useEscapeKey from "@/lib/hooks/useEscapeKey";
+import useCurrentUser from "@/lib/hooks/useCurrentUser";
+import ProposalAssistant from "@/components/ai/ProposalAssistant";
 
 interface BidModalProps {
   job: Job | null;
@@ -39,10 +38,11 @@ export default function BidModal({
   lang,
 }: BidModalProps) {
   useEscapeKey(isOpen, onClose);
-  // Freelancer Info
-  const [freelancerName] = useState("Tanvir Rahman");
-  const [freelancerTitle] = useState("Senior Full-Stack Developer");
-  const [phone, setPhone] = useState("+8801712345678");
+  // Freelancer identity comes from the signed-in account — never hardcoded.
+  const { name: currentUserName } = useCurrentUser();
+  const freelancerName = currentUserName || "Freelancer";
+  const freelancerTitle = "";
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Bidding Terms (initialized from the selected job; component is keyed by job id)
   const [bidAmount, setBidAmount] = useState<number>(job?.budgetBdt || 25000);
@@ -61,13 +61,12 @@ export default function BidModal({
 
   // Payment method
   const [payoutMethod, setPayoutMethod] = useState<"BKASH" | "NAGAD" | "ROCKET" | "BANK">("BKASH");
-  const [payoutAccount, setPayoutAccount] = useState("+8801712-345678");
+  const [payoutAccount, setPayoutAccount] = useState("");
 
   // Pitch & Portfolio
-  const [coverLetter, setCoverLetter] = useState(
-    "Hello! I have reviewed your project requirements in detail. I have 4+ years of hands-on experience building production-grade solutions in Bangladesh with local payment gateways and zero downtime. I can start immediately and guarantee full revisions until you are completely satisfied."
-  );
-  const [portfolioLink, setPortfolioLink] = useState("https://github.com/tanvir-dev/showcase");
+  // Starts empty: the freelancer writes it, or drafts it with the AI assistant.
+  const [coverLetter, setCoverLetter] = useState("");
+  const [portfolioLink, setPortfolioLink] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
   if (!isOpen || !job) return null;
@@ -85,23 +84,6 @@ export default function BidModal({
   const isBelowBudget = budgetDiff < 0;
   const isAboveBudget = budgetDiff > 0;
   const isExactBudget = budgetDiff === 0;
-
-  // Quick Pitch Presets
-  const applyPitchPreset = (type: "speed" | "quality" | "value") => {
-    if (type === "speed") {
-      setCoverLetter(
-        `Hi ${job.clientName.split(" ")[0]}! I have completed identical ${job.skills[0] || "relevant"} projects. I have availability right now and can deliver your project within ${Math.max(2, Math.round(deliveryDays * 0.7))} days with daily progress updates and high-speed communication.`
-      );
-    } else if (type === "quality") {
-      setCoverLetter(
-        `Dear ${job.clientName.split(" ")[0]}, I am a NID-verified professional specializing in ${job.skills.slice(0, 3).join(", ")}. My approach focuses on production-grade quality, clean code architecture, and a seamless client experience with zero post-launch bugs.`
-      );
-    } else {
-      setCoverLetter(
-        `Hello! I offer an optimal balance of competitive pricing and high-end delivery for ${job.title}. This bid includes complete documentation, deployment support, and 30 days of complimentary maintenance support.`
-      );
-    }
-  };
 
   const handleAddMilestone = () => {
     const newId = `m-${Date.now()}`;
@@ -130,21 +112,43 @@ export default function BidModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
+    const account = payoutAccount.replace(/[\s-]/g, "");
+    const mobileOk = /^(?:\+?88)?01[3-9]\d{8}$/.test(account);
+    if (payoutMethod === "BANK" ? !/^[A-Za-z0-9]{6,24}$/.test(account) : !mobileOk) {
+      setFormError(
+        payoutMethod === "BANK"
+          ? "Enter a valid bank account number (6–24 letters or digits)."
+          : `Enter your ${payoutMethod.toLowerCase()} mobile number, e.g. 01XXXXXXXXX.`
+      );
+      return;
+    }
+    if (coverLetter.trim().length < 50) {
+      setFormError("Write a cover letter of at least 50 characters, or draft one with the AI assistant.");
+      return;
+    }
+    const portfolio = portfolioLink.trim();
+    if (portfolio && !/^https?:\/\//i.test(portfolio)) {
+      setFormError("Portfolio link must start with http:// or https://.");
+      return;
+    }
 
     const submission: ProposalSubmission = {
       jobId: job.id,
       freelancerName,
       freelancerTitle,
-      freelancerAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+      freelancerAvatar: "",
       bidAmountBdt: bidAmount,
       platformFeeBdt: platformFee,
       netEarnedBdt: netEarnings,
       deliveryDays,
-      coverLetter,
-      phone,
+      coverLetter: coverLetter.trim(),
+      // Stored as the proposal's payout account (see handleSubmitBid on the home page)
+      phone: payoutAccount.replace(/[\s-]/g, ""),
       biddingType,
       milestones: biddingType === "MILESTONES" ? milestones : undefined,
-      portfolioLinks: portfolioLink.trim() ? [portfolioLink.trim()] : [],
+      portfolioLinks: portfolio ? [portfolio] : [],
       payoutMethod,
     };
 
@@ -205,8 +209,8 @@ export default function BidModal({
             </h4>
             <p className="text-sm text-ink-2 max-w-md mx-auto font-mono mk-tabular leading-relaxed">
               {lang === "en"
-                ? `Your proposal of ৳${bidAmount.toLocaleString()} BDT has been sent to ${job.clientName}. You will receive an SMS alert at ${phone} when the client reviews your bid.`
-                : `আপনার ৳${bidAmount.toLocaleString()} টাকার প্রস্তাবনা ক্লায়েন্টের কাছে পাঠানো হয়েছে। ক্লায়েন্ট দেখলে ${phone} নম্বরে SMS নোটিফিকেশন পাবেন।`}
+                ? `Your proposal of ৳${bidAmount.toLocaleString()} BDT has been sent to ${job.clientName}. Track it under My Bids.`
+                : `আপনার ৳${bidAmount.toLocaleString()} টাকার প্রস্তাবনা ক্লায়েন্টের কাছে পাঠানো হয়েছে। আমার বিড অংশে এটি দেখতে পাবেন।`}
             </p>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-canvas border border-line text-navy text-xs font-semibold">
               <ShieldCheck className="w-4 h-4 text-brand" />
@@ -445,48 +449,38 @@ export default function BidModal({
                   ))}
                   <input
                     type="text"
+                    required
+                    aria-label={payoutMethod === "BANK" ? "Bank account number" : `${payoutMethod} mobile number`}
                     value={payoutAccount}
                     onChange={(e) => setPayoutAccount(e.target.value)}
-                    placeholder="Mobile / Account"
+                    placeholder={payoutMethod === "BANK" ? "Account number" : "01XXXXXXXXX"}
                     className="w-36 px-2.5 py-1 bg-white border border-line-strong rounded-lg text-xs font-mono mk-tabular font-semibold text-ink focus:outline-hidden focus:ring-1 focus:ring-brand"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Quick Pitch Presets */}
+            {/* Cover letter + AI proposal assistant */}
             <div>
               <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                <label className="text-xs font-semibold text-ink-2">
-                  {lang === "en" ? "Cover Letter & Proposal Pitch" : "কভার লেটার ও প্রস্তাবনার বিবরণ"}
+                <label htmlFor="bid-cover-letter" className="text-xs font-semibold text-ink-2">
+                  {lang === "en" ? "Cover letter" : "কভার লেটার"}
                 </label>
-                <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                  <span className="text-ink-3 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-accent" />
-                    Quick Presets:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => applyPitchPreset("speed")}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-subtle hover:bg-brand-soft text-ink-2 hover:text-navy font-semibold cursor-pointer transition-colors"
-                  >
-                    <Zap className="w-3 h-3 text-accent" />
-                    <span>Fast Delivery</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => applyPitchPreset("quality")}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-subtle hover:bg-brand-soft text-ink-2 hover:text-navy font-semibold cursor-pointer transition-colors"
-                  >
-                    <Star className="w-3 h-3 text-accent" />
-                    <span>Senior Quality</span>
-                  </button>
-                </div>
+                <span className="text-[11px] text-ink-4 mk-tabular">{coverLetter.trim().length} / 6000</span>
               </div>
 
+              <ProposalAssistant
+                jobId={job.id}
+                currentDraft={coverLetter}
+                onApply={(text) => setCoverLetter(text)}
+                lang={lang}
+              />
+
               <textarea
-                rows={4}
+                id="bid-cover-letter"
+                rows={8}
                 required
+                maxLength={6000}
                 value={coverLetter}
                 onChange={(e) => setCoverLetter(e.target.value)}
                 placeholder="Explain why you are the best fit for this project..."
@@ -512,19 +506,11 @@ export default function BidModal({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-ink-2 mb-1">
-                  SMS Notification Phone (+880)
-                </label>
-                <input
-                  type="tel"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3 py-2 bg-canvas border border-line-strong rounded-lg text-xs font-mono mk-tabular text-ink focus:outline-hidden focus:ring-2 focus:ring-brand focus:bg-white"
-                />
-              </div>
             </div>
+
+            {formError && (
+              <p role="alert" className="text-[13px] font-medium text-danger-strong">{formError}</p>
+            )}
 
             {/* Action Buttons */}
             <div className="pt-3 border-t border-line flex items-center justify-between">

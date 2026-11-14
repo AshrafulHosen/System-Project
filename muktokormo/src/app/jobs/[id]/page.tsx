@@ -24,6 +24,7 @@ import { createClient } from "@/lib/supabase/client";
 import useCurrentUser from "@/lib/hooks/useCurrentUser";
 import { fetchOpenJobs, fetchJobById } from "@/lib/data/jobs";
 import { fetchProposalsForJob, submitProposal, updateProposalStatus } from "@/lib/data/proposals";
+import ProposalAssistant from "@/components/ai/ProposalAssistant";
 import { createContractFromProposal } from "@/lib/data/contracts";
 import { formatBdt } from "@/lib/format";
 import { PLATFORM_FEE_PCT } from "@/lib/data/mappers";
@@ -92,7 +93,7 @@ function BidModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-line-strong space-y-5 animate-in fade-in zoom-in-95 duration-150"
+        className="bg-white rounded-xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl border border-line-strong space-y-5 animate-in fade-in zoom-in-95 duration-150"
       >
         {done ? (
           <div className="py-8 text-center space-y-3">
@@ -151,8 +152,9 @@ function BidModal({
 
               {/* Cover letter */}
               <div>
-                <label className="text-xs font-semibold text-ink-2 block mb-1">Cover Letter</label>
-                <textarea rows={5} value={cover} onChange={e => setCover(e.target.value)}
+                <label htmlFor="job-bid-cover" className="text-xs font-semibold text-ink-2 block mb-1">Cover Letter</label>
+                <ProposalAssistant jobId={job.id} currentDraft={cover} onApply={setCover} lang="en" />
+                <textarea id="job-bid-cover" rows={7} maxLength={6000} value={cover} onChange={e => setCover(e.target.value)}
                   placeholder="Explain why you're the best fit for this job..."
                   className="w-full px-3 py-2.5 text-xs text-ink bg-canvas border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white resize-none" />
                 <p className="text-[10px] font-mono mk-tabular text-ink-4 mt-1">{cover.length} chars (min 20)</p>

@@ -144,6 +144,11 @@ export default function PaymentHistoryTable({
                     <p className="text-[11px] text-ink-4 mt-0.5 font-mono mk-tabular">
                       {formatDateShort(p.created_at)}
                     </p>
+                    {p.milestone_id && (
+                      <span className="inline-block mt-1 px-1.5 py-0.5 rounded bg-brand-soft text-brand-strong text-[10px] font-medium">
+                        Milestone payment
+                      </span>
+                    )}
                     {p.validation_id && (
                       <p className="font-mono mk-tabular text-[10px] text-brand mt-0.5">
                         val: {p.validation_id}

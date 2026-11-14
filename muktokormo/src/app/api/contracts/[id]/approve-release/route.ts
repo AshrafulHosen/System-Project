@@ -62,6 +62,18 @@ export async function POST(request: NextRequest, context: RouteContext) {
       );
     }
 
+    // Milestone contracts use per-milestone endpoints (/api/milestones/[id]).
+    if (String((ctx.contractRow as { billing_mode?: string | null }).billing_mode ?? "SINGLE").toUpperCase() === "MILESTONE") {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "MILESTONE_CONTRACT",
+          error: "This is a milestone contract. Approve and release each milestone individually.",
+        },
+        { status: 409 }
+      );
+    }
+
     if (!ctx.isContractClient) {
       return NextResponse.json(
         {

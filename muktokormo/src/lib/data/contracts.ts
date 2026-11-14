@@ -95,6 +95,8 @@ export interface RawContractRow {
   refunded_amount?: number | string | null;
   payment_status?: string | null;
   work_status?: string | null;
+  billing_mode?: string | null;
+  milestone_plan_status?: string | null;
   funded_at?: string | null;
   work_started_at?: string | null;
   submission_notes?: string | null;
@@ -369,7 +371,7 @@ export function mapRowToWorkspaceContract(
       avatar:
         client?.avatar_url ||
         "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
-      rating: client?.rating ?? 4.9,
+      rating: Number(client?.rating ?? 0),
       isVerified: client?.is_verified ?? true,
     },
     freelancer: {
@@ -380,7 +382,7 @@ export function mapRowToWorkspaceContract(
       avatar:
         freelancer?.avatar_url ||
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-      rating: freelancer?.rating ?? 4.95,
+      rating: Number(freelancer?.rating ?? 0),
       isNidVerified: freelancer?.is_nid_verified ?? true,
       phone: "Verified on account",
       payoutMethod:
@@ -410,6 +412,8 @@ export function mapRowToWorkspaceContract(
     remainingBdt,
     paymentStatus,
     workStatus,
+    billingMode: String(row.billing_mode ?? "SINGLE").toUpperCase() === "MILESTONE" ? "MILESTONE" : "SINGLE",
+    milestonePlanStatus: row.milestone_plan_status ?? null,
     fundedAt: row.funded_at ?? null,
     releasedAt: row.released_at ?? null,
     refundedAt: row.refunded_at ?? null,
@@ -460,7 +464,7 @@ export function mapProposalToContract(prop: RawProposalRow): WorkspaceContract {
       avatar:
         client?.avatar_url ||
         "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
-      rating: client?.rating ?? 4.9,
+      rating: Number(client?.rating ?? 0),
       isVerified: client?.is_verified ?? true,
     },
     freelancer: {
@@ -471,7 +475,7 @@ export function mapProposalToContract(prop: RawProposalRow): WorkspaceContract {
       avatar:
         freelancer?.avatar_url ||
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-      rating: freelancer?.rating ?? 4.95,
+      rating: Number(freelancer?.rating ?? 0),
       isNidVerified: freelancer?.is_nid_verified ?? true,
       phone: "Verified on account",
       payoutMethod:

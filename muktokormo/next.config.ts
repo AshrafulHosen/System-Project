@@ -24,6 +24,8 @@ if (process.env.APP_URL) {
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: Array.from(devOrigins),
+  // Lets integration tests build into a separate folder without touching .next
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
 };
 
 export default nextConfig;

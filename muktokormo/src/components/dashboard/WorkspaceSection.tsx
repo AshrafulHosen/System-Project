@@ -616,6 +616,56 @@ export default function WorkspaceSection({
             const totalMilestones = contract.milestones.length || 1;
             const progressPct = Math.round((completedCount / totalMilestones) * 100);
 
+            // Milestone contracts are funded, delivered and released per milestone on the
+            // contract page; whole-contract actions here would be rejected by the server.
+            if (contract.billingMode === "MILESTONE") {
+              const released = contract.releasedBdt ?? 0;
+              const total = contract.totalBdt || 0;
+              const pct = total > 0 ? Math.min(100, Math.round((released / total) * 100)) : 0;
+              const planPending = contract.milestonePlanStatus && contract.milestonePlanStatus !== "ACCEPTED";
+              return (
+                <div key={contract.id} className="bg-white border border-line rounded-xl p-5 sm:p-6 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono mk-tabular text-[11px] text-ink-3">{contract.contractCode}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-brand-soft text-brand-strong text-[11px] font-medium">
+                          {lang === "en" ? "Milestone contract" : "মাইলস্টোন চুক্তি"}
+                        </span>
+                        {planPending && (
+                          <span className="px-1.5 py-0.5 rounded bg-accent-soft text-accent-strong text-[11px] font-medium">
+                            {lang === "en" ? "Plan awaiting agreement" : "পরিকল্পনা অনুমোদনের অপেক্ষায়"}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="mt-1.5 text-[15px] font-semibold text-ink truncate">
+                        {lang === "en" ? contract.title : contract.titleBn || contract.title}
+                      </h3>
+                      <p className="text-[13px] text-ink-3">
+                        {isClient ? (lang === "en" ? "Talent: " : "ফ্রিল্যান্সার: ") : (lang === "en" ? "Client: " : "ক্লায়েন্ট: ")}
+                        {partner.name}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/contracts/${contract.id}`}
+                      className="shrink-0 inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-md bg-brand hover:bg-brand-hover text-white text-[13px] font-medium transition-colors"
+                    >
+                      {lang === "en" ? "Manage milestones" : "মাইলস্টোন পরিচালনা"}
+                    </Link>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-[12px] text-ink-3 mb-1.5 mk-tabular">
+                      <span>{lang === "en" ? "Released" : "রিলিজড"} ৳{released.toLocaleString("en-US")}</span>
+                      <span>{lang === "en" ? "of" : "মোট"} ৳{total.toLocaleString("en-US")}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-subtle overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                      <div className="h-full bg-success rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <div
                 key={contract.id}
