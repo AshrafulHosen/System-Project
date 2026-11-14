@@ -47,7 +47,18 @@ interface ContractLookupRow {
   client_id?: string | null;
   freelancer_id?: string | null;
   project_id?: string | null;
+  billing_mode?: string | null;
+  milestone_plan_status?: string | null;
   proposals?: ContractProposalEmbed | ContractProposalEmbed[] | null;
+}
+
+interface MilestoneLookupRow {
+  id: string;
+  contract_id: string;
+  title: string;
+  amount: number | string;
+  status: string;
+  agreement_status: string;
 }
 
 function first<T>(val: T | T[] | null | undefined): T | undefined {
@@ -58,9 +69,9 @@ function first<T>(val: T | T[] | null | undefined): T | undefined {
 export async function POST(request: NextRequest) {
   try {
     // 1. Parse and validate input (amount & financial params are NEVER accepted from client)
-    let body: { contractId?: unknown };
+    let body: { contractId?: unknown; milestoneId?: unknown };
     try {
-      body = (await request.json()) as { contractId?: unknown };
+      body = (await request.json()) as { contractId?: unknown; milestoneId?: unknown };
     } catch {
       return Response.json({ error: "Invalid JSON request body." }, { status: 400 });
     }
@@ -69,6 +80,16 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: "A valid contractId UUID is required." }, { status: 400 });
     }
     const contractId = body.contractId.trim();
+
+    // Optional: which milestone to fund (required for milestone-based contracts)
+    const rawMilestoneId =
+      body.milestoneId === undefined || body.milestoneId === null || body.milestoneId === ""
+        ? null
+        : body.milestoneId;
+    if (rawMilestoneId !== null && !isUuid(rawMilestoneId)) {
+      return Response.json({ error: "milestoneId must be a valid UUID." }, { status: 400 });
+    }
+    const milestoneId = rawMilestoneId === null ? null : String(rawMilestoneId).trim();
 
     // 2. Authenticate caller using SSR Supabase session cookies before initializing admin clients
     const serverSupabase = await createServerSupabase();
@@ -92,7 +113,7 @@ export async function POST(request: NextRequest) {
     const { data: contractRow, error: contractErr } = await adminDb
       .from("contracts")
       .select(
-        "id, contract_code, total_amount, platform_fee_pct, status, payment_status, client_id, freelancer_id, project_id, proposals(id, project_id, freelancer_id, projects(id, title, category, client_id, clients(id, user_id, display_name, company_name, location)))"
+        "id, contract_code, total_amount, platform_fee_pct, status, payment_status, client_id, freelancer_id, project_id, billing_mode, milestone_plan_status, proposals(id, project_id, freelancer_id, projects(id, title, category, client_id, clients(id, user_id, display_name, company_name, location)))"
       )
       .eq("id", contractId)
       .maybeSingle();
@@ -152,49 +173,125 @@ export async function POST(request: NextRequest) {
     }
 
     const currentPayStatus = String(row.payment_status ?? "UNPAID").toUpperCase();
-    if (["FUNDED", "RELEASED", "REFUNDED", "DISPUTED"].includes(currentPayStatus)) {
-      return Response.json(
-        { error: `This contract already has payment status: ${currentPayStatus}.` },
-        { status: 409 }
-      );
-    }
-
-    // Double-check settled or refunding payments table
-    const { data: settledPayment } = await adminDb
-      .from("payments")
-      .select("id, status, transaction_id")
-      .eq("contract_id", contractId)
-      .in("status", ["FUNDED", "RELEASED", "REFUND_REQUESTED"])
-      .maybeSingle();
-
-    if (settledPayment) {
-      return Response.json(
-        {
-          error: `Duplicate funding blocked: contract already has a ${settledPayment.status} payment (${settledPayment.transaction_id}).`,
-        },
-        { status: 409 }
-      );
-    }
-
-    // Prevent rapid double-click duplicate payment requests within 5 seconds
+    const isMilestoneContract = String(row.billing_mode ?? "SINGLE").toUpperCase() === "MILESTONE";
+    let milestoneRow: MilestoneLookupRow | null = null;
     const fiveSecondsAgoIso = new Date(Date.now() - 5000).toISOString();
-    const { data: recentPending } = await adminDb
-      .from("payments")
-      .select("id, created_at")
-      .eq("contract_id", contractId)
-      .eq("status", "PENDING")
-      .gte("created_at", fiveSecondsAgoIso)
-      .maybeSingle();
 
-    if (recentPending) {
-      return Response.json(
-        { error: "A payment session is already being created. Please wait a few seconds before retrying." },
-        { status: 429 }
-      );
+    if (isMilestoneContract) {
+      // ---- Milestone funding: every check is per milestone, amount comes from the DB row
+      if (!milestoneId) {
+        return Response.json(
+          { error: "This is a milestone contract. Choose which milestone to fund." },
+          { status: 400 }
+        );
+      }
+      if (String(row.milestone_plan_status ?? "").toUpperCase() !== "ACCEPTED") {
+        return Response.json(
+          { error: "The milestone plan must be accepted by the freelancer before funding." },
+          { status: 409 }
+        );
+      }
+
+      const { data: msData, error: msErr } = await adminDb
+        .from("contract_milestones")
+        .select("id, contract_id, title, amount, status, agreement_status")
+        .eq("id", milestoneId)
+        .eq("contract_id", contractId)
+        .maybeSingle();
+      if (msErr) {
+        console.error("Milestone lookup failed:", msErr.message);
+        return Response.json({ error: "Failed to load milestone." }, { status: 500 });
+      }
+      if (!msData) {
+        return Response.json({ error: "Milestone not found on this contract." }, { status: 404 });
+      }
+      milestoneRow = msData as MilestoneLookupRow;
+
+      if (milestoneRow.agreement_status !== "ACCEPTED") {
+        return Response.json({ error: "This milestone has not been agreed by both parties." }, { status: 409 });
+      }
+      if (milestoneRow.status !== "PENDING") {
+        return Response.json(
+          { error: `This milestone cannot be funded (current status: ${milestoneRow.status}).` },
+          { status: 409 }
+        );
+      }
+
+      const { data: settledMs } = await adminDb
+        .from("payments")
+        .select("id, status, transaction_id")
+        .eq("milestone_id", milestoneRow.id)
+        .in("status", ["FUNDED", "RELEASED", "REFUND_REQUESTED", "REFUNDED"])
+        .limit(1)
+        .maybeSingle();
+      if (settledMs) {
+        return Response.json(
+          { error: `Duplicate funding blocked: milestone already has a ${settledMs.status} payment (${settledMs.transaction_id}).` },
+          { status: 409 }
+        );
+      }
+
+      const { data: recentMsPending } = await adminDb
+        .from("payments")
+        .select("id")
+        .eq("milestone_id", milestoneRow.id)
+        .eq("status", "PENDING")
+        .gte("created_at", fiveSecondsAgoIso)
+        .limit(1)
+        .maybeSingle();
+      if (recentMsPending) {
+        return Response.json(
+          { error: "A payment session is already being created. Please wait a few seconds before retrying." },
+          { status: 429 }
+        );
+      }
+    } else {
+      if (milestoneId) {
+        return Response.json({ error: "This contract is not milestone-based." }, { status: 400 });
+      }
+          if (["FUNDED", "RELEASED", "REFUNDED", "DISPUTED"].includes(currentPayStatus)) {
+        return Response.json(
+          { error: `This contract already has payment status: ${currentPayStatus}.` },
+          { status: 409 }
+        );
+      }
+
+      // Double-check settled or refunding payments table
+      const { data: settledPayment } = await adminDb
+        .from("payments")
+        .select("id, status, transaction_id")
+        .eq("contract_id", contractId)
+        .in("status", ["FUNDED", "RELEASED", "REFUND_REQUESTED"])
+        .maybeSingle();
+
+      if (settledPayment) {
+        return Response.json(
+          {
+            error: `Duplicate funding blocked: contract already has a ${settledPayment.status} payment (${settledPayment.transaction_id}).`,
+          },
+          { status: 409 }
+        );
+      }
+
+      // Prevent rapid double-click duplicate payment requests within 5 seconds
+      const { data: recentPending } = await adminDb
+        .from("payments")
+        .select("id, created_at")
+        .eq("contract_id", contractId)
+        .eq("status", "PENDING")
+        .gte("created_at", fiveSecondsAgoIso)
+        .maybeSingle();
+
+      if (recentPending) {
+        return Response.json(
+          { error: "A payment session is already being created. Please wait a few seconds before retrying." },
+          { status: 429 }
+        );
+      }
     }
 
     // 6. Compute authoritative contract total and commission on server
-    const contractAmount = Number(row.total_amount);
+    const contractAmount = milestoneRow ? Number(milestoneRow.amount) : Number(row.total_amount);
     if (!Number.isFinite(contractAmount) || contractAmount < MIN_SSLCOMMERZ_AMOUNT_BDT) {
       return Response.json(
         {
@@ -243,6 +340,7 @@ export async function POST(request: NextRequest) {
       .from("payments")
       .insert({
         contract_id: contractId,
+        milestone_id: milestoneRow?.id ?? null,
         client_id: resolvedClientId,
         freelancer_id: resolvedFreelancerId,
         amount: breakdown.grossAmount,
@@ -267,9 +365,10 @@ export async function POST(request: NextRequest) {
     }
 
     // 9. Initiate SSLCOMMERZ Sandbox checkout session
-    const contractTitle =
+    const baseTitle =
       project?.title?.trim() ||
       `MuktoKormo Contract ${row.contract_code || contractId.slice(0, 8)}`;
+    const contractTitle = milestoneRow ? `${baseTitle} — ${milestoneRow.title}`.slice(0, 250) : baseTitle;
     const productCategory = project?.category?.trim() || "Freelance Services";
 
     const gatewayResult = await initiateSslCommerzSession({
@@ -308,7 +407,7 @@ export async function POST(request: NextRequest) {
         })
         .eq("id", pendingPayment.id);
 
-      if (currentPayStatus === "PENDING") {
+      if (!isMilestoneContract && currentPayStatus === "PENDING") {
         await adminDb
           .from("contracts")
           .update({ payment_status: "FAILED" })
@@ -333,7 +432,7 @@ export async function POST(request: NextRequest) {
       })
       .eq("id", pendingPayment.id);
 
-    if (["UNPAID", "FAILED", "CANCELLED"].includes(currentPayStatus)) {
+    if (!isMilestoneContract && ["UNPAID", "FAILED", "CANCELLED"].includes(currentPayStatus)) {
       await adminDb
         .from("contracts")
         .update({ payment_status: "PENDING" })
@@ -345,6 +444,7 @@ export async function POST(request: NextRequest) {
       sandbox: true,
       paymentId: pendingPayment.id,
       transactionId: tranId,
+      milestoneId: milestoneRow?.id ?? null,
       amount: breakdown.grossAmount,
       platformFeePct: breakdown.platformFeePct,
       platformFee: breakdown.platformFeeAmount,

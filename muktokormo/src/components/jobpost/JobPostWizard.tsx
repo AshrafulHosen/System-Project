@@ -25,6 +25,7 @@ import {
 import { JobCategory } from "@/types";
 import { CATEGORIES } from "@/data/mockData";
 import { formatBdt } from "@/lib/format";
+import BriefGenerator, { type AppliedBrief } from "@/components/ai/BriefGenerator";
 
 const STEPS: WizardStep[] = [
   { id: "title", label: "Title", labelBn: "শিরোনাম" },
@@ -73,6 +74,31 @@ export default function JobPostWizard({
   const [isSuccess, setIsSuccess] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
+  const [briefOpen, setBriefOpen] = useState(false);
+  const [briefNotice, setBriefNotice] = useState<string | null>(null);
+
+  // Maps an approved AI brief onto the existing fields. Budget is only set when the
+  // client typed it; nothing is published — the normal steps and Publish button remain.
+  const applyBrief = (b: AppliedBrief) => {
+    if (b.title) setTitle(b.title.slice(0, 120));
+    if (b.description) setDescription(b.description.slice(0, MAX_DESCRIPTION));
+    if (b.skills.length) setSkills(b.skills.slice(0, 10));
+    const cat = CATEGORIES.find((c) => c.name === b.category);
+    if (cat) setCategory(cat.name);
+    if (b.budgetText) {
+      const nums = (b.budgetText.replace(/,/g, "").match(/\d+(?:\.\d+)?/g) ?? []).map(Number).filter((n) => n >= 100);
+      if (nums.length) {
+        setPricing("fixed");
+        setMinBudget(Math.min(...nums));
+        setMaxBudget(Math.max(...nums));
+      }
+    }
+    setBriefNotice(
+      lang === "bn"
+        ? "এআই ব্রিফ ফর্মে যুক্ত হয়েছে। প্রতিটি ধাপ পর্যালোচনা করে নিজে প্রকাশ করুন।"
+        : "Brief applied to the form. Review each step — nothing is published until you click Publish."
+    );
+  };
 
   const visibleSkills = skillQuery
     ? POPULAR_SKILLS.filter((s) => s.toLowerCase().includes(skillQuery.toLowerCase()))
@@ -248,6 +274,24 @@ export default function JobPostWizard({
         {/* STEP 1: TITLE */}
         {step === 0 && (
           <div className="space-y-4 animate-in fade-in duration-200">
+            <button
+              type="button"
+              onClick={() => setBriefOpen(true)}
+              className="w-full flex items-center justify-between gap-3 rounded-lg border border-brand-border bg-brand-soft/50 hover:bg-brand-soft px-4 py-3 text-left transition-colors cursor-pointer"
+            >
+              <span>
+                <span className="block text-[13.5px] font-semibold text-brand-strong">
+                  {lang === "bn" ? "এআই দিয়ে প্রজেক্ট ব্রিফ তৈরি করুন" : "Create project brief with AI"}
+                </span>
+                <span className="block text-[12px] text-ink-3 mt-0.5">
+                  {lang === "bn" ? "সংক্ষেপে ধারণা লিখুন — এআই একটি সম্পাদনাযোগ্য ব্রিফ তৈরি করবে।" : "Describe your idea in a sentence or two — get an editable, structured brief."}
+                </span>
+              </span>
+              <span className="text-brand-strong text-lg" aria-hidden="true">→</span>
+            </button>
+            {briefNotice && (
+              <p role="status" className="text-[12.5px] text-success bg-success-soft border border-success-border rounded-lg px-3 py-2">{briefNotice}</p>
+            )}
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-ink">
                 {lang === "bn" ? "একটি আকর্ষণীয় শিরোনাম দিয়ে শুরু করুন।" : "Let's start with a strong title."}
@@ -697,6 +741,7 @@ export default function JobPostWizard({
           </div>
         )}
       </div>
+      <BriefGenerator isOpen={briefOpen} onClose={() => setBriefOpen(false)} onApply={applyBrief} lang={lang} />
     </OnboardingShell>
   );
 }

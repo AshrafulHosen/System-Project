@@ -24,6 +24,8 @@ import Footer from "@/components/Footer";
 import ContractPaymentSection from "@/components/payments/ContractPaymentSection";
 import WorkDeliverySection from "@/components/payments/WorkDeliverySection";
 import EscrowLedgerCard from "@/components/payments/EscrowLedgerCard";
+import MilestonePanel from "@/components/milestones/MilestonePanel";
+import ContractReviewSection from "@/components/reviews/ContractReviewSection";
 import { INITIAL_WORKSPACE_CONTRACTS } from "@/data/mockContracts";
 import { isUuid, parseProposalContractAlias } from "@/lib/payments/constants";
 import { formatBdt } from "@/lib/format";
@@ -117,6 +119,8 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
   const [submittingRefund, setSubmittingRefund] = useState(false);
   const [refundError, setRefundError] = useState<string | null>(null);
   const [refundSuccess, setRefundSuccess] = useState<string | null>(null);
+  // Resolved by MilestonePanel: milestone contracts hide the single-payment sections.
+  const [billingMode, setBillingMode] = useState<"SINGLE" | "MILESTONE" | null>(null);
 
   const paymentCallbackStatus = searchParams.get("payment");
   const callbackTranId = searchParams.get("tran_id");
@@ -653,7 +657,11 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
                 </p>
                 <div className="flex items-center gap-1 text-accent text-xs font-semibold mt-0.5 font-mono mk-tabular">
                   <Star className="w-3.5 h-3.5 fill-accent" />
-                  <span>{contract.client.rating.toFixed(1)} rating</span>
+                  <span>
+                    {contract.client.rating > 0
+                      ? `${contract.client.rating.toFixed(1)} rating`
+                      : lang === "en" ? "No reviews yet" : "এখনো রিভিউ নেই"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -688,8 +696,18 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
           </div>
         </div>
 
+        {/* Milestone contract (per-milestone funding, delivery & release) */}
+        {isLiveContract && (
+          <MilestonePanel
+            contractId={contract.id}
+            lang={lang}
+            onModeResolved={setBillingMode}
+            onChanged={fetchLiveContract}
+          />
+        )}
+
         {/* Stage A Payment & SSLCOMMERZ Sandbox Section */}
-        {isLiveContract ? (
+        {billingMode === "MILESTONE" ? null : isLiveContract ? (
           <ContractPaymentSection
             contract={contract}
             latestPayment={latestPayment}
@@ -706,7 +724,7 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
         )}
 
         {/* Phase 6 & 7: Work Delivery, Client Approval & Internal Release Section */}
-        {isLiveContract && (
+        {isLiveContract && billingMode !== "MILESTONE" && (
           <WorkDeliverySection
             contract={contract}
             viewerRole={viewerRole}
@@ -716,6 +734,9 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
             onApproveRelease={handleApproveRelease}
           />
         )}
+
+        {/* Two-sided reviews (open once the contract is completed) */}
+        {isLiveContract && <ContractReviewSection contractId={contract.id} lang={lang} />}
 
         {/* Phase 5: Real Internal Escrow Ledger Card */}
         {isLiveContract && (
@@ -729,7 +750,7 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
         )}
 
         {/* Phase 9: Escrow Refund Request & Governance Status */}
-        {isLiveContract && (canClientRequestRefund || refunds.length > 0 || refundSuccess) && (
+        {isLiveContract && billingMode !== "MILESTONE" && (canClientRequestRefund || refunds.length > 0 || refundSuccess) && (
           <section className="bg-white border border-line rounded-xl p-6 shadow-xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-line">
               <div className="flex items-center gap-3">

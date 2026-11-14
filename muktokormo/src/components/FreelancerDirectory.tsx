@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import ProfileReviews from "@/components/reviews/ProfileReviews";
 import {
   fetchFreelancers,
   fetchSavedTalent,
@@ -25,7 +26,6 @@ import {
   X,
   MessageSquare,
   Layers,
-  Clock,
 } from "lucide-react";
 import {
   Avatar,
@@ -305,8 +305,15 @@ export default function FreelancerDirectory({
                       <div className="bg-canvas px-3 py-2">
                         <dt className="text-[11px] text-ink-4">{en ? "Rating" : "রেটিং"}</dt>
                         <dd className="mt-0.5 flex items-center gap-1 text-[13px] font-semibold text-ink mk-tabular">
-                          <Star className="w-3.5 h-3.5 fill-accent-bright text-accent-bright" aria-hidden="true" />
-                          {freelancer.rating.toFixed(1)}
+                          {freelancer.reviewsCount > 0 ? (
+                            <>
+                              <Star className="w-3.5 h-3.5 fill-accent-bright text-accent-bright" aria-hidden="true" />
+                              {freelancer.rating.toFixed(1)}
+                              <span className="font-normal text-ink-4">({freelancer.reviewsCount})</span>
+                            </>
+                          ) : (
+                            <span className="font-medium text-ink-3">{en ? "New" : "নতুন"}</span>
+                          )}
                         </dd>
                       </div>
                       <div className="bg-canvas px-3 py-2">
@@ -386,8 +393,9 @@ export default function FreelancerDirectory({
                   </span>
                   <span className="inline-flex items-center gap-1 text-accent font-semibold mk-tabular">
                     <Star className="w-3.5 h-3.5 fill-accent-bright text-accent-bright" />
-                    {selectedProfile.rating.toFixed(1)} ({selectedProfile.reviewsCount}{" "}
-                    {lang === "en" ? "reviews" : "রিভিউ"})
+                    {selectedProfile.reviewsCount > 0
+                      ? `${selectedProfile.rating.toFixed(1)} (${selectedProfile.reviewsCount} ${lang === "en" ? "reviews" : "রিভিউ"})`
+                      : lang === "en" ? "No reviews yet" : "এখনো রিভিউ নেই"}
                   </span>
                 </div>
               </div>
@@ -425,7 +433,7 @@ export default function FreelancerDirectory({
               <div className="p-3.5 rounded-lg bg-canvas border border-line">
                 <span className="text-[11px] text-ink-3 font-medium flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 text-accent-bright" />
-                  {lang === "en" ? "Verified Reviews" : "ক্লায়েন্ট রিভিউ"}
+                  {lang === "en" ? "Reviews" : "ক্লায়েন্ট রিভিউ"}
                 </span>
                 <span className="font-mono text-base font-bold text-ink mt-1 block mk-tabular">
                   {selectedProfile.reviewsCount}
@@ -440,7 +448,7 @@ export default function FreelancerDirectory({
               items={[
                 { id: "overview", label: lang === "en" ? "Overview & Skills" : "পরিচিতি ও দক্ষতা" },
                 { id: "portfolio", label: lang === "en" ? "Service Readiness" : "সেবাসমূহ" },
-                { id: "track", label: lang === "en" ? "Ratings & History" : "রিভিউ ও রেকর্ড" },
+                { id: "track", label: lang === "en" ? "Reviews" : "রিভিউ" },
               ]}
             />
 
@@ -498,9 +506,6 @@ export default function FreelancerDirectory({
                       className="p-3 rounded-xl bg-white border border-[rgba(16,24,40,0.09)] flex items-center justify-between"
                     >
                       <span className="text-xs font-semibold text-ink">{skill}</span>
-                      <span className="text-[10px] font-semibold text-brand bg-brand-soft px-2 py-0.5 rounded-full">
-                        Verified
-                      </span>
                     </div>
                   ))}
                 </div>
@@ -508,45 +513,7 @@ export default function FreelancerDirectory({
             )}
 
             {profileModalTab === "track" && (
-              <div className="space-y-3">
-                <div className="p-4 rounded-lg bg-canvas border border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-2xl font-bold text-ink mk-tabular">
-                        {selectedProfile.rating.toFixed(1)}
-                      </span>
-                      <div className="flex items-center gap-0.5 text-accent-bright">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <Star
-                            key={i}
-                            className={`w-4 h-4 ${
-                              i <= Math.round(selectedProfile.rating)
-                                ? "fill-accent-bright"
-                                : "text-muted"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-xs text-ink-3 mt-1">
-                      {lang === "en"
-                        ? `Across ${selectedProfile.reviewsCount} completed client evaluations`
-                        : `${selectedProfile.reviewsCount}টি ক্লায়েন্ট মূল্যায়নের ভিত্তিতে`}
-                    </p>
-                  </div>
-                  <div className="text-left sm:text-right">
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand">
-                      <Clock className="w-3.5 h-3.5" />
-                      {selectedProfile.successRate}% On-Scope Completion
-                    </span>
-                    <p className="text-[11px] text-ink-3 mt-0.5">
-                      {selectedProfile.isNidVerified
-                        ? "Porichoy Smart NID Verified"
-                        : "Standard Account"}
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <ProfileReviews profileKind="freelancer" profileId={selectedProfile.id} lang={lang} />
             )}
 
             {/* Footer CTAs */}

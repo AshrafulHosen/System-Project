@@ -13,22 +13,24 @@ import {
 
 export const CLIENT_NAV: NavItem[] = [
   { id: "overview", label: "Overview", labelBn: "সংক্ষিপ্ত বিবরণ", icon: "LayoutDashboard", href: "#overview" },
-  { id: "jobs", label: "My Job Posts", labelBn: "আমার কাজ", icon: "Briefcase", href: "#jobs", badge: 3 },
-  { id: "proposals", label: "Proposals", labelBn: "আবেদন", icon: "Send", href: "#proposals", badge: 12 },
+  { id: "jobs", label: "My Job Posts", labelBn: "আমার কাজ", icon: "Briefcase", href: "#jobs" },
+  { id: "proposals", label: "Proposals", labelBn: "আবেদন", icon: "Send", href: "#proposals" },
   { id: "workspace", label: "Workspace", labelBn: "ওয়ার্কস্পেস", icon: "Layers", href: "#workspace" },
-  { id: "messages", label: "Messages", labelBn: "বার্তা", icon: "MessageSquare", href: "#messages", badge: 4 },
+  { id: "messages", label: "Messages", labelBn: "বার্তা", icon: "MessageSquare", href: "#messages" },
   { id: "payments", label: "Payments", labelBn: "পেমেন্ট", icon: "Wallet", href: "#payments" },
   { id: "disputes", label: "Disputes", labelBn: "বিরোধ", icon: "Gavel", href: "#disputes" },
   { id: "saved", label: "Saved Talent", labelBn: "সংরক্ষিত ট্যালেন্ট", icon: "Bookmark", href: "#saved" },
+  { id: "reviews", label: "Reviews", labelBn: "রিভিউ", icon: "Star", href: "#reviews" },
 ];
 
 export const FREELANCER_NAV: NavItem[] = [
   { id: "overview", label: "Overview", labelBn: "সংক্ষিপ্ত বিবরণ", icon: "LayoutDashboard", href: "#overview" },
   { id: "find-work", label: "Find Work", labelBn: "কাজ খুঁজুন", icon: "Search", href: "#find-work" },
-  { id: "proposals", label: "My Proposals", labelBn: "আমার আবেদন", icon: "Send", href: "#proposals", badge: 5 },
+  { id: "proposals", label: "My Proposals", labelBn: "আমার আবেদন", icon: "Send", href: "#proposals" },
   { id: "workspace", label: "Workspace", labelBn: "ওয়ার্কস্পেস", icon: "Layers", href: "#workspace" },
-  { id: "messages", label: "Messages", labelBn: "বার্তা", icon: "MessageSquare", href: "#messages", badge: 7 },
+  { id: "messages", label: "Messages", labelBn: "বার্তা", icon: "MessageSquare", href: "#messages" },
   { id: "wallet", label: "Wallet & Payouts", labelBn: "ওয়ালেট ও পেমেন্ট", icon: "Wallet", href: "#wallet" },
+  { id: "reviews", label: "Reviews", labelBn: "রিভিউ", icon: "Star", href: "#reviews" },
   { id: "profile", label: "My Profile", labelBn: "আমার প্রোফাইল", icon: "UserCircle", href: "/signup?step=profile" },
 ];
 
@@ -40,6 +42,7 @@ export const ADMIN_NAV: NavItem[] = [
   { id: "contracts", label: "Contracts", labelBn: "চুক্তি", icon: "Handshake", href: "#contracts" },
   { id: "users", label: "User Management", labelBn: "ইউজার ব্যবস্থাপনা", icon: "UserCircle", href: "#users" },
   { id: "disputes", label: "Disputes", labelBn: "বিরোধ", icon: "Gavel", href: "#disputes" },
+  { id: "reviews", label: "Review Moderation", labelBn: "রিভিউ মডারেশন", icon: "Flag", href: "#reviews" },
 ];
 
 export const CLIENT_ONBOARDING_TASKS: OnboardingTask[] = [

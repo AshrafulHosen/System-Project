@@ -26,6 +26,8 @@ import {
 } from "lucide-react";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { SectionHeading, StatCard } from "@/components/dashboard/Primitives";
+import AdminDisputesPanel from "@/components/milestones/AdminDisputesPanel";
+import AdminReviewModerationPanel from "@/components/reviews/AdminReviewModerationPanel";
 import PaymentHistoryTable from "@/components/payments/PaymentHistoryTable";
 import PaymentDetailModal from "@/components/payments/PaymentDetailModal";
 import { ADMIN_NAV } from "@/data/dashboardData";
@@ -1337,6 +1339,22 @@ function AdminDashboardContent() {
                 {lang === "en" ? "Open Payments & Refunds" : "পেমেন্ট ও রিফান্ড দেখুন"}
               </button>
             </div>
+
+            <AdminDisputesPanel lang={lang} />
+          </div>
+        )}
+
+        {/* Review moderation */}
+        {activeTab === "reviews" && (
+          <div id="reviews" className="space-y-4">
+            <SectionHeading
+              title="Review moderation"
+              titleBn="রিভিউ মডারেশন"
+              subtitle="Investigate reported reviews. Every decision is audited and ratings recompute automatically."
+              subtitleBn="রিপোর্ট করা রিভিউ যাচাই করুন।"
+              lang={lang}
+            />
+            <AdminReviewModerationPanel />
           </div>
         )}
 

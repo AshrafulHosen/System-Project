@@ -558,7 +558,7 @@ export async function recordFailedOrCancelledAttempt(params: {
   const adminDb = createAdminClient();
   const { data: paymentData, error: lookupErr } = await adminDb
     .from("payments")
-    .select("id, contract_id, client_id, transaction_id, status, amount, currency")
+    .select("id, contract_id, milestone_id, client_id, transaction_id, status, amount, currency")
     .eq("transaction_id", tranId)
     .maybeSingle();
 
@@ -648,12 +648,16 @@ export async function recordFailedOrCancelledAttempt(params: {
       .eq("id", payment.id)
       .eq("status", "PENDING");
 
-    // Only update contract payment_status if contract is not yet funded/settled
-    await adminDb
-      .from("contracts")
-      .update({ payment_status: params.targetStatus })
-      .eq("id", payment.contract_id)
-      .in("payment_status", ["UNPAID", "PENDING", "FAILED", "CANCELLED"]);
+    // Only update contract payment_status if contract is not yet funded/settled.
+    // Milestone payments never touch the contract aggregate: other milestones
+    // may already be funded, and the DB recomputes milestone contract status.
+    if (!(payment as { milestone_id?: string | null }).milestone_id) {
+      await adminDb
+        .from("contracts")
+        .update({ payment_status: params.targetStatus })
+        .eq("id", payment.contract_id)
+        .in("payment_status", ["UNPAID", "PENDING", "FAILED", "CANCELLED"]);
+    }
 
     // Create deduplicated notification for failed payment
     if (params.targetStatus === "FAILED") {

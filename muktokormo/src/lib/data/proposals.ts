@@ -120,7 +120,7 @@ export async function fetchClientProposals(
       freelancerName: freelancer?.display_name || "Freelancer",
       freelancerAvatar: freelancer?.avatar_url || DEFAULT_AVATAR,
       freelancerTitle: freelancer?.title || "Freelancer",
-      rating: freelancer?.rating ?? 5.0,
+      rating: Number(freelancer?.rating ?? 0),
       reviews: freelancer?.reviews_count ?? 0,
       bidBdt: row.bid_amount,
       deliveryDays: row.delivery_days ?? 0,

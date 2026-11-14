@@ -212,6 +212,9 @@ export interface WorkspaceContract {
   remainingBdt: number;
   paymentStatus?: ContractPaymentStatus;
   workStatus?: ContractWorkStatus;
+  /** SINGLE = one escrow payment; MILESTONE = funded & released per milestone. */
+  billingMode?: "SINGLE" | "MILESTONE";
+  milestonePlanStatus?: string | null;
   fundedAt?: string | null;
   releasedAt?: string | null;
   refundedAt?: string | null;
