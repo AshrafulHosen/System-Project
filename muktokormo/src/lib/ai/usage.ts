@@ -18,12 +18,22 @@ export async function checkAiRateLimit(
   const hourAgo = new Date(now - 3600_000).toISOString();
   const dayAgo = new Date(now - 86_400_000).toISOString();
 
-  const [{ count: hourCount }, { count: dayCount }] = await Promise.all([
+  const [{ count: hourCount, error: hourErr }, { count: dayCount, error: dayErr }] = await Promise.all([
     db.from("ai_generations").select("id", { count: "exact", head: true })
       .eq("user_id", userId).eq("kind", kind).neq("status", "REJECTED").gte("created_at", hourAgo),
     db.from("ai_generations").select("id", { count: "exact", head: true })
       .eq("user_id", userId).eq("kind", kind).neq("status", "REJECTED").gte("created_at", dayAgo),
   ]);
+
+  // Fail closed: without the usage log we can't enforce limits, so don't spend the API key.
+  if (hourErr || dayErr) {
+    console.error("AI rate-limit check failed (is migration 20261114020000 applied?):", (hourErr ?? dayErr)?.message);
+    return {
+      allowed: false,
+      retryAfterSeconds: 60,
+      message: "AI usage tracking isn't set up on this server yet, so AI features are paused. Apply the ai_generation_log migration.",
+    };
+  }
 
   if ((dayCount ?? 0) >= AI_LIMITS.perDay) {
     return { allowed: false, retryAfterSeconds: 3600, message: `Daily AI limit reached (${AI_LIMITS.perDay}). Try again tomorrow.` };
