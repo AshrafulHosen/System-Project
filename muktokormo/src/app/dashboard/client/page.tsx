@@ -42,6 +42,8 @@ import WorkspaceSection from "@/components/dashboard/WorkspaceSection";
 import MyReviewsSection from "@/components/reviews/MyReviewsSection";
 import PhoneVerification from "@/components/profile/PhoneVerification";
 import usePhoneVerificationStatus from "@/lib/hooks/usePhoneVerificationStatus";
+import NIDVerification from "@/components/verification/NIDVerification";
+import useNidVerificationStatus from "@/lib/hooks/useNidVerificationStatus";
 import { PageHeader, SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
 import { DraftJobsTable } from "@/components/dashboard/Widgets";
 import PaymentHistoryTable from "@/components/payments/PaymentHistoryTable";
@@ -230,12 +232,16 @@ function ClientDashboardContent() {
 
   const { userId, clientId, name, email, companyName, avatarUrl, role } = useCurrentUser();
   const phoneStatus = usePhoneVerificationStatus(Boolean(userId));
+  const nidStatus = useNidVerificationStatus(Boolean(userId));
   const onboardingTasks = useMemo(
     () =>
-      CLIENT_ONBOARDING_TASKS.map((task) =>
-        task.id === "phone" && phoneStatus.verified ? { ...task, status: "DONE" as const } : task
-      ),
-    [phoneStatus.verified]
+      CLIENT_ONBOARDING_TASKS.map((task) => {
+        if (task.id === "phone" && phoneStatus.verified) return { ...task, status: "DONE" as const };
+        if (task.id === "nid" && nidStatus.status === "approved") return { ...task, status: "DONE" as const };
+        if (task.id === "nid" && nidStatus.status === "pending") return { ...task, status: "IN_PROGRESS" as const };
+        return task;
+      }),
+    [phoneStatus.verified, nidStatus.status]
   );
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
@@ -258,7 +264,7 @@ function ClientDashboardContent() {
         setActiveTab(tabParam === "contracts" ? "workspace" : tabParam);
       } else if (typeof window !== "undefined") {
         const rawHash = window.location.hash.replace("#", "");
-        const hash = rawHash === "contracts" ? "workspace" : rawHash === "verify-phone" ? "settings" : rawHash;
+        const hash = rawHash === "contracts" ? "workspace" : rawHash === "verify-phone" || rawHash === "verify-nid" ? "settings" : rawHash;
         if (hash && ["overview", "jobs", "proposals", "workspace", "messages", "payments", "disputes", "saved", "reviews", "settings"].includes(hash)) {
           setActiveTab(hash);
         }
@@ -270,7 +276,7 @@ function ClientDashboardContent() {
     const handleHashChange = () => {
       if (typeof window !== "undefined") {
         const rawHash = window.location.hash.replace("#", "");
-        const hash = rawHash === "contracts" ? "workspace" : rawHash === "verify-phone" ? "settings" : rawHash;
+        const hash = rawHash === "contracts" ? "workspace" : rawHash === "verify-phone" || rawHash === "verify-nid" ? "settings" : rawHash;
         if (hash && ["overview", "jobs", "proposals", "workspace", "messages", "payments", "disputes", "saved", "reviews", "settings"].includes(hash)) {
           setActiveTab(hash);
         }
@@ -700,6 +706,7 @@ function ClientDashboardContent() {
       nav={CLIENT_NAV}
       userName={displayName}
       userMeta={displayMeta}
+      identityVerified={nidStatus.verified}
       avatar={avatarUrl || "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?w=100&auto=format&fit=crop&q=80"}
       walletBdt={inEscrowBdt}
       walletLabel={lang === "en" ? "in simulated escrow" : "সিমুলেটেড এসক্রোতে"}
@@ -754,6 +761,7 @@ function ClientDashboardContent() {
               lang={lang}
             />
             <PhoneVerification lang={lang} onStatusChange={phoneStatus.update} />
+            <NIDVerification lang={lang} onStatusChange={nidStatus.update} />
           </div>
         )}
 

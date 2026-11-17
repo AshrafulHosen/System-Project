@@ -29,7 +29,7 @@ export default function WhyMuktokormoSection({ lang }: WhyMuktokormoSectionProps
       icon: ShieldCheck,
       title:
         lang === "en"
-          ? "Porichoy Smart NID Trust Layer"
+          ? "Manual NID Trust Layer"
           : "পরিচয় স্মার্ট এনআইডি নিরাপত্তা",
       desc:
         lang === "en"

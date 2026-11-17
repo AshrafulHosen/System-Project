@@ -246,7 +246,7 @@ export default function EscrowProtectionPage() {
                   sub: "bKash, Nagad, Rocket, Cards",
                 },
                 {
-                  val: "Porichoy",
+                  val: "NID",
                   title: lang === "en" ? "NID Identity Verification" : "এনআইডি যাচাইকৃত",
                   sub: lang === "en" ? "Vetted counterparties" : "বিশ্বস্ত প্রোফাইল",
                 },
@@ -337,7 +337,7 @@ export default function EscrowProtectionPage() {
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-brand-light" />
-                      {lang === "en" ? "Porichoy NID Verified" : "এনআইডি নিশ্চিত"}
+                      {lang === "en" ? "NID documents reviewed" : "এনআইডি নিশ্চিত"}
                     </span>
                   </div>
                 </div>
@@ -695,7 +695,7 @@ export default function EscrowProtectionPage() {
                       Identity Trust
                     </td>
                     <td className="p-4 font-semibold text-brand bg-brand-soft/35">
-                      Porichoy NID Verification
+                      Manual NID document review
                     </td>
                     <td className="p-4">Passport / International KYC</td>
                     <td className="p-4 text-danger-strong font-semibold">

@@ -68,7 +68,7 @@ export default function HowItWorksSection({ lang, showPageLink = false }: HowItW
       title: lang === "en" ? "Verify Identity & Profile" : "প্রোফাইল ও এনআইডি যাচাই",
       desc:
         lang === "en"
-          ? "Complete your Porichoy NID verification, technical specialty tags, and BDT hourly rate."
+          ? "Submit your NID for review, technical specialty tags, and BDT hourly rate."
           : "আপনার দক্ষতা, পোর্টফোলিও এবং পরিচয় এনআইডি যাচাই সম্পন্ন করুন।",
     },
     {

@@ -28,6 +28,7 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import { SectionHeading, StatCard } from "@/components/dashboard/Primitives";
 import AdminDisputesPanel from "@/components/milestones/AdminDisputesPanel";
 import AdminReviewModerationPanel from "@/components/reviews/AdminReviewModerationPanel";
+import AdminNidVerificationsPanel from "@/components/verification/AdminNidVerificationsPanel";
 import PaymentHistoryTable from "@/components/payments/PaymentHistoryTable";
 import PaymentDetailModal from "@/components/payments/PaymentDetailModal";
 import { ADMIN_NAV } from "@/data/dashboardData";
@@ -1341,6 +1342,20 @@ function AdminDashboardContent() {
             </div>
 
             <AdminDisputesPanel lang={lang} />
+          </div>
+        )}
+
+        {/* NID verification management */}
+        {activeTab === "nid-verifications" && (
+          <div id="nid-verifications" className="space-y-4">
+            <SectionHeading
+              title="NID verification management"
+              titleBn="এনআইডি যাচাই ব্যবস্থাপনা"
+              subtitle="Manually review identity documents submitted by clients and freelancers. Approval reflects a visual check, not an Election Commission lookup."
+              subtitleBn="ক্লায়েন্ট ও ফ্রিল্যান্সারদের জমা দেওয়া পরিচয়পত্র হাতে পর্যালোচনা করুন।"
+              lang={lang}
+            />
+            <AdminNidVerificationsPanel />
           </div>
         )}
 

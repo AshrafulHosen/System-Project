@@ -18,8 +18,8 @@ export default function TrustStrip({ lang }: TrustStripProps) {
     },
     {
       icon: BadgeCheck,
-      title: en ? "NID-verified identities" : "এনআইডি-যাচাইকৃত পরিচয়",
-      desc: en ? "Porichoy checks for both sides" : "উভয় পক্ষের পরিচয় যাচাই",
+      title: en ? "Identity-reviewed profiles" : "এনআইডি-যাচাইকৃত পরিচয়",
+      desc: en ? "Manual NID review for both sides" : "উভয় পক্ষের পরিচয় যাচাই",
     },
     {
       icon: FileSignature,

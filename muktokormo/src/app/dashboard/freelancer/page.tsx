@@ -34,6 +34,8 @@ import WorkspaceSection from "@/components/dashboard/WorkspaceSection";
 import MyReviewsSection from "@/components/reviews/MyReviewsSection";
 import PhoneVerification from "@/components/profile/PhoneVerification";
 import usePhoneVerificationStatus from "@/lib/hooks/usePhoneVerificationStatus";
+import NIDVerification from "@/components/verification/NIDVerification";
+import useNidVerificationStatus from "@/lib/hooks/useNidVerificationStatus";
 import { PageHeader, SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
 import {
   ProposalTracker,
@@ -82,12 +84,16 @@ function FreelancerDashboardContent() {
   const deniedFrom = searchParams ? searchParams.get("denied") : null;
   const { userId, name, email, role, freelancerId, avatarUrl, loading: userLoading } = useCurrentUser();
   const phoneStatus = usePhoneVerificationStatus(Boolean(userId));
+  const nidStatus = useNidVerificationStatus(Boolean(userId));
   const onboardingTasks = useMemo(
     () =>
-      FREELANCER_ONBOARDING_TASKS.map((task) =>
-        task.id === "phone" && phoneStatus.verified ? { ...task, status: "DONE" as const } : task
-      ),
-    [phoneStatus.verified]
+      FREELANCER_ONBOARDING_TASKS.map((task) => {
+        if (task.id === "phone" && phoneStatus.verified) return { ...task, status: "DONE" as const };
+        if (task.id === "nid" && nidStatus.status === "approved") return { ...task, status: "DONE" as const };
+        if (task.id === "nid" && nidStatus.status === "pending") return { ...task, status: "IN_PROGRESS" as const };
+        return task;
+      }),
+    [phoneStatus.verified, nidStatus.status]
   );
   const [lang, setLang] = useState<"en" | "bn">("en");
   const tabParam = searchParams ? searchParams.get("tab") : null;
@@ -104,7 +110,7 @@ function FreelancerDashboardContent() {
         setActiveTab("messages");
       } else if (typeof window !== "undefined") {
         const rawHash = window.location.hash.replace("#", "");
-        const hash = rawHash === "contracts" ? "workspace" : rawHash === "verify-phone" ? "profile" : rawHash;
+        const hash = rawHash === "contracts" ? "workspace" : rawHash === "verify-phone" || rawHash === "verify-nid" ? "profile" : rawHash;
         if (hash && ["overview", "find-work", "proposals", "workspace", "messages", "wallet", "reviews", "profile"].includes(hash)) {
           setActiveTab(hash);
         }
@@ -120,7 +126,7 @@ function FreelancerDashboardContent() {
     const handleHashChange = () => {
       if (typeof window !== "undefined") {
         const rawHash = window.location.hash.replace("#", "");
-        const hash = rawHash === "contracts" ? "workspace" : rawHash === "verify-phone" ? "profile" : rawHash;
+        const hash = rawHash === "contracts" ? "workspace" : rawHash === "verify-phone" || rawHash === "verify-nid" ? "profile" : rawHash;
         if (hash && ["overview", "find-work", "proposals", "workspace", "messages", "wallet", "reviews", "profile"].includes(hash)) {
           setActiveTab(hash);
         }
@@ -461,6 +467,7 @@ function FreelancerDashboardContent() {
       nav={FREELANCER_NAV}
       userName={displayName}
       userMeta={email}
+      identityVerified={nidStatus.verified}
       avatar={displayAvatar}
       walletBdt={availableEarningsSimulatedBdt}
       walletLabel={lang === "en" ? "simulated earnings" : "সিমুলেটেড আয়"}
@@ -759,7 +766,7 @@ function FreelancerDashboardContent() {
                             {job.proposalsCount} bids
                           </span>
                           <span className="font-sans font-semibold text-brand">
-                            {job.clientVerified ? "✓ Verified Client" : "Client"}
+                            {job.clientVerified ? "✓ Identity Verified Client" : "Client"}
                           </span>
                         </div>
                       </div>
@@ -1516,6 +1523,9 @@ function FreelancerDashboardContent() {
             />
             {activeTab === "profile" && (
               <PhoneVerification lang={lang} onStatusChange={phoneStatus.update} />
+            )}
+            {activeTab === "profile" && (
+              <NIDVerification lang={lang} onStatusChange={nidStatus.update} />
             )}
             <OnboardingChecklist tasks={onboardingTasks} lang={lang} />
           </div>

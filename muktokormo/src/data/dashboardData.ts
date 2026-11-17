@@ -44,6 +44,7 @@ export const ADMIN_NAV: NavItem[] = [
   { id: "users", label: "User Management", labelBn: "ইউজার ব্যবস্থাপনা", icon: "UserCircle", href: "#users" },
   { id: "disputes", label: "Disputes", labelBn: "বিরোধ", icon: "Gavel", href: "#disputes" },
   { id: "reviews", label: "Review Moderation", labelBn: "রিভিউ মডারেশন", icon: "Flag", href: "#reviews" },
+  { id: "nid-verifications", label: "NID Verification", labelBn: "এনআইডি যাচাই", icon: "IdCard", href: "#nid-verifications" },
 ];
 
 export const CLIENT_ONBOARDING_TASKS: OnboardingTask[] = [

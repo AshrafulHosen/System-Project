@@ -185,7 +185,7 @@ function LoginForm() {
             </div>
 
             <div className="relative z-10 pt-6 border-t border-white/10 flex items-center justify-between text-[11px] text-white/65 font-mono mk-tabular">
-              <span>Porichoy NID Verification</span>
+              <span>Manual NID Verification</span>
               <span className="text-brand-light font-medium">256-bit TLS Encrypted</span>
             </div>
           </div>

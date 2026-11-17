@@ -372,7 +372,7 @@ export function mapRowToWorkspaceContract(
         client?.avatar_url ||
         "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
       rating: Number(client?.rating ?? 0),
-      isVerified: client?.is_verified ?? true,
+      isVerified: client?.is_verified ?? false,
     },
     freelancer: {
       id: row.freelancer_id || freelancer?.id || proposal?.freelancer_id || undefined,
@@ -465,7 +465,7 @@ export function mapProposalToContract(prop: RawProposalRow): WorkspaceContract {
         client?.avatar_url ||
         "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80",
       rating: Number(client?.rating ?? 0),
-      isVerified: client?.is_verified ?? true,
+      isVerified: client?.is_verified ?? false,
     },
     freelancer: {
       id: freelancer?.id || prop.freelancer_id || undefined,

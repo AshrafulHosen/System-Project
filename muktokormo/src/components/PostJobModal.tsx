@@ -48,7 +48,7 @@ export default function PostJobModal({
       clientName: clientName || "Verified Bangladeshi Client",
       clientLocation: clientLocation || "Dhaka, Bangladesh",
       clientRating: 5.0,
-      clientVerified: true,
+      clientVerified: false,
       category,
       description: description || (lang === "en" ? "Looking for skilled Bangladeshi talent to execute this project with guaranteed milestone delivery." : "দক্ষ দেশীয় ফ্রিল্যান্সার দিয়ে কাজটি দ্রুত সম্পন্ন করতে চাই।"),
       budgetBdt: Number(budgetBdt) || 20000,
