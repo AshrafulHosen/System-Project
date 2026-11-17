@@ -30,6 +30,8 @@ import {
   Star,
   Flag,
   Settings,
+  IdCard,
+  ShieldCheck,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { Avatar } from "@/components/ui";
@@ -51,6 +53,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Star,
   Flag,
   Settings,
+  IdCard,
 };
 
 interface DashboardShellProps {
@@ -58,6 +61,8 @@ interface DashboardShellProps {
   nav: NavItem[];
   userName: string;
   userMeta: string;
+  /** Server-confirmed NID approval; shows the Identity Verified mark. */
+  identityVerified?: boolean;
   avatar: string;
   walletBdt?: number;
   walletLabel?: string;
@@ -123,6 +128,7 @@ export default function DashboardShell({
   nav,
   userName,
   userMeta,
+  identityVerified = false,
   avatar,
   walletBdt = 0,
   walletLabel = "",
@@ -686,6 +692,12 @@ export default function DashboardShell({
                   <div className="absolute right-0 mt-2 w-60 bg-white rounded-xl border border-line shadow-[var(--mk-shadow-popover)] overflow-hidden z-50 p-1.5 mk-zoom-in">
                     <div className="px-3 py-2.5 border-b border-line mb-1">
                       <p className="text-[13px] font-semibold text-ink truncate">{userName}</p>
+                      {identityVerified && (
+                        <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-success">
+                          <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
+                          {en ? "Identity verified" : "পরিচয় যাচাইকৃত"}
+                        </p>
+                      )}
                       <p className="text-[12px] text-ink-3 truncate">{userMeta}</p>
                     </div>
                     <button

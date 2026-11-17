@@ -442,7 +442,7 @@ export default function JobFeed({
                               <span className="inline-flex items-center gap-1.5 text-ink font-medium">
                                 {job.clientName}
                                 {job.clientVerified && (
-                                  <ShieldCheck className="w-3.5 h-3.5 text-brand" aria-label={en ? "NID verified" : "যাচাইকৃত"} />
+                                  <ShieldCheck className="w-3.5 h-3.5 text-brand" aria-label={en ? "Identity verified client" : "পরিচয় যাচাইকৃত ক্লায়েন্ট"} />
                                 )}
                               </span>
                               <span className="inline-flex items-center gap-1">

@@ -155,13 +155,13 @@ export default function FreelancerDirectory({
             </h2>
             <p className="mt-4 text-[15px] text-ink-3">
               {en
-                ? "Hire experts with Porichoy NID verification and transparent hourly rates in Taka."
+                ? "Hire experts with reviewed NID documents and transparent hourly rates in Taka."
                 : "জাতীয় পরিচয়পত্র যাচাইকৃত নির্ভরযোগ্য দেশীয় এক্সপার্টদের সাথে সরাসরি কাজ করুন।"}
             </p>
           </div>
           <Badge variant="verified">
             <ShieldCheck className="w-3.5 h-3.5" aria-hidden="true" />
-            {en ? "Porichoy NID verified" : "এনআইডি দ্বারা সত্যায়িত"}
+            {en ? "Identity verified" : "পরিচয় যাচাইকৃত"}
           </Badge>
         </div>
 
@@ -261,9 +261,9 @@ export default function FreelancerDirectory({
                         {freelancer.isNidVerified && (
                           <span
                             className="absolute -bottom-1 -right-1 bg-brand text-white rounded-full p-0.5 ring-2 ring-white"
-                            title={en ? "NID verified" : "এনআইডি যাচাইকৃত"}
+                            title={en ? "Identity verified" : "পরিচয় যাচাইকৃত"}
                           >
-                            <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" aria-label={en ? "NID verified" : "এনআইডি যাচাইকৃত"} />
+                            <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.5]" aria-label={en ? "Identity verified" : "পরিচয় যাচাইকৃত"} />
                           </span>
                         )}
                       </div>
@@ -379,7 +379,7 @@ export default function FreelancerDirectory({
                 <div className="flex flex-wrap items-center gap-2">
                   {selectedProfile.isNidVerified && (
                     <Badge variant="verified">
-                      <ShieldCheck className="w-3 h-3" /> NID Verified
+                      <ShieldCheck className="w-3 h-3" /> Identity Verified
                     </Badge>
                   )}
                   <Badge variant="brand" pulse>

@@ -153,7 +153,7 @@ export default function Home() {
           "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
         freelancerRating: 5.0,
         freelancerReviewsCount: 1,
-        isNidVerified: true,
+        isNidVerified: false,
         bidAmountBdt: submission.bidAmountBdt,
         platformFeeBdt: submission.platformFeeBdt,
         netEarnedBdt: submission.netEarnedBdt,

@@ -368,7 +368,7 @@ export default function JobDetailPage() {
               </span>
               {job.clientVerified && (
                 <span className="flex items-center gap-1 text-brand font-semibold">
-                  <ShieldCheck className="w-3.5 h-3.5" />Verified Client
+                  <ShieldCheck className="w-3.5 h-3.5" />Identity Verified Client
                 </span>
               )}
             </div>
@@ -609,7 +609,7 @@ export default function JobDetailPage() {
               <span className="font-mono mk-tabular font-semibold text-ink">{job.clientRating.toFixed(1)}</span>
               {job.clientVerified && (
                 <span className="ml-2 flex items-center gap-1 text-brand font-semibold">
-                  <ShieldCheck className="w-3.5 h-3.5" />Verified
+                  <ShieldCheck className="w-3.5 h-3.5" />Identity Verified
                 </span>
               )}
             </div>
