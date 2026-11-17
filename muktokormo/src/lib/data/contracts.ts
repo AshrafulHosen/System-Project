@@ -383,7 +383,7 @@ export function mapRowToWorkspaceContract(
         freelancer?.avatar_url ||
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
       rating: Number(freelancer?.rating ?? 0),
-      isNidVerified: freelancer?.is_nid_verified ?? true,
+      isNidVerified: freelancer?.is_nid_verified ?? false,
       phone: "Verified on account",
       payoutMethod:
         proposal?.payout_method === "NAGAD" ||
@@ -476,7 +476,7 @@ export function mapProposalToContract(prop: RawProposalRow): WorkspaceContract {
         freelancer?.avatar_url ||
         "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
       rating: Number(freelancer?.rating ?? 0),
-      isNidVerified: freelancer?.is_nid_verified ?? true,
+      isNidVerified: freelancer?.is_nid_verified ?? false,
       phone: "Verified on account",
       payoutMethod:
         prop.payout_method === "NAGAD" ||

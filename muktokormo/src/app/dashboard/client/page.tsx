@@ -40,6 +40,8 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import WorkspaceMessagesSection from "@/components/dashboard/WorkspaceMessagesSection";
 import WorkspaceSection from "@/components/dashboard/WorkspaceSection";
 import MyReviewsSection from "@/components/reviews/MyReviewsSection";
+import PhoneVerification from "@/components/profile/PhoneVerification";
+import usePhoneVerificationStatus from "@/lib/hooks/usePhoneVerificationStatus";
 import { PageHeader, SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
 import { DraftJobsTable } from "@/components/dashboard/Widgets";
 import PaymentHistoryTable from "@/components/payments/PaymentHistoryTable";
@@ -227,6 +229,14 @@ function ClientDashboardContent() {
   const toggleLang = () => setLang((prev) => (prev === "en" ? "bn" : "en"));
 
   const { userId, clientId, name, email, companyName, avatarUrl, role } = useCurrentUser();
+  const phoneStatus = usePhoneVerificationStatus(Boolean(userId));
+  const onboardingTasks = useMemo(
+    () =>
+      CLIENT_ONBOARDING_TASKS.map((task) =>
+        task.id === "phone" && phoneStatus.verified ? { ...task, status: "DONE" as const } : task
+      ),
+    [phoneStatus.verified]
+  );
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
 
@@ -248,8 +258,8 @@ function ClientDashboardContent() {
         setActiveTab(tabParam === "contracts" ? "workspace" : tabParam);
       } else if (typeof window !== "undefined") {
         const rawHash = window.location.hash.replace("#", "");
-        const hash = rawHash === "contracts" ? "workspace" : rawHash;
-        if (hash && ["overview", "jobs", "proposals", "workspace", "messages", "payments", "disputes", "saved"].includes(hash)) {
+        const hash = rawHash === "contracts" ? "workspace" : rawHash === "verify-phone" ? "settings" : rawHash;
+        if (hash && ["overview", "jobs", "proposals", "workspace", "messages", "payments", "disputes", "saved", "reviews", "settings"].includes(hash)) {
           setActiveTab(hash);
         }
       }
@@ -260,8 +270,8 @@ function ClientDashboardContent() {
     const handleHashChange = () => {
       if (typeof window !== "undefined") {
         const rawHash = window.location.hash.replace("#", "");
-        const hash = rawHash === "contracts" ? "workspace" : rawHash;
-        if (hash && ["overview", "jobs", "proposals", "workspace", "messages", "payments", "disputes", "saved"].includes(hash)) {
+        const hash = rawHash === "contracts" ? "workspace" : rawHash === "verify-phone" ? "settings" : rawHash;
+        if (hash && ["overview", "jobs", "proposals", "workspace", "messages", "payments", "disputes", "saved", "reviews", "settings"].includes(hash)) {
           setActiveTab(hash);
         }
       }
@@ -734,6 +744,19 @@ function ClientDashboardContent() {
 
         {activeTab === "reviews" && <MyReviewsSection role="client" lang={lang} />}
 
+        {activeTab === "settings" && (
+          <div id="settings" className="space-y-4">
+            <SectionHeading
+              title="Profile settings"
+              titleBn="প্রোফাইল সেটিংস"
+              subtitle="Manage how freelancers can trust and reach you"
+              subtitleBn="ফ্রিল্যান্সারদের আস্থা ও যোগাযোগের তথ্য পরিচালনা করুন"
+              lang={lang}
+            />
+            <PhoneVerification lang={lang} onStatusChange={phoneStatus.update} />
+          </div>
+        )}
+
         {/* Stats Grid */}
         {activeTab === "overview" && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -855,7 +878,7 @@ function ClientDashboardContent() {
         {activeTab === "overview" && (
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
             <div className="xl:col-span-2">
-              <OnboardingChecklist tasks={CLIENT_ONBOARDING_TASKS} lang={lang} />
+              <OnboardingChecklist tasks={onboardingTasks} lang={lang} />
             </div>
 
             <div className="mk-dark-card rounded-xl p-6 text-white shadow-sm flex flex-col justify-between">

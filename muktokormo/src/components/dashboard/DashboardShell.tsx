@@ -29,6 +29,7 @@ import {
   Home,
   Star,
   Flag,
+  Settings,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { Avatar } from "@/components/ui";
@@ -49,6 +50,7 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   Layers,
   Star,
   Flag,
+  Settings,
 };
 
 interface DashboardShellProps {

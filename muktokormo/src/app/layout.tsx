@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Hind_Siliguri, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import SiteAssistant from "@/components/ai/SiteAssistant";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -50,6 +51,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         {children}
+        <SiteAssistant />
       </body>
     </html>
   );

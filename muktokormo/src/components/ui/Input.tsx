@@ -17,6 +17,7 @@ interface InputProps
   leftIcon?: React.ReactNode;
   rightElement?: React.ReactNode;
   showPasswordToggle?: boolean;
+  ref?: React.Ref<HTMLInputElement>;
 }
 
 export function Input({

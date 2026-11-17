@@ -21,6 +21,7 @@ export const CLIENT_NAV: NavItem[] = [
   { id: "disputes", label: "Disputes", labelBn: "বিরোধ", icon: "Gavel", href: "#disputes" },
   { id: "saved", label: "Saved Talent", labelBn: "সংরক্ষিত ট্যালেন্ট", icon: "Bookmark", href: "#saved" },
   { id: "reviews", label: "Reviews", labelBn: "রিভিউ", icon: "Star", href: "#reviews" },
+  { id: "settings", label: "Profile Settings", labelBn: "প্রোফাইল সেটিংস", icon: "Settings", href: "#settings" },
 ];
 
 export const FREELANCER_NAV: NavItem[] = [

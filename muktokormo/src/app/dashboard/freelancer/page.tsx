@@ -32,6 +32,8 @@ import DashboardShell from "@/components/dashboard/DashboardShell";
 import WorkspaceMessagesSection from "@/components/dashboard/WorkspaceMessagesSection";
 import WorkspaceSection from "@/components/dashboard/WorkspaceSection";
 import MyReviewsSection from "@/components/reviews/MyReviewsSection";
+import PhoneVerification from "@/components/profile/PhoneVerification";
+import usePhoneVerificationStatus from "@/lib/hooks/usePhoneVerificationStatus";
 import { PageHeader, SectionHeading, StatCard, OnboardingChecklist } from "@/components/dashboard/Primitives";
 import {
   ProposalTracker,
@@ -79,6 +81,14 @@ function FreelancerDashboardContent() {
   const searchParams = useSearchParams();
   const deniedFrom = searchParams ? searchParams.get("denied") : null;
   const { userId, name, email, role, freelancerId, avatarUrl, loading: userLoading } = useCurrentUser();
+  const phoneStatus = usePhoneVerificationStatus(Boolean(userId));
+  const onboardingTasks = useMemo(
+    () =>
+      FREELANCER_ONBOARDING_TASKS.map((task) =>
+        task.id === "phone" && phoneStatus.verified ? { ...task, status: "DONE" as const } : task
+      ),
+    [phoneStatus.verified]
+  );
   const [lang, setLang] = useState<"en" | "bn">("en");
   const tabParam = searchParams ? searchParams.get("tab") : null;
   const threadParam = searchParams ? (searchParams.get("threadId") || searchParams.get("proposalId") || searchParams.get("contractId")) : null;
@@ -94,8 +104,8 @@ function FreelancerDashboardContent() {
         setActiveTab("messages");
       } else if (typeof window !== "undefined") {
         const rawHash = window.location.hash.replace("#", "");
-        const hash = rawHash === "contracts" ? "workspace" : rawHash;
-        if (hash && ["overview", "find-work", "proposals", "workspace", "messages", "wallet", "profile"].includes(hash)) {
+        const hash = rawHash === "contracts" ? "workspace" : rawHash === "verify-phone" ? "profile" : rawHash;
+        if (hash && ["overview", "find-work", "proposals", "workspace", "messages", "wallet", "reviews", "profile"].includes(hash)) {
           setActiveTab(hash);
         }
       }
@@ -110,8 +120,8 @@ function FreelancerDashboardContent() {
     const handleHashChange = () => {
       if (typeof window !== "undefined") {
         const rawHash = window.location.hash.replace("#", "");
-        const hash = rawHash === "contracts" ? "workspace" : rawHash;
-        if (hash && ["overview", "find-work", "proposals", "workspace", "messages", "wallet", "profile"].includes(hash)) {
+        const hash = rawHash === "contracts" ? "workspace" : rawHash === "verify-phone" ? "profile" : rawHash;
+        if (hash && ["overview", "find-work", "proposals", "workspace", "messages", "wallet", "reviews", "profile"].includes(hash)) {
           setActiveTab(hash);
         }
       }
@@ -350,7 +360,7 @@ function FreelancerDashboardContent() {
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState<number>(0);
   const [withdrawGateway, setWithdrawGateway] = useState<"BKASH" | "NAGAD" | "BANK">("BKASH");
-  const [withdrawAccount, setWithdrawAccount] = useState("+8801712-345678");
+  const [withdrawAccount, setWithdrawAccount] = useState("");
   const [withdrawStep, setWithdrawStep] = useState<"FORM" | "PREVIEWED">("FORM");
 
   // Job proposal fast modal
@@ -1504,7 +1514,10 @@ function FreelancerDashboardContent() {
               subtitleBn="যাচাইকৃত ফ্রিল্যান্সাররা ৩ গুণ বেশি কাজ পান"
               lang={lang}
             />
-            <OnboardingChecklist tasks={FREELANCER_ONBOARDING_TASKS} lang={lang} />
+            {activeTab === "profile" && (
+              <PhoneVerification lang={lang} onStatusChange={phoneStatus.update} />
+            )}
+            <OnboardingChecklist tasks={onboardingTasks} lang={lang} />
           </div>
         )}
 
