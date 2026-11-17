@@ -328,7 +328,9 @@ export async function POST(request: NextRequest) {
       user.email ||
       "client@muktokormo.com";
     const customerPhone =
-      typeof profileObj.phone === "string" && profileObj.phone.trim()
+      profileObj.phone_verified === true && typeof profileObj.phone_number === "string"
+        ? profileObj.phone_number
+        : typeof profileObj.phone === "string" && profileObj.phone.trim()
         ? profileObj.phone.trim()
         : typeof user.user_metadata?.phone === "string" && user.user_metadata.phone.trim()
           ? user.user_metadata.phone.trim()

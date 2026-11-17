@@ -36,7 +36,12 @@ function sanitizeBrief(raw: unknown): BriefOutput | null {
   for (const key of BRIEF_SECTION_KEYS) {
     const s = (sectionsIn[key] ?? {}) as Record<string, unknown>;
     const source = typeof s.source === "string" && SOURCES.has(s.source) ? s.source : "suggested";
-    sections[key] = { content: str(s.content, 4000), source: source as BriefSection["source"] };
+    let content = str(s.content, 4000);
+    // Models sometimes return "- a - b - c" on one line; put each bullet on its own line.
+    if (!content.includes("\n") && content.startsWith("- ") && content.includes(" - ")) {
+      content = content.replace(/\s+-\s+(?=\S)/g, "\n- ");
+    }
+    sections[key] = { content, source: source as BriefSection["source"] };
   }
   return {
     title: str(r.title, 120),
