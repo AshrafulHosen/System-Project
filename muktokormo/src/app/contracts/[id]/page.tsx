@@ -26,6 +26,7 @@ import WorkDeliverySection from "@/components/payments/WorkDeliverySection";
 import EscrowLedgerCard from "@/components/payments/EscrowLedgerCard";
 import MilestonePanel from "@/components/milestones/MilestonePanel";
 import ContractReviewSection from "@/components/reviews/ContractReviewSection";
+import ProjectFiles from "@/components/projects/ProjectFiles";
 import { INITIAL_WORKSPACE_CONTRACTS } from "@/data/mockContracts";
 import { isUuid, parseProposalContractAlias } from "@/lib/payments/constants";
 import { formatBdt } from "@/lib/format";
@@ -695,6 +696,9 @@ function ContractWorkspaceContent({ contractId }: { contractId: string }) {
             </div>
           </div>
         </div>
+
+        {/* Files the client attached to the job (client + hired freelancer) */}
+        {isLiveContract && <ProjectFiles contractId={contract.id} lang={lang} />}
 
         {/* Milestone contract (per-milestone funding, delivery & release) */}
         {isLiveContract && (

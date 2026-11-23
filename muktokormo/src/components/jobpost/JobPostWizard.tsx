@@ -26,6 +26,13 @@ import { JobCategory } from "@/types";
 import { CATEGORIES } from "@/data/mockData";
 import { formatBdt } from "@/lib/format";
 import BriefGenerator, { type AppliedBrief } from "@/components/ai/BriefGenerator";
+import {
+  PROJECT_FILE_ACCEPT,
+  PROJECT_FILES_MAX_COUNT,
+  formatFileSize,
+  validateProjectFile,
+} from "@/lib/project-files/shared";
+import { uploadProjectFile } from "@/lib/project-files/upload";
 
 const STEPS: WizardStep[] = [
   { id: "title", label: "Title", labelBn: "শিরোনাম" },
@@ -70,7 +77,10 @@ export default function JobPostWizard({
   const [hourlyMax, setHourlyMax] = useState(1500);
   const [milestones, setMilestones] = useState(3);
   const [description, setDescription] = useState("");
-  const [attachment, setAttachment] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const [uploadWarning, setUploadWarning] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
@@ -169,8 +179,33 @@ export default function JobPostWizard({
 
       if (insertError) throw new Error(insertError.message);
 
+      // 4. Upload attachments to private project storage (shared with the hired freelancer).
+      const projectId = inserted?.[0]?.id as string | undefined;
+      const failed: string[] = [];
+      if (projectId && attachments.length) {
+        for (let i = 0; i < attachments.length; i++) {
+          const file = attachments[i];
+          try {
+            await uploadProjectFile(projectId, file, (pct) =>
+              setUploadStatus(`Uploading ${file.name} (${i + 1}/${attachments.length}) · ${pct}%`)
+            );
+          } catch {
+            failed.push(file.name);
+          }
+        }
+        setUploadStatus(null);
+      }
+
+      setUploadWarning(
+        failed.length
+          ? `Your job was posted, but ${failed.length} file(s) could not be uploaded (${failed.join(", ")}). You can add them from the job page.`
+          : null
+      );
       setIsSuccess(true);
-      setTimeout(() => router.push("/dashboard/client"), 1800);
+      setTimeout(
+        () => router.push(failed.length && projectId ? `/jobs/${projectId}` : "/dashboard/client"),
+        failed.length ? 4500 : 1800
+      );
     } catch (err: unknown) {
       console.error("[JobPost] publish failed:", err);
       setPublishError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -190,8 +225,13 @@ export default function JobPostWizard({
           <p className="text-xs text-ink-3 leading-relaxed">
             Your job is now live on the marketplace. Verified freelancers can now apply.
           </p>
+          {uploadWarning && (
+            <p className="text-[12px] text-accent-strong bg-accent-soft border border-accent/25 rounded-lg p-3 text-left">
+              {uploadWarning}
+            </p>
+          )}
           <p className="text-[11px] text-brand font-semibold pt-1">
-            Redirecting to your client dashboard...
+            {uploadWarning ? "Opening your job page..." : "Redirecting to your client dashboard..."}
           </p>
         </div>
       </div>
@@ -723,20 +763,67 @@ export default function JobPostWizard({
               </div>
             </div>
 
-            <div>
+            <div className="space-y-2">
               <input
                 type="file"
                 id="job-attachment"
                 className="hidden"
-                onChange={(e) => setAttachment(e.target.files?.[0]?.name ?? null)}
+                multiple
+                accept={PROJECT_FILE_ACCEPT}
+                disabled={isPublishing}
+                onChange={(e) => {
+                  const picked = Array.from(e.target.files ?? []);
+                  e.target.value = "";
+                  if (!picked.length) return;
+                  const problem = picked.map(validateProjectFile).find(Boolean);
+                  if (problem) return setAttachmentError(problem);
+                  if (attachments.length + picked.length > PROJECT_FILES_MAX_COUNT) {
+                    return setAttachmentError(`You can attach up to ${PROJECT_FILES_MAX_COUNT} files.`);
+                  }
+                  setAttachmentError(null);
+                  setAttachments((prev) => [...prev, ...picked]);
+                }}
               />
               <label
                 htmlFor="job-attachment"
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-line-strong bg-canvas hover:bg-brand-soft hover:border-brand/30 text-xs font-semibold text-ink-2 hover:text-navy transition-all cursor-pointer"
               >
                 <Paperclip className="w-3.5 h-3.5 text-ink-3" />
-                {attachment || "Attach file"}
+                {attachments.length ? "Attach more files" : "Attach files"}
               </label>
+              {attachments.length > 0 && (
+                <ul className="space-y-1">
+                  {attachments.map((f, i) => (
+                    <li key={`${f.name}-${i}`} className="flex items-center justify-between gap-2 rounded-md border border-line bg-white px-3 py-1.5">
+                      <span className="text-[12px] text-ink-2 truncate min-w-0">
+                        {f.name} <span className="text-ink-4 font-mono mk-tabular">· {formatFileSize(f.size)}</span>
+                      </span>
+                      <button
+                        type="button"
+                        disabled={isPublishing}
+                        onClick={() => setAttachments((prev) => prev.filter((_, j) => j !== i))}
+                        className="text-ink-4 hover:text-danger-strong cursor-pointer shrink-0"
+                        aria-label={`Remove ${f.name}`}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="text-[10px] text-ink-4">
+                Private — shared only with the freelancer you hire. PDF, Office, TXT, CSV, images or ZIP · up to 20 MB each · max {PROJECT_FILES_MAX_COUNT}.
+              </p>
+              {attachmentError && (
+                <p className="text-[11px] font-medium text-danger-strong" role="alert">
+                  {attachmentError}
+                </p>
+              )}
+              {uploadStatus && (
+                <p className="text-[11px] text-brand font-medium" role="status">
+                  {uploadStatus}
+                </p>
+              )}
             </div>
           </div>
         )}
