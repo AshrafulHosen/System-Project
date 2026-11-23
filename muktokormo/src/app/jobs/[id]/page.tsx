@@ -30,6 +30,7 @@ import { formatBdt } from "@/lib/format";
 import { PLATFORM_FEE_PCT } from "@/lib/data/mappers";
 import type { Job, JobBid } from "@/types";
 import Logo from "@/components/Logo";
+import ProjectFiles from "@/components/projects/ProjectFiles";
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 function StatusBadge({ status }: { status: JobBid["status"] }) {
@@ -382,6 +383,9 @@ export default function JobDetailPage() {
               <p className="text-sm text-ink-3 leading-relaxed whitespace-pre-wrap border-t border-line pt-4">{job.descriptionBn}</p>
             )}
           </div>
+
+          {/* Client attachments: owner manages, hired freelancer downloads, others see a count */}
+          {/^[0-9a-f-]{36}$/i.test(job.id) && <ProjectFiles projectId={job.id} />}
 
           {/* Skills */}
           {job.skills.length > 0 && (
